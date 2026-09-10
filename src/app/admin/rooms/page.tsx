@@ -1,0 +1,78 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getCurrentUser, isAdminEmail } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { NewRoomForm } from "./new-room-form";
+import { DeleteRoomButton } from "./delete-room-button";
+import { deleteRoom } from "./delete-actions";
+
+export default async function AdminRoomsPage() {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  if (!isAdminEmail(user.email)) redirect("/rooms");
+
+  const rooms = await db.room.findMany({
+    orderBy: [{ campus: "asc" }, { building: "asc" }, { name: "asc" }],
+    include: {
+      _count: {
+        select: { bookings: { where: { endTime: { gte: new Date() } } } },
+      },
+    },
+  });
+
+  return (
+    <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+      <Link href="/admin" className="text-sm text-blue-700 hover:underline">
+        ← Admininställningar
+      </Link>
+
+      <h1 className="mt-2 text-2xl font-semibold text-gray-900">Hantera rum</h1>
+      <p className="mt-1 text-sm text-gray-500">
+        Lägg till nya grupprum eller ta bort befintliga. Att ta bort ett rum
+        tar även bort alla dess bokningar.
+      </p>
+
+      <div className="mt-6">
+        <h2 className="mb-2 text-sm font-medium text-gray-700">Lägg till rum</h2>
+        <NewRoomForm />
+      </div>
+
+      <div className="mt-8">
+        <h2 className="mb-2 text-sm font-medium text-gray-700">Befintliga rum</h2>
+        <div className="space-y-2">
+          {rooms.map((room) => (
+            <div
+              key={room.id}
+              className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4"
+            >
+              <div>
+                <h3 className="font-medium text-gray-900">{room.name}</h3>
+                <p className="text-sm text-gray-500">
+                  {room.building} · {room.campus}
+                </p>
+                <p className="mt-1 text-xs text-gray-400">
+                  Plats för {room.capacity} personer
+                  {room.hasScreen ? " · Skärm" : ""}
+                  {room.hasWhiteboard ? " · Whiteboard" : ""}
+                  {" · "}
+                  {room._count.bookings > 0
+                    ? `${room._count.bookings} kommande bokningar`
+                    : "Inga kommande bokningar"}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Link
+                  href={`/admin/rooms/${room.id}/edit`}
+                  className="text-sm font-medium text-blue-700 hover:underline"
+                >
+                  Redigera
+                </Link>
+                <DeleteRoomButton roomId={room.id} action={deleteRoom} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
