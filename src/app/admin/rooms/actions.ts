@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser, isAdminEmail } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { notifyBookingsChanged } from "@/lib/booking-events";
 
 const createRoomSchema = z.object({
   name: z.string().trim().min(1, "Namn krävs").max(100, "Namn får vara högst 100 tecken"),
@@ -54,6 +55,7 @@ export async function createRoom(
   });
 
   revalidatePath("/admin/rooms");
+  notifyBookingsChanged();
   return { success: "Rummet är tillagt!" };
 }
 
@@ -112,5 +114,6 @@ export async function updateRoom(
 
   revalidatePath("/admin/rooms");
   revalidatePath(`/admin/rooms/${roomId}/edit`);
+  notifyBookingsChanged();
   return { success: "Ändringarna är sparade!" };
 }

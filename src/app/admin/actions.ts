@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser, isAdminEmail } from "@/lib/auth";
 import { updateSettings as persistSettings } from "@/lib/settings";
+import { notifyBookingsChanged } from "@/lib/booking-events";
 
 const settingsSchema = z
   .object({
@@ -52,5 +53,6 @@ export async function updateSettings(
   await persistSettings(parsed.data);
 
   revalidatePath("/admin");
+  notifyBookingsChanged();
   return { success: "Inställningarna är sparade!" };
 }
