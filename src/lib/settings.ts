@@ -1,0 +1,58 @@
+import "server-only";
+import { db } from "@/lib/db";
+
+const SETTINGS_ID = "singleton";
+
+export type ScheduleLayout = "horizontal" | "vertical";
+
+export type AppSettings = {
+  stepMinutes: number;
+  minMinutes: number;
+  maxMinutes: number;
+  scheduleLayout: ScheduleLayout;
+};
+
+export type BookingSettings = Pick<AppSettings, "stepMinutes" | "minMinutes" | "maxMinutes">;
+
+function toScheduleLayout(value: string): ScheduleLayout {
+  return value === "vertical" ? "vertical" : "horizontal";
+}
+
+export async function getSettings(): Promise<AppSettings> {
+  const settings = await db.settings.upsert({
+    where: { id: SETTINGS_ID },
+    update: {},
+    create: { id: SETTINGS_ID },
+  });
+  return {
+    stepMinutes: settings.stepMinutes,
+    minMinutes: settings.minMinutes,
+    maxMinutes: settings.maxMinutes,
+    scheduleLayout: toScheduleLayout(settings.scheduleLayout),
+  };
+}
+
+export async function updateSettings(data: AppSettings) {
+  await db.settings.upsert({
+    where: { id: SETTINGS_ID },
+    update: data,
+    create: { id: SETTINGS_ID, ...data },
+  });
+}
+
+/** Booking-rule-only subset, for callers that don't care about display settings. */
+export async function getBookingSettings(): Promise<BookingSettings> {
+  const { stepMinutes, minMinutes, maxMinutes } = await getSettings();
+  return { stepMinutes, minMinutes, maxMinutes };
+}
+
+export async function updateBookingSettings(data: BookingSettings) {
+  const current = await getSettings();
+  await updateSettings({ ...current, ...data });
+}
+
+/** Display-only subset, for callers that only need the schedule overview layout. */
+export async function getScheduleLayout(): Promise<ScheduleLayout> {
+  const { scheduleLayout } = await getSettings();
+  return scheduleLayout;
+}
