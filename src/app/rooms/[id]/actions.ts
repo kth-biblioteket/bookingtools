@@ -6,7 +6,6 @@ import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { hasOverlap } from "@/lib/booking";
 import { getBookingSettings } from "@/lib/settings";
-import { notifyBookingsChanged } from "@/lib/booking-events";
 
 const bookSchema = z.object({
   roomId: z.string().min(1),
@@ -91,7 +90,6 @@ export async function createBooking(
   revalidatePath("/rooms");
   revalidatePath("/bookings");
   revalidatePath("/schedule");
-  notifyBookingsChanged();
   return { success: "Bokningen är klar!" };
 }
 
@@ -171,7 +169,6 @@ export async function updateBooking(
   revalidatePath("/rooms");
   revalidatePath("/bookings");
   revalidatePath("/schedule");
-  notifyBookingsChanged();
   return { success: "Bokningen är uppdaterad!" };
 }
 
@@ -193,7 +190,6 @@ export async function confirmBooking(bookingId: string) {
   revalidatePath("/rooms");
   revalidatePath("/bookings");
   revalidatePath("/schedule");
-  notifyBookingsChanged();
 }
 
 export async function cancelBooking(bookingId: string) {
@@ -211,5 +207,4 @@ export async function cancelBooking(bookingId: string) {
   revalidatePath("/rooms");
   revalidatePath("/bookings");
   revalidatePath("/schedule");
-  notifyBookingsChanged();
 }
