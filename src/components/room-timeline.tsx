@@ -83,6 +83,17 @@ export function RoomTimeline({
           const left = (i / stepCount) * 100;
           const width = 100 / stepCount;
           const stepStart = new Date(dayStart.getTime() + i * stepMinutes * 60000);
+          const isPast = stepStart < new Date();
+          if (isPast) {
+            return (
+              <div
+                key={i}
+                title="Har passerat"
+                style={{ left: `${left}%`, width: `${width}%` }}
+                className="absolute inset-y-0 z-0 bg-gray-200/70"
+              />
+            );
+          }
           return (
             <button
               key={i}

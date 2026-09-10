@@ -141,6 +141,17 @@ export function ScheduleVertical({
                     const top = (i / stepCount) * 100;
                     const height = 100 / stepCount;
                     const stepStart = new Date(dayStart.getTime() + i * stepMinutes * 60000);
+                    const isPast = stepStart < new Date();
+                    if (isPast) {
+                      return (
+                        <div
+                          key={i}
+                          title="Har passerat"
+                          style={{ top: `${top}%`, height: `${height}%` }}
+                          className="absolute inset-x-0 bg-gray-200/70"
+                        />
+                      );
+                    }
                     return (
                       <button
                         key={i}

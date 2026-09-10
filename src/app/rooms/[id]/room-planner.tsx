@@ -120,7 +120,9 @@ export function RoomPlanner({
         <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-6">
           {slotStatus.map((slot) => {
             const isOwn = slot.booking?.userId === currentUserId;
-            const clickable = !slot.booking || isOwn;
+            const isPast = slot.start < new Date();
+            const isPastFree = !slot.booking && isPast;
+            const clickable = (!slot.booking || isOwn) && !isPastFree;
             const isHighlighted = slot.booking && slot.booking.id === highlightedBookingId;
             const confirmationStatus = slot.booking
               ? getBookingConfirmationStatus(slot.booking, settings)
@@ -147,14 +149,18 @@ export function RoomPlanner({
                     ? isOwn
                       ? `Din bokning: ${slot.booking.title}`
                       : `Bokat: ${slot.booking.title}`
-                    : "Ledigt – klicka för att boka"
+                    : isPastFree
+                      ? "Har passerat"
+                      : "Ledigt – klicka för att boka"
                 }
                 className={`rounded px-1 py-1.5 text-center text-xs transition ${
                   slot.booking
                     ? `${isOwn ? "cursor-pointer" : "cursor-default"} ${statusColor} ${
                         isOwn ? `ring-2 ${isHighlighted ? "ring-blue-500" : "ring-blue-400"}` : ""
                       }`
-                    : "cursor-pointer bg-green-50 text-green-700 hover:bg-green-100"
+                    : isPastFree
+                      ? "cursor-not-allowed bg-gray-100 text-gray-400"
+                      : "cursor-pointer bg-green-50 text-green-700 hover:bg-green-100"
                 }`}
               >
                 {slot.label}
