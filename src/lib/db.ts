@@ -9,17 +9,20 @@ const basePrisma = globalForPrisma.prisma ?? new PrismaClient();
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = basePrisma;
 
-const BOOKING_WRITE_OPERATIONS = new Set([
-  "create",
-  "createMany",
-  "createManyAndReturn",
-  "update",
-  "updateMany",
-  "updateManyAndReturn",
-  "upsert",
-  "delete",
-  "deleteMany",
-]);
+// Singular operations only ever succeed when they actually touched a row
+// (e.g. update() on a missing id throws, it doesn't silently no-op), so
+// those always represent a real change. The batch "Many" operations are
+// different: deleteMany()/updateMany() succeed with `{ count: 0 }` when
+// nothing matched their filter — which happens on almost every read, since
+// releaseExpiredPreliminaryBookings() runs a deleteMany() on every page
+// load "just in case". Notifying unconditionally there caused an infinite
+// loop: an empty deleteMany still fired an SSE "changed" event, every
+// connected tab (including the one that just loaded) called
+// router.refresh(), which read bookings again, which ran another empty
+// deleteMany, which notified again — forever. Only notify for batch
+// operations when they actually changed at least one row.
+const ALWAYS_CHANGES = new Set(["create", "createMany", "createManyAndReturn", "update", "upsert", "delete"]);
+const CHANGES_IF_COUNT_POSITIVE = new Set(["updateMany", "updateManyAndReturn", "deleteMany"]);
 
 /**
  * Wrap the Prisma client so ANY write to the Booking model — no matter which
@@ -35,7 +38,14 @@ export const db = basePrisma.$extends({
     booking: {
       async $allOperations({ operation, args, query }) {
         const result = await query(args);
-        if (BOOKING_WRITE_OPERATIONS.has(operation)) {
+        const changed =
+          ALWAYS_CHANGES.has(operation) ||
+          (CHANGES_IF_COUNT_POSITIVE.has(operation) &&
+            typeof result === "object" &&
+            result !== null &&
+            "count" in result &&
+            (result as { count: number }).count > 0);
+        if (changed) {
           notifyBookingsChanged();
         }
         return result;
