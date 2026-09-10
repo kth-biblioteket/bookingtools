@@ -1,15 +1,25 @@
+import { getBookingConfirmationStatus, type BookingConfirmationStatus } from "@/lib/booking-status";
+import type { BookingSettings } from "@/lib/settings";
+
 export type TimelineBooking = {
   id: string;
   userId: string;
   title: string;
   startTime: Date;
   endTime: Date;
+  confirmedAt: Date | null;
   user: { name: string };
 };
 
 function formatTime(date: Date) {
   return date.toTimeString().slice(0, 5);
 }
+
+const statusClassNames: Record<BookingConfirmationStatus, string> = {
+  preliminary: "bg-yellow-200 text-yellow-900",
+  needs_confirmation: "bg-orange-200 text-orange-900",
+  confirmed: "bg-red-200 text-red-800",
+};
 
 export function RoomTimeline({
   bookings,
@@ -18,6 +28,7 @@ export function RoomTimeline({
   dayStartHour,
   dayEndHour,
   stepMinutes,
+  settings,
   onFreeClick,
   onOwnBookingClick,
 }: {
@@ -27,6 +38,7 @@ export function RoomTimeline({
   dayStartHour: number;
   dayEndHour: number;
   stepMinutes?: number;
+  settings: BookingSettings;
   onFreeClick?: (startTime: Date) => void;
   onOwnBookingClick?: (booking: TimelineBooking) => void;
 }) {
@@ -84,6 +96,7 @@ export function RoomTimeline({
         })}
 
       {blocks.map(({ booking, left, width, isOwn }) => {
+        const status = getBookingConfirmationStatus(booking, settings);
         const commonProps = {
           title: `${formatTime(booking.startTime)}–${formatTime(booking.endTime)} · ${booking.title} · ${
             isOwn ? "Din bokning" : booking.user.name
@@ -91,8 +104,8 @@ export function RoomTimeline({
           style: { left: `${left}%`, width: `${width}%` },
         };
         const commonClassName = `absolute top-0 z-10 flex h-full items-center overflow-hidden text-ellipsis whitespace-nowrap px-2 text-xs font-medium ${
-          isOwn ? "bg-blue-200 text-blue-900" : "bg-red-200 text-red-800"
-        }`;
+          statusClassNames[status]
+        } ${isOwn ? "ring-2 ring-inset ring-blue-500" : ""}`;
 
         if (isOwn && onOwnBookingClick) {
           return (
@@ -101,7 +114,7 @@ export function RoomTimeline({
               {...commonProps}
               type="button"
               onClick={() => onOwnBookingClick(booking)}
-              className={`${commonClassName} cursor-pointer hover:bg-blue-300`}
+              className={`${commonClassName} cursor-pointer hover:brightness-95`}
             >
               {formatTime(booking.startTime)}–{formatTime(booking.endTime)} {booking.title}
             </button>

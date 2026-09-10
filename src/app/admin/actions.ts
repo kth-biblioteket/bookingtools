@@ -13,6 +13,9 @@ const settingsSchema = z
     scheduleLayout: z.enum(["horizontal", "vertical"], {
       message: "Ogiltigt val för schemavy",
     }),
+    requirePreliminaryConfirmation: z.coerce.boolean(),
+    confirmMinutesBefore: z.coerce.number().int().min(0, "Måste vara 0 eller mer"),
+    confirmMinutesAfter: z.coerce.number().int().min(0, "Måste vara 0 eller mer"),
   })
   .refine((data) => data.minMinutes <= data.maxMinutes, {
     message: "Minsta längd kan inte vara större än längsta längd",
@@ -37,6 +40,9 @@ export async function updateSettings(
     minMinutes: formData.get("minMinutes"),
     maxMinutes: formData.get("maxMinutes"),
     scheduleLayout: formData.get("scheduleLayout"),
+    requirePreliminaryConfirmation: formData.get("requirePreliminaryConfirmation"),
+    confirmMinutesBefore: formData.get("confirmMinutesBefore"),
+    confirmMinutesAfter: formData.get("confirmMinutesAfter"),
   });
 
   if (!parsed.success) {

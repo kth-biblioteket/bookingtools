@@ -1,9 +1,33 @@
 import "server-only";
 import { db } from "@/lib/db";
+import { getBookingSettings } from "@/lib/settings";
 
 export const DAY_START_HOUR = 8;
 export const DAY_END_HOUR = 20;
 export const SLOT_MINUTES = 30;
+
+// Re-exported for convenience so existing server-side importers of
+// "@/lib/booking" keep working. Client components must import this pure
+// logic directly from "@/lib/booking-status" instead — this file pulls in
+// "server-only" and cannot be imported from a Client Component module.
+export type { BookingConfirmationStatus } from "@/lib/booking-status";
+export { getBookingConfirmationStatus } from "@/lib/booking-status";
+
+/**
+ * Deletes preliminary bookings whose confirmation window has closed without
+ * being confirmed, freeing the room back up. There's no background job in
+ * this app, so this runs lazily whenever bookings are read or a new one is
+ * about to be checked for overlap.
+ */
+export async function releaseExpiredPreliminaryBookings() {
+  const { requirePreliminaryConfirmation, confirmMinutesAfter } = await getBookingSettings();
+  if (!requirePreliminaryConfirmation) return;
+
+  const cutoff = new Date(Date.now() - confirmMinutesAfter * 60000);
+  await db.booking.deleteMany({
+    where: { confirmedAt: null, startTime: { lt: cutoff } },
+  });
+}
 
 export function dayBounds(dateStr: string) {
   const start = new Date(`${dateStr}T00:00:00`);
@@ -20,6 +44,7 @@ export function todayStr() {
 }
 
 export async function getRoomsWithTodayStatus() {
+  await releaseExpiredPreliminaryBookings();
   const rooms = await db.room.findMany({ orderBy: [{ campus: "asc" }, { building: "asc" }, { name: "asc" }] });
   const now = new Date();
   const { start, end } = dayBounds(todayStr());
@@ -47,6 +72,7 @@ export async function getRoom(roomId: string) {
 }
 
 export async function getBookingsForRoomOnDate(roomId: string, dateStr: string) {
+  await releaseExpiredPreliminaryBookings();
   const { start, end } = dayBounds(dateStr);
   return db.booking.findMany({
     where: { roomId, startTime: { lte: end }, endTime: { gte: start } },
@@ -71,6 +97,7 @@ export function generateDaySlots(dateStr: string) {
 }
 
 export async function hasOverlap(roomId: string, start: Date, end: Date, excludeBookingId?: string) {
+  await releaseExpiredPreliminaryBookings();
   const overlapping = await db.booking.findFirst({
     where: {
       roomId,
@@ -83,6 +110,7 @@ export async function hasOverlap(roomId: string, start: Date, end: Date, exclude
 }
 
 export async function getAllRoomsBookingsForDate(dateStr: string) {
+  await releaseExpiredPreliminaryBookings();
   const { start, end } = dayBounds(dateStr);
   const rooms = await db.room.findMany({
     orderBy: [{ campus: "asc" }, { building: "asc" }, { name: "asc" }],
@@ -99,6 +127,7 @@ export async function getAllRoomsBookingsForDate(dateStr: string) {
 }
 
 export async function getUpcomingBookingsForUser(userId: string) {
+  await releaseExpiredPreliminaryBookings();
   return db.booking.findMany({
     where: { userId, endTime: { gte: new Date() } },
     include: { room: true },

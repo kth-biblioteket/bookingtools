@@ -51,7 +51,8 @@ export async function createBooking(
     return { error: "Du kan inte boka en tid som redan passerat" };
   }
 
-  const { stepMinutes, minMinutes, maxMinutes } = await getBookingSettings();
+  const { stepMinutes, minMinutes, maxMinutes, requirePreliminaryConfirmation } =
+    await getBookingSettings();
 
   const durationMinutes = (end.getTime() - start.getTime()) / 60000;
   if (
@@ -75,7 +76,14 @@ export async function createBooking(
   }
 
   await db.booking.create({
-    data: { roomId, userId: user.id, title, startTime: start, endTime: end },
+    data: {
+      roomId,
+      userId: user.id,
+      title,
+      startTime: start,
+      endTime: end,
+      confirmedAt: requirePreliminaryConfirmation ? null : new Date(),
+    },
   });
 
   revalidatePath(`/rooms/${roomId}`);
@@ -162,6 +170,26 @@ export async function updateBooking(
   revalidatePath("/bookings");
   revalidatePath("/schedule");
   return { success: "Bokningen är uppdaterad!" };
+}
+
+export async function confirmBooking(bookingId: string) {
+  const user = await getCurrentUser();
+  if (!user) return;
+
+  const booking = await db.booking.findFirst({
+    where: { id: bookingId, userId: user.id },
+  });
+  if (!booking || booking.confirmedAt) return;
+
+  await db.booking.update({
+    where: { id: bookingId },
+    data: { confirmedAt: new Date() },
+  });
+
+  revalidatePath(`/rooms/${booking.roomId}`);
+  revalidatePath("/rooms");
+  revalidatePath("/bookings");
+  revalidatePath("/schedule");
 }
 
 export async function cancelBooking(bookingId: string) {

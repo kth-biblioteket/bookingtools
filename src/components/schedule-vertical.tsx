@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { getBookingConfirmationStatus, type BookingConfirmationStatus } from "@/lib/booking-status";
+import type { BookingSettings } from "@/lib/settings";
 
 type TimelineBooking = {
   id: string;
@@ -6,6 +8,7 @@ type TimelineBooking = {
   title: string;
   startTime: Date;
   endTime: Date;
+  confirmedAt: Date | null;
   user: { name: string };
 };
 
@@ -23,6 +26,12 @@ function formatTime(date: Date) {
   return date.toTimeString().slice(0, 5);
 }
 
+const statusClassNames: Record<BookingConfirmationStatus, string> = {
+  preliminary: "bg-yellow-200 text-yellow-900",
+  needs_confirmation: "bg-orange-200 text-orange-900",
+  confirmed: "bg-red-200 text-red-800",
+};
+
 export function ScheduleVertical({
   roomsWithBookings,
   currentUserId,
@@ -30,6 +39,7 @@ export function ScheduleVertical({
   dayStartHour,
   dayEndHour,
   stepMinutes,
+  settings,
   onFreeClick,
   onOwnBookingClick,
 }: {
@@ -39,6 +49,7 @@ export function ScheduleVertical({
   dayStartHour: number;
   dayEndHour: number;
   stepMinutes?: number;
+  settings: BookingSettings;
   onFreeClick?: (roomId: string, startTime: Date) => void;
   onOwnBookingClick?: (roomId: string, booking: TimelineBooking) => void;
 }) {
@@ -149,6 +160,7 @@ export function ScheduleVertical({
                   underneath still reach it; each block opts back in individually. */}
               <div className="pointer-events-none absolute inset-0 z-10">
                 {blocks.map(({ booking, top, height, isOwn }) => {
+                  const status = getBookingConfirmationStatus(booking, settings);
                   const commonProps = {
                     title: `${formatTime(booking.startTime)}–${formatTime(booking.endTime)} · ${booking.title} · ${
                       isOwn ? "Din bokning" : booking.user.name
@@ -156,8 +168,8 @@ export function ScheduleVertical({
                     style: { top: `${top}%`, height: `${height}%` },
                   };
                   const commonClassName = `pointer-events-auto absolute left-0.5 right-0.5 overflow-hidden rounded-sm px-1 py-0.5 text-left text-[11px] font-medium leading-tight ${
-                    isOwn ? "bg-blue-200 text-blue-900" : "bg-red-200 text-red-800"
-                  }`;
+                    statusClassNames[status]
+                  } ${isOwn ? "ring-2 ring-inset ring-blue-500" : ""}`;
 
                   if (isOwn && onOwnBookingClick) {
                     return (
@@ -166,7 +178,7 @@ export function ScheduleVertical({
                         {...commonProps}
                         type="button"
                         onClick={() => onOwnBookingClick(room.id, booking)}
-                        className={`${commonClassName} cursor-pointer hover:bg-blue-300`}
+                        className={`${commonClassName} cursor-pointer hover:brightness-95`}
                       >
                         <span className="block truncate">
                           {formatTime(booking.startTime)}–{formatTime(booking.endTime)}

@@ -75,6 +75,11 @@ export function ScheduleBoard({
   }
 
   const selectedRoom = roomsWithBookings.find((r) => r.room.id === selectedRoomId)?.room;
+  const editingBooking = editingBookingId
+    ? roomsWithBookings
+        .flatMap((r) => r.bookings)
+        .find((b) => b.id === editingBookingId)
+    : undefined;
 
   // Close the modal on Escape while it's open.
   useEffect(() => {
@@ -103,6 +108,7 @@ export function ScheduleBoard({
             dayStartHour={dayStartHour}
             dayEndHour={dayEndHour}
             stepMinutes={settings.stepMinutes}
+            settings={settings}
             onFreeClick={handleFreeClick}
             onOwnBookingClick={handleOwnBookingClick}
           />
@@ -148,6 +154,7 @@ export function ScheduleBoard({
                     dayStartHour={dayStartHour}
                     dayEndHour={dayEndHour}
                     stepMinutes={settings.stepMinutes}
+                    settings={settings}
                     onFreeClick={(start) => handleFreeClick(room.id, start)}
                     onOwnBookingClick={(booking) => handleOwnBookingClick(room.id, booking)}
                   />
@@ -185,6 +192,7 @@ export function ScheduleBoard({
               mode={mode}
               selectedRoom={selectedRoom}
               editingBookingId={editingBookingId}
+              editingBookingConfirmedAt={editingBooking?.confirmedAt ?? null}
               title={title}
               startTime={startTime}
               endTime={endTime}

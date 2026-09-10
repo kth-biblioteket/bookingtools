@@ -3,7 +3,9 @@
 import { useRef, useState } from "react";
 import { BookingForm, type FormMode } from "./booking-form";
 import { CancelButton } from "@/components/cancel-button";
-import { cancelBooking } from "./actions";
+import { ConfirmButton } from "@/components/confirm-button";
+import { cancelBooking, confirmBooking } from "./actions";
+import { getBookingConfirmationStatus } from "@/lib/booking-status";
 import type { getBookingsForRoomOnDate, generateDaySlots } from "@/lib/booking";
 import type { BookingSettings } from "@/lib/settings";
 
@@ -120,6 +122,17 @@ export function RoomPlanner({
             const isOwn = slot.booking?.userId === currentUserId;
             const clickable = !slot.booking || isOwn;
             const isHighlighted = slot.booking && slot.booking.id === highlightedBookingId;
+            const confirmationStatus = slot.booking
+              ? getBookingConfirmationStatus(slot.booking, settings)
+              : undefined;
+            const statusColor =
+              confirmationStatus === "preliminary"
+                ? "bg-yellow-100 text-yellow-900 hover:bg-yellow-200"
+                : confirmationStatus === "needs_confirmation"
+                  ? "bg-orange-100 text-orange-900 hover:bg-orange-200"
+                  : confirmationStatus === "confirmed"
+                    ? "bg-red-100 text-red-800 hover:bg-red-100"
+                    : "";
             return (
               <button
                 type="button"
@@ -138,11 +151,9 @@ export function RoomPlanner({
                 }
                 className={`rounded px-1 py-1.5 text-center text-xs transition ${
                   slot.booking
-                    ? isOwn
-                      ? `cursor-pointer bg-blue-100 text-blue-800 hover:bg-blue-200 ${
-                          isHighlighted ? "ring-2 ring-blue-500" : ""
-                        }`
-                      : "cursor-default bg-red-100 text-red-800"
+                    ? `${isOwn ? "cursor-pointer" : "cursor-default"} ${statusColor} ${
+                        isOwn ? `ring-2 ${isHighlighted ? "ring-blue-500" : "ring-blue-400"}` : ""
+                      }`
                     : "cursor-pointer bg-green-50 text-green-700 hover:bg-green-100"
                 }`}
               >
@@ -156,6 +167,21 @@ export function RoomPlanner({
           <div className="mt-4 space-y-2">
             {bookings.map((b) => {
               const isOwn = b.userId === currentUserId;
+              const confirmationStatus = getBookingConfirmationStatus(b, settings);
+              const needsConfirm =
+                confirmationStatus === "preliminary" || confirmationStatus === "needs_confirmation";
+              const statusDotColor =
+                confirmationStatus === "preliminary"
+                  ? "bg-yellow-400"
+                  : confirmationStatus === "needs_confirmation"
+                    ? "bg-orange-500"
+                    : "bg-red-500";
+              const statusLabel =
+                confirmationStatus === "preliminary"
+                  ? "Preliminär"
+                  : confirmationStatus === "needs_confirmation"
+                    ? "Väntar på bekräftelse"
+                    : "Bekräftad";
               return (
                 <div
                   key={b.id}
@@ -167,7 +193,11 @@ export function RoomPlanner({
                     highlightedBookingId === b.id ? "border-blue-500 ring-2 ring-blue-200" : "border-gray-200"
                   }`}
                 >
-                  <span>
+                  <span className="flex items-center gap-2">
+                    <span
+                      className={`inline-block h-2 w-2 shrink-0 rounded-full ${statusDotColor}`}
+                      title={statusLabel}
+                    />
                     {timeLabelFromDate(b.startTime)}–{timeLabelFromDate(b.endTime)}{" "}
                     {isOwn ? `· ${b.title} (du)` : "· Bokat"}
                   </span>
@@ -180,6 +210,7 @@ export function RoomPlanner({
                       >
                         Ändra tid
                       </button>
+                      {needsConfirm && <ConfirmButton bookingId={b.id} action={confirmBooking} />}
                       <CancelButton bookingId={b.id} action={cancelBooking} />
                     </span>
                   )}

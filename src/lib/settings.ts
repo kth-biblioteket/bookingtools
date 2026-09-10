@@ -10,9 +10,20 @@ export type AppSettings = {
   minMinutes: number;
   maxMinutes: number;
   scheduleLayout: ScheduleLayout;
+  requirePreliminaryConfirmation: boolean;
+  confirmMinutesBefore: number;
+  confirmMinutesAfter: number;
 };
 
-export type BookingSettings = Pick<AppSettings, "stepMinutes" | "minMinutes" | "maxMinutes">;
+export type BookingSettings = Pick<
+  AppSettings,
+  | "stepMinutes"
+  | "minMinutes"
+  | "maxMinutes"
+  | "requirePreliminaryConfirmation"
+  | "confirmMinutesBefore"
+  | "confirmMinutesAfter"
+>;
 
 function toScheduleLayout(value: string): ScheduleLayout {
   return value === "vertical" ? "vertical" : "horizontal";
@@ -29,6 +40,9 @@ export async function getSettings(): Promise<AppSettings> {
     minMinutes: settings.minMinutes,
     maxMinutes: settings.maxMinutes,
     scheduleLayout: toScheduleLayout(settings.scheduleLayout),
+    requirePreliminaryConfirmation: settings.requirePreliminaryConfirmation,
+    confirmMinutesBefore: settings.confirmMinutesBefore,
+    confirmMinutesAfter: settings.confirmMinutesAfter,
   };
 }
 
@@ -42,8 +56,22 @@ export async function updateSettings(data: AppSettings) {
 
 /** Booking-rule-only subset, for callers that don't care about display settings. */
 export async function getBookingSettings(): Promise<BookingSettings> {
-  const { stepMinutes, minMinutes, maxMinutes } = await getSettings();
-  return { stepMinutes, minMinutes, maxMinutes };
+  const {
+    stepMinutes,
+    minMinutes,
+    maxMinutes,
+    requirePreliminaryConfirmation,
+    confirmMinutesBefore,
+    confirmMinutesAfter,
+  } = await getSettings();
+  return {
+    stepMinutes,
+    minMinutes,
+    maxMinutes,
+    requirePreliminaryConfirmation,
+    confirmMinutesBefore,
+    confirmMinutesAfter,
+  };
 }
 
 export async function updateBookingSettings(data: BookingSettings) {

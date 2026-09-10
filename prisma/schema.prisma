@@ -44,24 +44,28 @@ model Room {
 }
 
 model Settings {
-  id             String   @id @default("singleton")
-  stepMinutes    Int      @default(60)
-  minMinutes     Int      @default(60)
-  maxMinutes     Int      @default(120)
-  scheduleLayout String   @default("horizontal")
-  updatedAt      DateTime @updatedAt
+  id                          String   @id @default("singleton")
+  stepMinutes                 Int      @default(60)
+  minMinutes                  Int      @default(60)
+  maxMinutes                  Int      @default(120)
+  scheduleLayout              String   @default("horizontal")
+  requirePreliminaryConfirmation Boolean @default(false)
+  confirmMinutesBefore        Int      @default(15)
+  confirmMinutesAfter         Int      @default(15)
+  updatedAt                   DateTime @updatedAt
 }
 
 model Booking {
-  id        String   @id @default(cuid())
-  roomId    String
-  userId    String
-  title     String
-  startTime DateTime
-  endTime   DateTime
-  createdAt DateTime @default(now())
-  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String    @id @default(cuid())
+  roomId      String
+  userId      String
+  title       String
+  startTime   DateTime
+  endTime     DateTime
+  createdAt   DateTime  @default(now())
+  confirmedAt DateTime?
+  room        Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([roomId, startTime, endTime])
   @@index([userId])

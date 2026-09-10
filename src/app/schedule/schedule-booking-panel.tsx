@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState, useEffect, useMemo } from "react";
-import { createBooking, updateBooking, cancelBooking } from "@/app/rooms/[id]/actions";
+import { useActionState, useEffect, useMemo, useTransition } from "react";
+import { createBooking, updateBooking, cancelBooking, confirmBooking } from "@/app/rooms/[id]/actions";
 import { CancelButton } from "@/components/cancel-button";
 import type { BookingSettings } from "@/lib/settings";
 
@@ -26,6 +26,7 @@ export function ScheduleBookingPanel({
   mode,
   selectedRoom,
   editingBookingId,
+  editingBookingConfirmedAt,
   title,
   startTime,
   endTime,
@@ -43,6 +44,7 @@ export function ScheduleBookingPanel({
   mode: ScheduleFormMode;
   selectedRoom: { id: string; name: string };
   editingBookingId?: string;
+  editingBookingConfirmedAt?: Date | null;
   title: string;
   startTime: string;
   endTime: string;
@@ -55,6 +57,12 @@ export function ScheduleBookingPanel({
 }) {
   const action = mode === "edit" ? updateBooking : createBooking;
   const [state, formAction, pending] = useActionState(action, undefined);
+  const [confirmPending, startConfirmTransition] = useTransition();
+
+  const needsConfirmation =
+    mode === "edit" &&
+    settings.requirePreliminaryConfirmation &&
+    editingBookingConfirmedAt === null;
 
   useEffect(() => {
     if (!state?.success) return;
@@ -196,6 +204,21 @@ export function ScheduleBookingPanel({
               className="text-sm font-medium text-gray-600 hover:underline"
             >
               Avbryt
+            </button>
+          )}
+          {needsConfirmation && editingBookingId && (
+            <button
+              type="button"
+              disabled={confirmPending}
+              onClick={() =>
+                startConfirmTransition(async () => {
+                  await confirmBooking(editingBookingId);
+                  onUpdateSuccess();
+                })
+              }
+              className="text-xs font-medium text-green-700 hover:underline disabled:opacity-60"
+            >
+              {confirmPending ? "Bekräftar…" : "Bekräfta"}
             </button>
           )}
           {mode === "edit" && editingBookingId && (
