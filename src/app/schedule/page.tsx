@@ -2,9 +2,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getAllRoomsBookingsForDate, todayStr, DAY_START_HOUR, DAY_END_HOUR } from "@/lib/booking";
-import { getScheduleLayout } from "@/lib/settings";
-import { RoomTimeline } from "@/components/room-timeline";
-import { ScheduleVertical } from "@/components/schedule-vertical";
+import { getBookingSettings, getScheduleLayout } from "@/lib/settings";
+import { ScheduleBoard } from "./schedule-board";
 
 function addDays(dateStr: string, days: number) {
   const d = new Date(`${dateStr}T00:00:00`);
@@ -26,15 +25,11 @@ export default async function SchedulePage({
   const { date: dateParam } = await searchParams;
   const date = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : todayStr();
 
-  const [roomsWithBookings, scheduleLayout] = await Promise.all([
+  const [roomsWithBookings, scheduleLayout, settings] = await Promise.all([
     getAllRoomsBookingsForDate(date),
     getScheduleLayout(),
+    getBookingSettings(),
   ]);
-
-  const hours = Array.from(
-    { length: DAY_END_HOUR - DAY_START_HOUR + 1 },
-    (_, i) => DAY_START_HOUR + i
-  );
 
   return (
     <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-8">
@@ -59,61 +54,15 @@ export default async function SchedulePage({
         </Link>
       </div>
 
-      {scheduleLayout === "vertical" ? (
-        <div className="mt-8">
-          <ScheduleVertical
-            roomsWithBookings={roomsWithBookings}
-            currentUserId={user.id}
-            dateStr={date}
-            dayStartHour={DAY_START_HOUR}
-            dayEndHour={DAY_END_HOUR}
-          />
-        </div>
-      ) : (
-        <div className="mt-8 space-y-2">
-          <div className="flex items-center gap-4">
-            <div className="w-48 shrink-0" />
-            <div className="relative h-5 flex-1">
-              {hours.map((hour) => {
-                const left = ((hour - DAY_START_HOUR) / (DAY_END_HOUR - DAY_START_HOUR)) * 100;
-                return (
-                  <span
-                    key={hour}
-                    style={{ left: `${left}%` }}
-                    className="absolute -translate-x-1/2 text-xs text-gray-500"
-                  >
-                    {String(hour).padStart(2, "0")}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-
-          {roomsWithBookings.map(({ room, bookings }) => (
-            <Link
-              key={room.id}
-              href={`/rooms/${room.id}?date=${date}`}
-              className="flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition hover:border-blue-300 hover:shadow"
-            >
-              <div className="w-48 shrink-0">
-                <p className="text-sm font-medium text-gray-900">{room.name}</p>
-                <p className="text-xs text-gray-500">
-                  {room.building} · {room.campus}
-                </p>
-              </div>
-              <div className="flex-1">
-                <RoomTimeline
-                  bookings={bookings}
-                  currentUserId={user.id}
-                  dateStr={date}
-                  dayStartHour={DAY_START_HOUR}
-                  dayEndHour={DAY_END_HOUR}
-                />
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
+      <ScheduleBoard
+        roomsWithBookings={roomsWithBookings}
+        scheduleLayout={scheduleLayout}
+        settings={settings}
+        currentUserId={user.id}
+        date={date}
+        dayStartHour={DAY_START_HOUR}
+        dayEndHour={DAY_END_HOUR}
+      />
     </div>
   );
 }

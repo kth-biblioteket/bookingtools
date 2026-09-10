@@ -108,7 +108,12 @@ test.describe("Booking", () => {
     await page.goto(`/schedule?date=${date}`);
     await expect(page.getByRole("heading", { name: "Alla rum – schema för dagen" })).toBeVisible();
 
-    const roomRow = page.locator("a", { hasText: ROOM_NAME }).first();
+    // The room name is a link, but the interactive timeline next to it is a
+    // sibling, not a child of that link (schedule rows became clickable for
+    // inline booking, so the whole row can no longer be one <a>). Go up to
+    // the shared row container instead.
+    const roomNameLink = page.getByRole("link", { name: ROOM_NAME }).first();
+    const roomRow = roomNameLink.locator("..");
     await expect(roomRow.getByText("13:00–14:00 Schemamöte")).toBeVisible();
   });
 });

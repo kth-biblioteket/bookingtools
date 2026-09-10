@@ -1,4 +1,4 @@
-type TimelineBooking = {
+export type TimelineBooking = {
   id: string;
   userId: string;
   title: string;
@@ -17,12 +17,18 @@ export function RoomTimeline({
   dateStr,
   dayStartHour,
   dayEndHour,
+  stepMinutes,
+  onFreeClick,
+  onOwnBookingClick,
 }: {
   bookings: TimelineBooking[];
   currentUserId: string;
   dateStr: string;
   dayStartHour: number;
   dayEndHour: number;
+  stepMinutes?: number;
+  onFreeClick?: (startTime: Date) => void;
+  onOwnBookingClick?: (booking: TimelineBooking) => void;
 }) {
   const dayStart = new Date(`${dateStr}T00:00:00`);
   dayStart.setHours(dayStartHour, 0, 0, 0);
@@ -30,6 +36,9 @@ export function RoomTimeline({
   dayEnd.setHours(dayEndHour, 0, 0, 0);
   const totalMs = dayEnd.getTime() - dayStart.getTime();
   const hourCount = dayEndHour - dayStartHour;
+
+  const totalMinutes = hourCount * 60;
+  const stepCount = stepMinutes ? Math.round(totalMinutes / stepMinutes) : 0;
 
   const blocks = bookings
     .map((booking) => {
@@ -56,20 +65,55 @@ export function RoomTimeline({
           />
         );
       })}
-      {blocks.map(({ booking, left, width, isOwn }) => (
-        <div
-          key={booking.id}
-          title={`${formatTime(booking.startTime)}–${formatTime(booking.endTime)} · ${booking.title} · ${
+
+      {onFreeClick && stepMinutes && stepCount > 0 &&
+        Array.from({ length: stepCount }, (_, i) => i).map((i) => {
+          const left = (i / stepCount) * 100;
+          const width = 100 / stepCount;
+          const stepStart = new Date(dayStart.getTime() + i * stepMinutes * 60000);
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onFreeClick(stepStart)}
+              title={`${formatTime(stepStart)} – klicka för att boka`}
+              style={{ left: `${left}%`, width: `${width}%` }}
+              className="absolute inset-y-0 z-0 cursor-pointer"
+            />
+          );
+        })}
+
+      {blocks.map(({ booking, left, width, isOwn }) => {
+        const commonProps = {
+          title: `${formatTime(booking.startTime)}–${formatTime(booking.endTime)} · ${booking.title} · ${
             isOwn ? "Din bokning" : booking.user.name
-          }`}
-          style={{ left: `${left}%`, width: `${width}%` }}
-          className={`absolute top-0 flex h-full items-center overflow-hidden text-ellipsis whitespace-nowrap px-2 text-xs font-medium ${
-            isOwn ? "bg-blue-200 text-blue-900" : "bg-red-200 text-red-800"
-          }`}
-        >
-          {formatTime(booking.startTime)}–{formatTime(booking.endTime)} {booking.title}
-        </div>
-      ))}
+          }`,
+          style: { left: `${left}%`, width: `${width}%` },
+        };
+        const commonClassName = `absolute top-0 z-10 flex h-full items-center overflow-hidden text-ellipsis whitespace-nowrap px-2 text-xs font-medium ${
+          isOwn ? "bg-blue-200 text-blue-900" : "bg-red-200 text-red-800"
+        }`;
+
+        if (isOwn && onOwnBookingClick) {
+          return (
+            <button
+              key={booking.id}
+              {...commonProps}
+              type="button"
+              onClick={() => onOwnBookingClick(booking)}
+              className={`${commonClassName} cursor-pointer hover:bg-blue-300`}
+            >
+              {formatTime(booking.startTime)}–{formatTime(booking.endTime)} {booking.title}
+            </button>
+          );
+        }
+
+        return (
+          <div key={booking.id} {...commonProps} className={commonClassName}>
+            {formatTime(booking.startTime)}–{formatTime(booking.endTime)} {booking.title}
+          </div>
+        );
+      })}
     </div>
   );
 }

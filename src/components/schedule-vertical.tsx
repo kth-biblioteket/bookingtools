@@ -29,12 +29,18 @@ export function ScheduleVertical({
   dateStr,
   dayStartHour,
   dayEndHour,
+  stepMinutes,
+  onFreeClick,
+  onOwnBookingClick,
 }: {
   roomsWithBookings: RoomWithBookings[];
   currentUserId: string;
   dateStr: string;
   dayStartHour: number;
   dayEndHour: number;
+  stepMinutes?: number;
+  onFreeClick?: (roomId: string, startTime: Date) => void;
+  onOwnBookingClick?: (roomId: string, booking: TimelineBooking) => void;
 }) {
   const dayStart = new Date(`${dateStr}T00:00:00`);
   dayStart.setHours(dayStartHour, 0, 0, 0);
@@ -46,6 +52,9 @@ export function ScheduleVertical({
   const hours = Array.from({ length: hourCount + 1 }, (_, i) => dayStartHour + i);
   const rowHeightPx = 64;
   const totalHeightPx = hourCount * rowHeightPx;
+
+  const totalMinutes = hourCount * 60;
+  const stepCount = stepMinutes ? Math.round(totalMinutes / stepMinutes) : 0;
 
   const gridTemplateColumns = `4rem repeat(${roomsWithBookings.length}, minmax(140px, 1fr))`;
 
@@ -114,25 +123,68 @@ export function ScheduleVertical({
                 />
               ))}
 
-              {/* booking blocks, absolutely positioned over the gridlines */}
-              <div className="absolute inset-0">
-                {blocks.map(({ booking, top, height, isOwn }) => (
-                  <div
-                    key={booking.id}
-                    title={`${formatTime(booking.startTime)}–${formatTime(booking.endTime)} · ${booking.title} · ${
+              {/* underlying grid of step-aligned free-time buttons, beneath the booking blocks */}
+              {onFreeClick && stepMinutes && stepCount > 0 && (
+                <div className="absolute inset-0 z-0">
+                  {Array.from({ length: stepCount }, (_, i) => i).map((i) => {
+                    const top = (i / stepCount) * 100;
+                    const height = 100 / stepCount;
+                    const stepStart = new Date(dayStart.getTime() + i * stepMinutes * 60000);
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => onFreeClick(room.id, stepStart)}
+                        title={`${formatTime(stepStart)} – klicka för att boka`}
+                        style={{ top: `${top}%`, height: `${height}%` }}
+                        className="absolute inset-x-0 cursor-pointer"
+                      />
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* booking blocks, absolutely positioned over the gridlines. The wrapper
+                  itself must ignore pointer events so clicks on the free-time grid
+                  underneath still reach it; each block opts back in individually. */}
+              <div className="pointer-events-none absolute inset-0 z-10">
+                {blocks.map(({ booking, top, height, isOwn }) => {
+                  const commonProps = {
+                    title: `${formatTime(booking.startTime)}–${formatTime(booking.endTime)} · ${booking.title} · ${
                       isOwn ? "Din bokning" : booking.user.name
-                    }`}
-                    style={{ top: `${top}%`, height: `${height}%` }}
-                    className={`absolute left-0.5 right-0.5 overflow-hidden rounded-sm px-1 py-0.5 text-[11px] font-medium leading-tight ${
-                      isOwn ? "bg-blue-200 text-blue-900" : "bg-red-200 text-red-800"
-                    }`}
-                  >
-                    <span className="block truncate">
-                      {formatTime(booking.startTime)}–{formatTime(booking.endTime)}
-                    </span>
-                    <span className="block truncate">{booking.title}</span>
-                  </div>
-                ))}
+                    }`,
+                    style: { top: `${top}%`, height: `${height}%` },
+                  };
+                  const commonClassName = `pointer-events-auto absolute left-0.5 right-0.5 overflow-hidden rounded-sm px-1 py-0.5 text-left text-[11px] font-medium leading-tight ${
+                    isOwn ? "bg-blue-200 text-blue-900" : "bg-red-200 text-red-800"
+                  }`;
+
+                  if (isOwn && onOwnBookingClick) {
+                    return (
+                      <button
+                        key={booking.id}
+                        {...commonProps}
+                        type="button"
+                        onClick={() => onOwnBookingClick(room.id, booking)}
+                        className={`${commonClassName} cursor-pointer hover:bg-blue-300`}
+                      >
+                        <span className="block truncate">
+                          {formatTime(booking.startTime)}–{formatTime(booking.endTime)}
+                        </span>
+                        <span className="block truncate">{booking.title}</span>
+                      </button>
+                    );
+                  }
+
+                  return (
+                    <div key={booking.id} {...commonProps} className={commonClassName}>
+                      <span className="block truncate">
+                        {formatTime(booking.startTime)}–{formatTime(booking.endTime)}
+                      </span>
+                      <span className="block truncate">{booking.title}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );

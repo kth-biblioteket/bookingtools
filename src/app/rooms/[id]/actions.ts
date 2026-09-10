@@ -81,6 +81,7 @@ export async function createBooking(
   revalidatePath(`/rooms/${roomId}`);
   revalidatePath("/rooms");
   revalidatePath("/bookings");
+  revalidatePath("/schedule");
   return { success: "Bokningen är klar!" };
 }
 
@@ -177,4 +178,5 @@ export async function cancelBooking(bookingId: string) {
   revalidatePath(`/rooms/${booking.roomId}`);
   revalidatePath("/rooms");
   revalidatePath("/bookings");
+  revalidatePath("/schedule");
 }
