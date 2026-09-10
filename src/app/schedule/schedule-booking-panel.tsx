@@ -41,7 +41,7 @@ export function ScheduleBookingPanel({
   dayStartHour: number;
   dayEndHour: number;
   mode: ScheduleFormMode;
-  selectedRoom: { id: string; name: string } | undefined;
+  selectedRoom: { id: string; name: string };
   editingBookingId?: string;
   title: string;
   startTime: string;
@@ -92,17 +92,9 @@ export function ScheduleBookingPanel({
     return options;
   }, [startTime, settings.minMinutes, settings.maxMinutes, settings.stepMinutes, dayEndHour]);
 
-  if (!selectedRoom) {
-    return (
-      <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 text-center text-sm text-gray-500">
-        Klicka på en ledig tid i schemat för att boka, eller på en egen bokning för att ändra den.
-      </div>
-    );
-  }
-
   return (
     <div>
-      <h2 className="mb-2 text-sm font-medium text-gray-700">
+      <h2 className="mb-4 text-base font-medium text-gray-700">
         {mode === "edit" ? (
           <>
             Ändra bokning – <span className="font-semibold text-gray-900">{selectedRoom.name}</span>
@@ -113,10 +105,7 @@ export function ScheduleBookingPanel({
           </>
         )}
       </h2>
-      <form
-        action={formAction}
-        className="flex flex-col gap-4 rounded-lg border border-gray-200 bg-white p-4 md:max-w-xl"
-      >
+      <form action={formAction} className="flex flex-col gap-4">
         {mode === "edit" ? (
           <input type="hidden" name="bookingId" value={editingBookingId} />
         ) : (

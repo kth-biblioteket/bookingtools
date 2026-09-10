@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { RoomTimeline, type TimelineBooking } from "@/components/room-timeline";
 import { ScheduleVertical } from "@/components/schedule-vertical";
@@ -76,6 +76,17 @@ export function ScheduleBoard({
 
   const selectedRoom = roomsWithBookings.find((r) => r.room.id === selectedRoomId)?.room;
 
+  // Close the modal on Escape while it's open.
+  useEffect(() => {
+    if (!selectedRoom) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") resetForm();
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRoom]);
+
   const hours = Array.from(
     { length: dayEndHour - dayStartHour + 1 },
     (_, i) => dayStartHour + i
@@ -147,26 +158,46 @@ export function ScheduleBoard({
         )}
       </div>
 
-      <div className="mt-8">
-        <ScheduleBookingPanel
-          date={date}
-          settings={settings}
-          dayStartHour={dayStartHour}
-          dayEndHour={dayEndHour}
-          mode={mode}
-          selectedRoom={selectedRoom}
-          editingBookingId={editingBookingId}
-          title={title}
-          startTime={startTime}
-          endTime={endTime}
-          onTitleChange={setTitle}
-          onStartTimeChange={setStartTime}
-          onEndTimeChange={setEndTime}
-          onCancelEdit={resetForm}
-          onUpdateSuccess={resetForm}
-          onCreateSuccess={resetForm}
-        />
-      </div>
+      {selectedRoom && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={resetForm}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={resetForm}
+              aria-label="Stäng"
+              className="absolute right-3 top-3 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            >
+              ✕
+            </button>
+            <ScheduleBookingPanel
+              date={date}
+              settings={settings}
+              dayStartHour={dayStartHour}
+              dayEndHour={dayEndHour}
+              mode={mode}
+              selectedRoom={selectedRoom}
+              editingBookingId={editingBookingId}
+              title={title}
+              startTime={startTime}
+              endTime={endTime}
+              onTitleChange={setTitle}
+              onStartTimeChange={setStartTime}
+              onEndTimeChange={setEndTime}
+              onCancelEdit={resetForm}
+              onUpdateSuccess={resetForm}
+              onCreateSuccess={resetForm}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
