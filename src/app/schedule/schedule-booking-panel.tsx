@@ -30,6 +30,7 @@ export function ScheduleBookingPanel({
   title,
   startTime,
   endTime,
+  holdError,
   onTitleChange,
   onStartTimeChange,
   onEndTimeChange,
@@ -48,6 +49,10 @@ export function ScheduleBookingPanel({
   title: string;
   startTime: string;
   endTime: string;
+  /** Set when someone else has already booked or is holding this slot
+   * (from the create-mode hold heartbeat in schedule-board.tsx). Blocks
+   * submission until it clears. */
+  holdError?: string;
   onTitleChange: (value: string) => void;
   onStartTimeChange: (value: string) => void;
   onEndTimeChange: (value: string) => void;
@@ -186,13 +191,14 @@ export function ScheduleBookingPanel({
           </div>
         </div>
 
+        {holdError && <p className="text-sm text-red-600">{holdError}</p>}
         {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
         {state?.success && <p className="text-sm text-green-700">{state.success}</p>}
 
         <div className="flex items-center gap-3">
           <button
             type="submit"
-            disabled={pending}
+            disabled={pending || !!holdError}
             className="rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-60"
           >
             {mode === "edit" ? (pending ? "Sparar…" : "Spara ändring") : pending ? "Bokar…" : "Boka rum"}

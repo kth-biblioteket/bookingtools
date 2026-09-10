@@ -1,13 +1,19 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { BookingForm, type FormMode } from "./booking-form";
 import { CancelButton } from "@/components/cancel-button";
 import { ConfirmButton } from "@/components/confirm-button";
-import { cancelBooking, confirmBooking } from "./actions";
+import { cancelBooking, confirmBooking, releaseMyHold, requestHold } from "./actions";
 import { getBookingConfirmationStatus } from "@/lib/booking-status";
 import type { getBookingsForRoomOnDate, generateDaySlots } from "@/lib/booking";
 import type { BookingSettings } from "@/lib/settings";
+import type { ActiveHold } from "@/lib/booking-hold";
+
+/** How often to renew our hold while the booking form is open, safely under HOLD_TTL_MS. */
+const HOLD_HEARTBEAT_MS = 20_000;
+/** Debounce before renewing the hold after the user changes the start/end time. */
+const HOLD_RENEW_DEBOUNCE_MS = 500;
 
 type Booking = Awaited<ReturnType<typeof getBookingsForRoomOnDate>>[number];
 type Slot = ReturnType<typeof generateDaySlots>[number];
@@ -34,6 +40,7 @@ export function RoomPlanner({
   slots,
   settings,
   currentUserId,
+  holds,
 }: {
   roomId: string;
   date: string;
@@ -41,6 +48,7 @@ export function RoomPlanner({
   slots: Slot[];
   settings: BookingSettings;
   currentUserId: string;
+  holds: ActiveHold[];
 }) {
   const [mode, setMode] = useState<FormMode>("create");
   const [editingBookingId, setEditingBookingId] = useState<string | undefined>();
@@ -48,9 +56,76 @@ export function RoomPlanner({
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [highlightedBookingId, setHighlightedBookingId] = useState<string | undefined>();
+  const [holdError, setHoldError] = useState<string | undefined>();
+  const [, startHoldTransition] = useTransition();
 
   const formSectionRef = useRef<HTMLDivElement>(null);
   const bookingRefs = useRef(new Map<string, HTMLDivElement>());
+
+  // Whether we currently need a hold: only while the create form has a real,
+  // free slot picked out (editing an own existing booking doesn't need one).
+  const holdActiveRef = useRef(false);
+  const latestHoldRequestRef = useRef({ roomId, date, startTime, endTime });
+  latestHoldRequestRef.current = { roomId, date, startTime, endTime };
+
+  // Request/renew the hold whenever the picked slot changes, and release it
+  // once the user is no longer trying to book a new free slot.
+  useEffect(() => {
+    const isActive = mode === "create" && !!startTime && !!endTime;
+    const wasActive = holdActiveRef.current;
+    holdActiveRef.current = isActive;
+
+    if (!isActive) {
+      setHoldError(undefined);
+      if (wasActive) {
+        startHoldTransition(async () => {
+          await releaseMyHold();
+        });
+      }
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      startHoldTransition(async () => {
+        const result = await requestHold(roomId, date, startTime, endTime);
+        setHoldError(result?.error);
+      });
+    }, HOLD_RENEW_DEBOUNCE_MS);
+
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, startTime, endTime, roomId, date]);
+
+  // Heartbeat: renew the hold periodically using the latest form values, well
+  // under the server-side TTL, so a long-open form doesn't silently expire.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!holdActiveRef.current) return;
+      const current = latestHoldRequestRef.current;
+      startHoldTransition(async () => {
+        const result = await requestHold(
+          current.roomId,
+          current.date,
+          current.startTime,
+          current.endTime
+        );
+        setHoldError(result?.error);
+      });
+    }, HOLD_HEARTBEAT_MS);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Safety net: release our hold if the component unmounts while one is active
+  // (e.g. navigating away without cancelling first).
+  useEffect(() => {
+    return () => {
+      if (holdActiveRef.current) {
+        releaseMyHold();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function scrollToForm() {
     formSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -110,7 +185,13 @@ export function RoomPlanner({
 
   const slotStatus = slots.map((slot) => {
     const booking = bookings.find((b) => b.startTime < slot.end && b.endTime > slot.start);
-    return { ...slot, booking };
+    const heldByOther =
+      !booking &&
+      holds.some(
+        (hold) =>
+          hold.userId !== currentUserId && hold.startTime < slot.end && hold.endTime > slot.start
+      );
+    return { ...slot, booking, heldByOther };
   });
 
   return (
@@ -122,7 +203,7 @@ export function RoomPlanner({
             const isOwn = slot.booking?.userId === currentUserId;
             const isPast = slot.start < new Date();
             const isPastFree = !slot.booking && isPast;
-            const clickable = (!slot.booking || isOwn) && !isPastFree;
+            const clickable = (!slot.booking || isOwn) && !isPastFree && !slot.heldByOther;
             const isHighlighted = slot.booking && slot.booking.id === highlightedBookingId;
             const confirmationStatus = slot.booking
               ? getBookingConfirmationStatus(slot.booking, settings)
@@ -141,26 +222,30 @@ export function RoomPlanner({
                 key={slot.label}
                 disabled={!clickable}
                 onClick={() => {
-                  if (!slot.booking) handleFreeSlotClick(slot);
-                  else if (isOwn) handleOwnSlotClick(slot.booking);
+                  if (!slot.booking && !slot.heldByOther) handleFreeSlotClick(slot);
+                  else if (isOwn && slot.booking) handleOwnSlotClick(slot.booking);
                 }}
                 title={
                   slot.booking
                     ? isOwn
                       ? `Din bokning: ${slot.booking.title}`
                       : `Bokat: ${slot.booking.title}`
-                    : isPastFree
-                      ? "Har passerat"
-                      : "Ledigt – klicka för att boka"
+                    : slot.heldByOther
+                      ? "Någon bokar den här tiden just nu"
+                      : isPastFree
+                        ? "Har passerat"
+                        : "Ledigt – klicka för att boka"
                 }
                 className={`rounded px-1 py-1.5 text-center text-xs transition ${
                   slot.booking
                     ? `${isOwn ? "cursor-pointer" : "cursor-default"} ${statusColor} ${
                         isOwn ? `ring-2 ${isHighlighted ? "ring-blue-500" : "ring-blue-400"}` : ""
                       }`
-                    : isPastFree
-                      ? "cursor-not-allowed bg-gray-100 text-gray-400"
-                      : "cursor-pointer bg-green-50 text-green-700 hover:bg-green-100"
+                    : slot.heldByOther
+                      ? "cursor-not-allowed border border-dashed border-gray-400 bg-[repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb_4px,#dbeafe_4px,#dbeafe_8px)] text-gray-500"
+                      : isPastFree
+                        ? "cursor-not-allowed bg-gray-100 text-gray-400"
+                        : "cursor-pointer bg-green-50 text-green-700 hover:bg-green-100"
                 }`}
               >
                 {slot.label}
@@ -247,6 +332,7 @@ export function RoomPlanner({
           onCancelEdit={handleCancelEdit}
           onUpdateSuccess={handleUpdateSuccess}
           onCreateSuccess={handleCreateSuccess}
+          holdError={mode === "create" ? holdError : undefined}
         />
       </div>
     </div>

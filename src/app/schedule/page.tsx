@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getAllRoomsBookingsForDate, todayStr, DAY_START_HOUR, DAY_END_HOUR } from "@/lib/booking";
+import { getActiveHoldsForDate } from "@/lib/booking-hold";
 import { getBookingSettings, getScheduleLayout } from "@/lib/settings";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { ScheduleBoard } from "./schedule-board";
@@ -26,10 +27,11 @@ export default async function SchedulePage({
   const { date: dateParam } = await searchParams;
   const date = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : todayStr();
 
-  const [roomsWithBookings, scheduleLayout, settings] = await Promise.all([
+  const [roomsWithBookings, scheduleLayout, settings, holds] = await Promise.all([
     getAllRoomsBookingsForDate(date),
     getScheduleLayout(),
     getBookingSettings(),
+    getActiveHoldsForDate(date),
   ]);
 
   return (
@@ -64,6 +66,7 @@ export default async function SchedulePage({
         date={date}
         dayStartHour={DAY_START_HOUR}
         dayEndHour={DAY_END_HOUR}
+        holds={holds}
       />
     </div>
   );

@@ -1,4 +1,5 @@
 import { getBookingConfirmationStatus, type BookingConfirmationStatus } from "@/lib/booking-status";
+import type { ActiveHold } from "@/lib/booking-hold";
 import type { BookingSettings } from "@/lib/settings";
 
 export type TimelineBooking = {
@@ -23,6 +24,7 @@ const statusClassNames: Record<BookingConfirmationStatus, string> = {
 
 export function RoomTimeline({
   bookings,
+  holds,
   currentUserId,
   dateStr,
   dayStartHour,
@@ -33,6 +35,8 @@ export function RoomTimeline({
   onOwnBookingClick,
 }: {
   bookings: TimelineBooking[];
+  /** Other users' active holds on this room, already filtered to this room. */
+  holds?: ActiveHold[];
   currentUserId: string;
   dateStr: string;
   dayStartHour: number;
@@ -63,6 +67,20 @@ export function RoomTimeline({
       return { booking, left, width, isOwn };
     })
     .filter((b): b is NonNullable<typeof b> => b !== null);
+
+  // Other users' active holds on otherwise-free time — advisory only, but
+  // shown so a second person doesn't start filling in the same slot.
+  const heldBlocks = (holds ?? [])
+    .filter((hold) => hold.userId !== currentUserId)
+    .map((hold) => {
+      const start = hold.startTime < dayStart ? dayStart : hold.startTime;
+      const end = hold.endTime > dayEnd ? dayEnd : hold.endTime;
+      if (start >= end) return null;
+      const left = ((start.getTime() - dayStart.getTime()) / totalMs) * 100;
+      const width = ((end.getTime() - start.getTime()) / totalMs) * 100;
+      return { hold, left, width };
+    })
+    .filter((h): h is NonNullable<typeof h> => h !== null);
 
   return (
     <div className="relative h-10 w-full overflow-hidden rounded-md border border-gray-200 bg-green-50">
@@ -105,6 +123,20 @@ export function RoomTimeline({
             />
           );
         })}
+
+      {heldBlocks.map(({ hold, left, width }) => (
+        <div
+          key={hold.id}
+          title="Någon bokar den här tiden just nu"
+          style={{
+            left: `${left}%`,
+            width: `${width}%`,
+            backgroundImage:
+              "repeating-linear-gradient(45deg, rgba(71,85,105,0.35) 0px, rgba(71,85,105,0.35) 6px, transparent 6px, transparent 12px)",
+          }}
+          className="absolute inset-y-0 z-[5] bg-slate-300/50"
+        />
+      ))}
 
       {blocks.map(({ booking, left, width, isOwn }) => {
         const status = getBookingConfirmationStatus(booking, settings);

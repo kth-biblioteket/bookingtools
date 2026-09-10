@@ -12,13 +12,14 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
+  id           String        @id @default(cuid())
+  email        String        @unique
   name         String
   passwordHash String
-  createdAt    DateTime  @default(now())
+  createdAt    DateTime      @default(now())
   bookings     Booking[]
   sessions     Session[]
+  bookingHold  BookingHold?
 }
 
 model Session {
@@ -32,15 +33,16 @@ model Session {
 }
 
 model Room {
-  id        String    @id @default(cuid())
-  name      String
-  building  String
-  campus    String
-  capacity  Int
-  floor     String?
-  hasScreen Boolean   @default(false)
-  hasWhiteboard Boolean @default(false)
-  bookings  Booking[]
+  id            String        @id @default(cuid())
+  name          String
+  building      String
+  campus        String
+  capacity      Int
+  floor         String?
+  hasScreen     Boolean       @default(false)
+  hasWhiteboard Boolean       @default(false)
+  bookings      Booking[]
+  bookingHolds  BookingHold[]
 }
 
 model Settings {
@@ -69,4 +71,27 @@ model Booking {
 
   @@index([roomId, startTime, endTime])
   @@index([userId])
+}
+
+// A short-lived, advisory reservation created when a user opens the booking
+// form for a free slot, so other clients can show "någon bokar..." instead
+// of letting two people fill in the same slot at once. One per user (opening
+// a new form / picking a different slot replaces it), renewed by a client
+// heartbeat while the form stays open, and swept out lazily wherever
+// bookings are read once `expiresAt` has passed — see
+// releaseExpiredHolds() in src/lib/booking-hold.ts for why a background job
+// isn't needed. This is purely a UX nicety: actual double-booking
+// prevention still happens via the startTime/endTime overlap check against
+// real Booking rows at creation time.
+model BookingHold {
+  id        String   @id @default(cuid())
+  roomId    String
+  userId    String   @unique
+  startTime DateTime
+  endTime   DateTime
+  expiresAt DateTime
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, startTime, endTime])
 }

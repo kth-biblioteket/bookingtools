@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getBookingConfirmationStatus, type BookingConfirmationStatus } from "@/lib/booking-status";
+import type { ActiveHold } from "@/lib/booking-hold";
 import type { BookingSettings } from "@/lib/settings";
 
 type TimelineBooking = {
@@ -40,6 +41,7 @@ export function ScheduleVertical({
   dayEndHour,
   stepMinutes,
   settings,
+  holds,
   onFreeClick,
   onOwnBookingClick,
 }: {
@@ -50,6 +52,8 @@ export function ScheduleVertical({
   dayEndHour: number;
   stepMinutes?: number;
   settings: BookingSettings;
+  /** Other users' active holds across all rooms; filtered per room below. */
+  holds?: ActiveHold[];
   onFreeClick?: (roomId: string, startTime: Date) => void;
   onOwnBookingClick?: (roomId: string, booking: TimelineBooking) => void;
 }) {
@@ -118,6 +122,18 @@ export function ScheduleVertical({
             })
             .filter((b): b is NonNullable<typeof b> => b !== null);
 
+          const heldBlocks = (holds ?? [])
+            .filter((hold) => hold.roomId === room.id && hold.userId !== currentUserId)
+            .map((hold) => {
+              const start = hold.startTime < dayStart ? dayStart : hold.startTime;
+              const end = hold.endTime > dayEnd ? dayEnd : hold.endTime;
+              if (start >= end) return null;
+              const top = ((start.getTime() - dayStart.getTime()) / totalMs) * 100;
+              const height = ((end.getTime() - start.getTime()) / totalMs) * 100;
+              return { hold, top, height };
+            })
+            .filter((h): h is NonNullable<typeof h> => h !== null);
+
           return (
             <div
               key={room.id}
@@ -163,6 +179,27 @@ export function ScheduleVertical({
                       />
                     );
                   })}
+                </div>
+              )}
+
+              {/* other users' active holds on otherwise-free time — advisory
+                  only, but shown (and left clickable-blocking) so a second
+                  person doesn't start filling in the same slot. */}
+              {heldBlocks.length > 0 && (
+                <div className="absolute inset-0 z-[5]">
+                  {heldBlocks.map(({ hold, top, height }) => (
+                    <div
+                      key={hold.id}
+                      title="Någon bokar den här tiden just nu"
+                      style={{
+                        top: `${top}%`,
+                        height: `${height}%`,
+                        backgroundImage:
+                          "repeating-linear-gradient(45deg, rgba(71,85,105,0.35) 0px, rgba(71,85,105,0.35) 6px, transparent 6px, transparent 12px)",
+                      }}
+                      className="absolute inset-x-0 bg-slate-300/50"
+                    />
+                  ))}
                 </div>
               )}
 

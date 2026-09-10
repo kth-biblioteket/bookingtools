@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { hasOverlap } from "@/lib/booking";
 import { getBookingSettings } from "@/lib/settings";
+import { createOrRenewHold, releaseHold } from "@/lib/booking-hold";
 
 const bookSchema = z.object({
   roomId: z.string().min(1),
@@ -85,6 +86,7 @@ export async function createBooking(
       confirmedAt: requirePreliminaryConfirmation ? null : new Date(),
     },
   });
+  await releaseHold(user.id);
 
   revalidatePath(`/rooms/${roomId}`);
   revalidatePath("/rooms");
@@ -164,12 +166,56 @@ export async function updateBooking(
     where: { id: bookingId },
     data: { title, startTime: start, endTime: end },
   });
+  await releaseHold(user.id);
 
   revalidatePath(`/rooms/${booking.roomId}`);
   revalidatePath("/rooms");
   revalidatePath("/bookings");
   revalidatePath("/schedule");
   return { success: "Bokningen är uppdaterad!" };
+}
+
+const holdSchema = z.object({
+  roomId: z.string().min(1),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  startTime: z.string().regex(/^\d{2}:\d{2}$/),
+  endTime: z.string().regex(/^\d{2}:\d{2}$/),
+});
+
+export type HoldState = { error?: string } | undefined;
+
+/**
+ * Called when the booking modal opens for a free slot, and again on a
+ * heartbeat while it stays open, so other clients see "någon bokar..."
+ * instead of letting two people fill in the same slot at once. Purely
+ * advisory — see src/lib/booking-hold.ts for why this can't be the only
+ * thing preventing a double booking.
+ */
+export async function requestHold(
+  roomId: string,
+  date: string,
+  startTime: string,
+  endTime: string
+): Promise<HoldState> {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Du måste vara inloggad" };
+
+  const parsed = holdSchema.safeParse({ roomId, date, startTime, endTime });
+  if (!parsed.success) return { error: "Ogiltiga uppgifter" };
+
+  const start = new Date(`${parsed.data.date}T${parsed.data.startTime}:00`);
+  const end = new Date(`${parsed.data.date}T${parsed.data.endTime}:00`);
+
+  const result = await createOrRenewHold(user.id, roomId, start, end);
+  if ("error" in result) return { error: result.error };
+  return undefined;
+}
+
+/** Called when the booking modal closes without submitting (cancel, backdrop click, Escape). */
+export async function releaseMyHold(): Promise<void> {
+  const user = await getCurrentUser();
+  if (!user) return;
+  await releaseHold(user.id);
 }
 
 export async function confirmBooking(bookingId: string) {

@@ -7,6 +7,7 @@ import {
   getRoom,
   todayStr,
 } from "@/lib/booking";
+import { getActiveHoldsForRoomOnDate } from "@/lib/booking-hold";
 import { getBookingSettings } from "@/lib/settings";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { RoomPlanner } from "./room-planner";
@@ -37,10 +38,11 @@ export default async function RoomPage({
   const room = await getRoom(id);
   if (!room) notFound();
 
-  const [bookings, slots, settings] = await Promise.all([
+  const [bookings, slots, settings, holds] = await Promise.all([
     getBookingsForRoomOnDate(id, date),
     Promise.resolve(generateDaySlots(date)),
     getBookingSettings(),
+    getActiveHoldsForRoomOnDate(id, date),
   ]);
 
   return (
@@ -82,6 +84,7 @@ export default async function RoomPage({
         slots={slots}
         settings={settings}
         currentUserId={user.id}
+        holds={holds}
       />
     </div>
   );

@@ -24,31 +24,45 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = basePrisma;
 const ALWAYS_CHANGES = new Set(["create", "createMany", "createManyAndReturn", "update", "upsert", "delete"]);
 const CHANGES_IF_COUNT_POSITIVE = new Set(["updateMany", "updateManyAndReturn", "deleteMany"]);
 
+async function notifyIfChanged<T>(
+  operation: string,
+  query: () => Promise<T>
+): Promise<T> {
+  const result = await query();
+  const changed =
+    ALWAYS_CHANGES.has(operation) ||
+    (CHANGES_IF_COUNT_POSITIVE.has(operation) &&
+      typeof result === "object" &&
+      result !== null &&
+      "count" in result &&
+      (result as { count: number }).count > 0);
+  if (changed) {
+    notifyBookingsChanged();
+  }
+  return result;
+}
+
 /**
- * Wrap the Prisma client so ANY write to the Booking model — no matter which
- * function or code path performs it, now or in the future — automatically
- * notifies connected clients over SSE. This replaces having to remember to
- * call notifyBookingsChanged() by hand at every call site (a past gap: the
- * lazy release of expired unconfirmed bookings in releaseExpiredPreliminaryBookings()
- * didn't notify, since it was calling db.booking.deleteMany() directly
- * without going through the action layer where the manual calls lived).
+ * Wrap the Prisma client so ANY write to the Booking or BookingHold models —
+ * no matter which function or code path performs it, now or in the future —
+ * automatically notifies connected clients over SSE. This replaces having to
+ * remember to call notifyBookingsChanged() by hand at every call site (a
+ * past gap: the lazy release of expired unconfirmed bookings in
+ * releaseExpiredPreliminaryBookings() didn't notify, since it was calling
+ * db.booking.deleteMany() directly without going through the action layer
+ * where the manual calls lived). BookingHold is included so other tabs see a
+ * slot get held/released in near-real-time too.
  */
 export const db = basePrisma.$extends({
   query: {
     booking: {
-      async $allOperations({ operation, args, query }) {
-        const result = await query(args);
-        const changed =
-          ALWAYS_CHANGES.has(operation) ||
-          (CHANGES_IF_COUNT_POSITIVE.has(operation) &&
-            typeof result === "object" &&
-            result !== null &&
-            "count" in result &&
-            (result as { count: number }).count > 0);
-        if (changed) {
-          notifyBookingsChanged();
-        }
-        return result;
+      $allOperations({ operation, args, query }) {
+        return notifyIfChanged(operation, () => query(args));
+      },
+    },
+    bookingHold: {
+      $allOperations({ operation, args, query }) {
+        return notifyIfChanged(operation, () => query(args));
       },
     },
   },

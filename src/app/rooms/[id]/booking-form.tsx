@@ -33,6 +33,7 @@ export function BookingForm({
   onCancelEdit,
   onUpdateSuccess,
   onCreateSuccess,
+  holdError,
 }: {
   roomId: string;
   date: string;
@@ -49,6 +50,8 @@ export function BookingForm({
   onCancelEdit: () => void;
   onUpdateSuccess: () => void;
   onCreateSuccess: () => void;
+  /** Set when someone else already grabbed this slot's hold — blocks submission. */
+  holdError?: string;
 }) {
   const action = mode === "edit" ? updateBooking : createBooking;
   const [state, formAction, pending] = useActionState(action, undefined);
@@ -156,13 +159,14 @@ export function BookingForm({
         </div>
       </div>
 
-      {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
+      {holdError && <p className="text-sm text-red-600">{holdError}</p>}
+      {!holdError && state?.error && <p className="text-sm text-red-600">{state.error}</p>}
       {state?.success && <p className="text-sm text-green-700">{state.success}</p>}
 
       <div className="flex items-center gap-3">
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || !!holdError}
           className="rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-60"
         >
           {mode === "edit" ? (pending ? "Sparar…" : "Spara ändring") : pending ? "Bokar…" : "Boka rum"}

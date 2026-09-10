@@ -1,12 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { RoomTimeline, type TimelineBooking } from "@/components/room-timeline";
 import { ScheduleVertical } from "@/components/schedule-vertical";
 import { ScheduleBookingPanel, type ScheduleFormMode } from "./schedule-booking-panel";
+import { requestHold, releaseMyHold } from "@/app/rooms/[id]/actions";
 import type { getAllRoomsBookingsForDate } from "@/lib/booking";
+import type { ActiveHold } from "@/lib/booking-hold";
 import type { BookingSettings, ScheduleLayout } from "@/lib/settings";
+
+/** Heartbeat interval for renewing the calling user's hold while the booking
+ * modal stays open. Kept safely under HOLD_TTL_MS (60s) so a slow tick or a
+ * dropped request doesn't let the hold lapse before the next renewal. */
+const HOLD_HEARTBEAT_MS = 20000;
+/** Debounce for re-requesting a hold right after the user changes the
+ * start/end time in the form, so we don't fire a request per keystroke. */
+const HOLD_DEBOUNCE_MS = 500;
 
 type RoomsWithBookings = Awaited<ReturnType<typeof getAllRoomsBookingsForDate>>;
 type Booking = TimelineBooking;
@@ -29,6 +39,7 @@ export function ScheduleBoard({
   date,
   dayStartHour,
   dayEndHour,
+  holds,
 }: {
   roomsWithBookings: RoomsWithBookings;
   scheduleLayout: ScheduleLayout;
@@ -37,6 +48,7 @@ export function ScheduleBoard({
   date: string;
   dayStartHour: number;
   dayEndHour: number;
+  holds: ActiveHold[];
 }) {
   const [mode, setMode] = useState<ScheduleFormMode>("create");
   const [selectedRoomId, setSelectedRoomId] = useState<string | undefined>();
@@ -44,14 +56,24 @@ export function ScheduleBoard({
   const [title, setTitle] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
+  const [holdError, setHoldError] = useState<string | undefined>();
+
+  // Always-fresh snapshot of the fields the hold heartbeat needs, so the
+  // interval below (set up once per modal-open) doesn't read stale state.
+  const holdParamsRef = useRef({ date, startTime, endTime });
+  holdParamsRef.current = { date, startTime, endTime };
 
   function resetForm() {
+    if (mode === "create" && selectedRoomId) {
+      void releaseMyHold();
+    }
     setMode("create");
     setSelectedRoomId(undefined);
     setEditingBookingId(undefined);
     setTitle("");
     setStartTime("");
     setEndTime("");
+    setHoldError(undefined);
   }
 
   function handleFreeClick(roomId: string, start: Date) {
@@ -63,6 +85,7 @@ export function ScheduleBoard({
     setTitle("");
     setStartTime(toTimeLabel(alignedStart));
     setEndTime(toTimeLabel(alignedStart + settings.minMinutes));
+    setHoldError(undefined);
   }
 
   function handleOwnBookingClick(roomId: string, booking: Booking) {
@@ -72,7 +95,51 @@ export function ScheduleBoard({
     setTitle(booking.title);
     setStartTime(timeLabelFromDate(booking.startTime));
     setEndTime(timeLabelFromDate(booking.endTime));
+    setHoldError(undefined);
   }
+
+  // Request (and keep renewing) a hold on the slot while the modal is open
+  // for creating a NEW booking on a free slot. Editing an existing own
+  // booking doesn't need a hold — nobody else can be racing to fill a slot
+  // that's already booked by the current user.
+  useEffect(() => {
+    if (mode !== "create" || !selectedRoomId) return;
+    const roomId = selectedRoomId;
+
+    async function renew() {
+      const { date: d, startTime: s, endTime: e } = holdParamsRef.current;
+      if (!s || !e) return;
+      const result = await requestHold(roomId, d, s, e);
+      setHoldError(result?.error);
+    }
+
+    renew();
+    const interval = setInterval(renew, HOLD_HEARTBEAT_MS);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, selectedRoomId]);
+
+  // Also re-request right away (debounced) whenever the user changes the
+  // start/end time, so other clients see the updated range without waiting
+  // for the next heartbeat tick.
+  useEffect(() => {
+    if (mode !== "create" || !selectedRoomId || !startTime || !endTime) return;
+    const roomId = selectedRoomId;
+    const timeout = setTimeout(async () => {
+      const result = await requestHold(roomId, date, startTime, endTime);
+      setHoldError(result?.error);
+    }, HOLD_DEBOUNCE_MS);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startTime, endTime]);
+
+  // Safety net: release any hold held by this tab if it unmounts outright
+  // (navigation away, tab close) without going through resetForm.
+  useEffect(() => {
+    return () => {
+      void releaseMyHold();
+    };
+  }, []);
 
   const selectedRoom = roomsWithBookings.find((r) => r.room.id === selectedRoomId)?.room;
   const editingBooking = editingBookingId
@@ -109,6 +176,7 @@ export function ScheduleBoard({
             dayEndHour={dayEndHour}
             stepMinutes={settings.stepMinutes}
             settings={settings}
+            holds={holds}
             onFreeClick={handleFreeClick}
             onOwnBookingClick={handleOwnBookingClick}
           />
@@ -149,6 +217,7 @@ export function ScheduleBoard({
                 <div className="flex-1">
                   <RoomTimeline
                     bookings={bookings}
+                    holds={holds.filter((h) => h.roomId === room.id)}
                     currentUserId={currentUserId}
                     dateStr={date}
                     dayStartHour={dayStartHour}
@@ -196,6 +265,7 @@ export function ScheduleBoard({
               title={title}
               startTime={startTime}
               endTime={endTime}
+              holdError={mode === "create" ? holdError : undefined}
               onTitleChange={setTitle}
               onStartTimeChange={setStartTime}
               onEndTimeChange={setEndTime}
