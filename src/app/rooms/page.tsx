@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getRoomsWithTodayStatus } from "@/lib/booking";
+import { AutoRefresh } from "@/components/auto-refresh";
 
 function formatTime(date: Date) {
   return date.toTimeString().slice(0, 5);
@@ -15,6 +16,7 @@ export default async function RoomsPage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+      <AutoRefresh />
       <h1 className="text-2xl font-semibold text-gray-900">Grupprum</h1>
       <p className="mt-1 text-sm text-gray-500">
         Status just nu. Klicka på ett rum för att se schemat och boka en tid.

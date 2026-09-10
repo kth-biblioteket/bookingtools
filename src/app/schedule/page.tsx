@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getAllRoomsBookingsForDate, todayStr, DAY_START_HOUR, DAY_END_HOUR } from "@/lib/booking";
 import { getBookingSettings, getScheduleLayout } from "@/lib/settings";
+import { AutoRefresh } from "@/components/auto-refresh";
 import { ScheduleBoard } from "./schedule-board";
 
 function addDays(dateStr: string, days: number) {
@@ -33,6 +34,7 @@ export default async function SchedulePage({
 
   return (
     <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-8">
+      <AutoRefresh />
       <h1 className="text-2xl font-semibold text-gray-900">Alla rum – schema för dagen</h1>
       <p className="mt-1 text-sm text-gray-500">
         Se vilka rum som är lediga eller bokade under dagen. Klicka på ett rum för att boka en tid.

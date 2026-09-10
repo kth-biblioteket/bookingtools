@@ -8,6 +8,7 @@ import {
   todayStr,
 } from "@/lib/booking";
 import { getBookingSettings } from "@/lib/settings";
+import { AutoRefresh } from "@/components/auto-refresh";
 import { RoomPlanner } from "./room-planner";
 
 function addDays(dateStr: string, days: number) {
@@ -44,6 +45,7 @@ export default async function RoomPage({
 
   return (
     <div className="mx-auto w-full max-w-4xl flex-1 px-4 py-8">
+      <AutoRefresh />
       <Link href="/rooms" className="text-sm text-blue-700 hover:underline">
         ← Alla rum
       </Link>
