@@ -209,7 +209,7 @@ export function ScheduleVertical({
                         onClick={() => onFreeClick(room.id, stepStart)}
                         title={`${formatTime(stepStart)} – klicka för att boka`}
                         style={{ top: `${top}%`, height: `${height}%` }}
-                        className="absolute inset-x-0 cursor-pointer"
+                        className="absolute inset-x-0 cursor-pointer touch-manipulation"
                       />
                     );
                   })}
@@ -269,7 +269,7 @@ export function ScheduleVertical({
                         {...commonProps}
                         type="button"
                         onClick={() => onOwnBookingClick(room.id, booking)}
-                        className={`${commonClassName} cursor-pointer hover:brightness-95`}
+                        className={`${commonClassName} cursor-pointer touch-manipulation hover:brightness-95`}
                       >
                         <span className="block break-words">
                           {formatTime(booking.startTime)}–{formatTime(booking.endTime)}

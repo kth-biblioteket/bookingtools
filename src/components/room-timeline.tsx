@@ -121,7 +121,7 @@ export function RoomTimeline({
               onClick={() => onFreeClick(stepStart)}
               title={`${formatTime(stepStart)} – klicka för att boka`}
               style={{ left: `${left}%`, width: `${width}%` }}
-              className="absolute inset-y-0 z-0 cursor-pointer"
+              className="absolute inset-y-0 z-0 cursor-pointer touch-manipulation"
             />
           );
         })}
@@ -168,7 +168,7 @@ export function RoomTimeline({
               {...commonProps}
               type="button"
               onClick={() => onOwnBookingClick(booking)}
-              className={`${commonClassName} cursor-pointer hover:brightness-95`}
+              className={`${commonClassName} cursor-pointer touch-manipulation hover:brightness-95`}
             >
               {formatTime(booking.startTime)}–{formatTime(booking.endTime)} {label}
             </button>

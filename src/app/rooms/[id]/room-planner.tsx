@@ -244,7 +244,7 @@ export function RoomPlanner({
                         ? "Har passerat"
                         : "Ledigt – klicka för att boka"
                 }
-                className={`rounded px-1 py-1.5 text-center text-xs transition ${
+                className={`touch-manipulation rounded px-1 py-1.5 text-center text-xs transition ${
                   slot.booking
                     ? `${isOwn ? "cursor-pointer" : "cursor-default"} ${statusColor} ${
                         isOwn ? `ring-2 ${isHighlighted ? "ring-kth-sky" : "ring-kth-sky"}` : ""
