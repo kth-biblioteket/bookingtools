@@ -1,6 +1,9 @@
+"use client";
+
 import { getBookingConfirmationStatus, type BookingConfirmationStatus } from "@/lib/booking-status";
 import type { ActiveHold } from "@/lib/booking-hold";
 import type { BookingSettings } from "@/lib/settings";
+import { useI18n } from "@/components/i18n-provider";
 
 export type TimelineBooking = {
   id: string;
@@ -49,6 +52,7 @@ export function RoomTimeline({
   onFreeClick?: (startTime: Date) => void;
   onOwnBookingClick?: (booking: TimelineBooking) => void;
 }) {
+  const { t } = useI18n();
   const dayStart = new Date(`${dateStr}T00:00:00`);
   dayStart.setHours(dayStartHour, 0, 0, 0);
   const dayEnd = new Date(`${dateStr}T00:00:00`);
@@ -108,7 +112,7 @@ export function RoomTimeline({
             return (
               <div
                 key={i}
-                title="Har passerat"
+                title={t("bookingStatus.pastTooltip")}
                 style={{ left: `${left}%`, width: `${width}%` }}
                 className="absolute inset-y-0 z-0 bg-gray-200/70"
               />
@@ -119,7 +123,7 @@ export function RoomTimeline({
               key={i}
               type="button"
               onClick={() => onFreeClick(stepStart)}
-              title={`${formatTime(stepStart)} – klicka för att boka`}
+              title={t("bookingStatus.clickToBookTooltip", { time: formatTime(stepStart) })}
               style={{ left: `${left}%`, width: `${width}%` }}
               className="absolute inset-y-0 z-0 cursor-pointer touch-manipulation"
             />
@@ -129,7 +133,7 @@ export function RoomTimeline({
       {heldBlocks.map(({ hold, left, width }) => (
         <div
           key={hold.id}
-          title="Någon bokar den här tiden just nu"
+          title={t("bookingStatus.someoneBookingTooltip")}
           style={{
             left: `${left}%`,
             width: `${width}%`,
@@ -149,11 +153,15 @@ export function RoomTimeline({
         const label = isOwn || isAdmin
           ? booking.title
           : status === "confirmed"
-            ? "Upptaget"
-            : "Bokat";
+            ? t("roomDetail.occupiedLabel")
+            : t("roomDetail.bookedLabel");
         const commonProps = {
           title: `${formatTime(booking.startTime)}–${formatTime(booking.endTime)} · ${
-            isOwn ? `${booking.title} · Din bokning` : isAdmin ? `${label} · ${booking.user.name}` : label
+            isOwn
+              ? `${booking.title} · ${t("bookingStatus.ownBookingTooltip")}`
+              : isAdmin
+                ? `${label} · ${booking.user.name}`
+                : label
           }`,
           style: { left: `${left}%`, width: `${width}%` },
         };

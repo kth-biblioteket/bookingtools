@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getRoomsWithTodayStatus } from "@/lib/booking";
 import { AutoRefresh } from "@/components/auto-refresh";
+import { getT } from "@/lib/i18n/get-dictionary";
 
 function formatTime(date: Date) {
   return date.toTimeString().slice(0, 5);
@@ -13,19 +14,18 @@ export default async function RoomsPage() {
   if (!user) redirect("/login");
 
   const roomsWithStatus = await getRoomsWithTodayStatus();
+  const { t } = await getT();
 
   return (
     <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
       <AutoRefresh />
-      <h1 className="text-2xl font-semibold text-gray-900">Grupprum</h1>
-      <p className="mt-1 text-sm text-gray-500">
-        Status just nu. Klicka på ett rum för att se schemat och boka en tid.
-      </p>
+      <h1 className="text-2xl font-semibold text-gray-900">{t("rooms.heading")}</h1>
+      <p className="mt-1 text-sm text-gray-500">{t("rooms.subtitle")}</p>
       <Link
         href="/schedule"
         className="mt-2 inline-block text-sm font-medium text-kth-blue hover:underline"
       >
-        Se schema för alla rum idag →
+        {t("rooms.seeAllToday")}
       </Link>
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -49,20 +49,20 @@ export default async function RoomsPage() {
                     : "bg-red-100 text-red-800"
                 }`}
               >
-                {status.free ? "Ledigt" : "Upptaget"}
+                {status.free ? t("rooms.free") : t("rooms.occupied")}
               </span>
             </div>
             <p className="mt-3 text-xs text-gray-500">
               {status.free
                 ? status.until
-                  ? `Ledigt till ${formatTime(status.until)}`
-                  : "Ledigt hela dagen"
-                : `Upptaget till ${formatTime(status.until!)}`}
+                  ? t("rooms.freeUntil", { time: formatTime(status.until) })
+                  : t("rooms.freeAllDay")
+                : t("rooms.occupiedUntil", { time: formatTime(status.until!) })}
             </p>
             <p className="mt-2 text-xs text-gray-400">
-              Plats för {room.capacity} personer
-              {room.hasScreen ? " · Skärm" : ""}
-              {room.hasWhiteboard ? " · Whiteboard" : ""}
+              {t("rooms.capacity", { n: room.capacity })}
+              {room.hasScreen ? ` · ${t("rooms.screen")}` : ""}
+              {room.hasWhiteboard ? ` · ${t("rooms.whiteboard")}` : ""}
             </p>
           </Link>
         ))}

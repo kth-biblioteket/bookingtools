@@ -1,8 +1,11 @@
+"use client";
+
 import { getBookingConfirmationStatus, type BookingConfirmationStatus } from "@/lib/booking-status";
 import type { ActiveHold } from "@/lib/booking-hold";
 import type { BookingSettings } from "@/lib/settings";
 import { weekdayLabel, dayMonthLabel } from "@/lib/date";
 import { ScheduleCornerCell } from "@/components/schedule-corner-cell";
+import { useI18n } from "@/components/i18n-provider";
 
 type TimelineBooking = {
   id: string;
@@ -57,6 +60,7 @@ export function RoomWeekVertical<B extends TimelineBooking>({
   onFreeClick?: (dateStr: string, startTime: Date) => void;
   onOwnBookingClick?: (dateStr: string, booking: B) => void;
 }) {
+  const { locale, t } = useI18n();
   const hourCount = dayEndHour - dayStartHour;
   const hours = Array.from({ length: hourCount }, (_, i) => dayStartHour + i);
   const rowHeightPx = 40;
@@ -71,7 +75,11 @@ export function RoomWeekVertical<B extends TimelineBooking>({
     <div className="overflow-x-auto pb-3">
       <div className="min-w-max" style={{ display: "grid", gridTemplateColumns }}>
         {/* Header row */}
-        <ScheduleCornerCell roomsLabel="Dag" className="sticky left-0 z-20" />
+        <ScheduleCornerCell
+          roomsLabel={t("schedule.cornerDay")}
+          timeLabel={t("schedule.cornerTime")}
+          className="sticky left-0 z-20"
+        />
         {weekDates.map((date, i) => (
           <div
             key={date}
@@ -79,8 +87,8 @@ export function RoomWeekVertical<B extends TimelineBooking>({
               date === todayStr ? "bg-kth-blue" : "bg-kth-sky"
             } ${i > 0 ? "border-l border-l-black/10" : ""}`}
           >
-            <p className="text-xl font-medium capitalize text-white">{weekdayLabel(date)}</p>
-            <p className="text-sm font-medium text-white">{dayMonthLabel(date)}</p>
+            <p className="text-xl font-medium capitalize text-white">{weekdayLabel(date, locale)}</p>
+            <p className="text-sm font-medium text-white">{dayMonthLabel(date, locale)}</p>
           </div>
         ))}
 
@@ -169,7 +177,7 @@ export function RoomWeekVertical<B extends TimelineBooking>({
                       return (
                         <div
                           key={i}
-                          title="Har passerat"
+                          title={t("bookingStatus.pastTooltip")}
                           style={{ top: `${top}%`, height: `${height}%` }}
                           className="absolute inset-x-0 bg-gray-200/70"
                         />
@@ -180,7 +188,7 @@ export function RoomWeekVertical<B extends TimelineBooking>({
                         key={i}
                         type="button"
                         onClick={() => onFreeClick(date, stepStart)}
-                        title={`${formatTime(stepStart)} – klicka för att boka`}
+                        title={t("bookingStatus.clickToBookTooltip", { time: formatTime(stepStart) })}
                         style={{ top: `${top}%`, height: `${height}%` }}
                         className="absolute inset-x-0 cursor-pointer touch-manipulation"
                       />
@@ -195,7 +203,7 @@ export function RoomWeekVertical<B extends TimelineBooking>({
                   {heldBlocks.map(({ hold, top, height }) => (
                     <div
                       key={hold.id}
-                      title="Någon bokar den här tiden just nu"
+                      title={t("bookingStatus.someoneBookingTooltip")}
                       style={{
                         top: `${top}%`,
                         height: `${height}%`,
@@ -215,11 +223,15 @@ export function RoomWeekVertical<B extends TimelineBooking>({
                   const label = isOwn || isAdmin
                     ? booking.title
                     : status === "confirmed"
-                      ? "Upptaget"
-                      : "Bokat";
+                      ? t("roomDetail.occupiedLabel")
+                      : t("roomDetail.bookedLabel");
                   const commonProps = {
                     title: `${formatTime(booking.startTime)}–${formatTime(booking.endTime)} · ${
-                      isOwn ? `${booking.title} · Din bokning` : isAdmin ? `${label} · ${booking.user.name}` : label
+                      isOwn
+                        ? `${booking.title} · ${t("bookingStatus.ownBookingTooltip")}`
+                        : isAdmin
+                          ? `${label} · ${booking.user.name}`
+                          : label
                     }`,
                     style: { top: `${top}%`, height: `${height}%` },
                   };

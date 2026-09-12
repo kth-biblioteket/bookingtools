@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Figtree } from "next/font/google";
 import "./globals.css";
 import { Nav } from "@/components/nav";
+import { I18nProvider } from "@/components/i18n-provider";
+import { getT } from "@/lib/i18n/get-dictionary";
 
 // Figtree is KTH's official brand typeface (see KTH's graphic manual).
 const figtree = Figtree({
@@ -9,17 +11,24 @@ const figtree = Figtree({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "KTH Grupprum",
-  description: "Boka lediga grupprum på KTH",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { t } = await getT();
+  return {
+    title: t("layout.title"),
+    description: t("layout.description"),
+  };
+}
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const { locale, dict } = await getT();
+
   return (
-    <html lang="sv" className={`${figtree.variable} h-full antialiased`}>
+    <html lang={locale} className={`${figtree.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-white text-gray-900">
-        <Nav />
-        <main className="flex flex-1 flex-col">{children}</main>
+        <I18nProvider locale={locale} dict={dict}>
+          <Nav />
+          <main className="flex flex-1 flex-col">{children}</main>
+        </I18nProvider>
       </body>
     </html>
   );

@@ -2,15 +2,17 @@
 
 import { useActionState } from "react";
 import { login } from "../actions";
+import { useI18n } from "@/components/i18n-provider";
 
 export function LoginForm() {
   const [state, formAction, pending] = useActionState(login, undefined);
+  const { t } = useI18n();
 
   return (
     <form action={formAction} className="mt-8 flex flex-col gap-4">
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-          E-post
+          {t("auth.login.emailLabel")}
         </label>
         <input
           id="email"
@@ -23,7 +25,7 @@ export function LoginForm() {
       </div>
       <div>
         <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-          Lösenord
+          {t("auth.login.passwordLabel")}
         </label>
         <input
           id="password"
@@ -40,7 +42,7 @@ export function LoginForm() {
         disabled={pending}
         className="mt-2 rounded-md bg-kth-blue px-4 py-2 text-sm font-medium text-white hover:bg-kth-navy disabled:opacity-60"
       >
-        {pending ? "Loggar in…" : "Logga in"}
+        {pending ? t("auth.login.submitPending") : t("auth.login.submit")}
       </button>
     </form>
   );

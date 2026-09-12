@@ -16,12 +16,15 @@
  */
 export function ScheduleCornerCell({
   roomsAt = "top-right",
-  roomsLabel = "Rum",
+  roomsLabel,
+  timeLabel,
   className = "",
 }: {
   roomsAt?: "top-right" | "bottom-left";
-  /** Label for the non-time axis — "Rum" for the multi-room schedules, "Dag" for a single room's week view. */
-  roomsLabel?: string;
+  /** Label for the non-time axis — "Room" for the multi-room schedules, "Day" for a single room's week view. */
+  roomsLabel: string;
+  /** Label for the time axis. */
+  timeLabel: string;
   className?: string;
 }) {
   const roomsClip =
@@ -42,7 +45,7 @@ export function ScheduleCornerCell({
         {roomsLabel}
       </span>
       <span className="absolute -translate-x-1/2 -translate-y-1/2 text-xs font-medium text-white" style={hoursPos}>
-        Tid
+        {timeLabel}
       </span>
     </div>
   );

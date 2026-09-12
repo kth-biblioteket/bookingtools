@@ -5,29 +5,31 @@ import { getUpcomingBookingsForUser } from "@/lib/booking";
 import { CancelButton } from "@/components/cancel-button";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { cancelBooking } from "@/app/rooms/[id]/actions";
-
-function formatDateTime(date: Date) {
-  const d = date.toLocaleDateString("sv-SE", { weekday: "short", day: "numeric", month: "short" });
-  const t = date.toTimeString().slice(0, 5);
-  return `${d} ${t}`;
-}
+import { getT } from "@/lib/i18n/get-dictionary";
 
 export default async function BookingsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
   const bookings = await getUpcomingBookingsForUser(user.id);
+  const { locale, t } = await getT();
+
+  function formatDateTime(date: Date) {
+    const d = date.toLocaleDateString(locale, { weekday: "short", day: "numeric", month: "short" });
+    const time = date.toTimeString().slice(0, 5);
+    return `${d} ${time}`;
+  }
 
   return (
     <div className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
       <AutoRefresh />
-      <h1 className="text-2xl font-semibold text-gray-900">Mina bokningar</h1>
+      <h1 className="text-2xl font-semibold text-gray-900">{t("bookings.heading")}</h1>
 
       {bookings.length === 0 ? (
         <p className="mt-4 text-sm text-gray-500">
-          Du har inga kommande bokningar.{" "}
+          {t("bookings.none")}{" "}
           <Link href="/rooms" className="font-medium text-kth-blue hover:underline">
-            Boka ett rum
+            {t("bookings.bookARoom")}
           </Link>
           .
         </p>

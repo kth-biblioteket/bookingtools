@@ -19,22 +19,14 @@ export function getWeekDates(dateStr: string): string[] {
   return Array.from({ length: 7 }, (_, i) => addDays(monday, i));
 }
 
-const WEEKDAY_LABELS = ["mån", "tis", "ons", "tor", "fre", "lör", "sön"];
-
-/** Short Swedish weekday label ("mån", "tis", ...) for an ISO date string. */
-export function weekdayLabel(dateStr: string): string {
+/** Short locale-aware weekday label ("mån"/"Mon", ...) for an ISO date string. */
+export function weekdayLabel(dateStr: string, locale: string): string {
   const d = new Date(`${dateStr}T00:00:00`);
-  const isoDayOfWeek = (d.getDay() + 6) % 7;
-  return WEEKDAY_LABELS[isoDayOfWeek];
+  return new Intl.DateTimeFormat(locale, { weekday: "short" }).format(d);
 }
 
-const MONTH_LABELS = [
-  "jan", "feb", "mar", "apr", "maj", "jun",
-  "jul", "aug", "sep", "okt", "nov", "dec",
-];
-
-/** "mon D" abbreviated-month/day-of-month label for an ISO date string (e.g. "sep 12"). */
-export function dayMonthLabel(dateStr: string): string {
+/** Locale-aware abbreviated-month/day-of-month label for an ISO date string (e.g. "sep 12" / "Sep 12"). */
+export function dayMonthLabel(dateStr: string, locale: string): string {
   const d = new Date(`${dateStr}T00:00:00`);
-  return `${MONTH_LABELS[d.getMonth()]} ${d.getDate()}`;
+  return new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" }).format(d);
 }

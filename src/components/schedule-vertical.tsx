@@ -1,9 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { getBookingConfirmationStatus, type BookingConfirmationStatus } from "@/lib/booking-status";
 import type { ActiveHold } from "@/lib/booking-hold";
 import type { BookingSettings } from "@/lib/settings";
 import { UsersIcon, ScreenIcon } from "@/components/room-icons";
 import { ScheduleCornerCell } from "@/components/schedule-corner-cell";
+import { useI18n } from "@/components/i18n-provider";
 
 type TimelineBooking = {
   id: string;
@@ -64,6 +67,7 @@ export function ScheduleVertical({
   onFreeClick?: (roomId: string, startTime: Date) => void;
   onOwnBookingClick?: (roomId: string, booking: TimelineBooking) => void;
 }) {
+  const { t } = useI18n();
   const dayStart = new Date(`${dateStr}T00:00:00`);
   dayStart.setHours(dayStartHour, 0, 0, 0);
   const dayEnd = new Date(`${dateStr}T00:00:00`);
@@ -96,7 +100,11 @@ export function ScheduleVertical({
     <div className="overflow-x-auto pb-3">
       <div className="min-w-max" style={{ display: "grid", gridTemplateColumns }}>
         {/* Header row */}
-        <ScheduleCornerCell className="sticky left-0 z-20" />
+        <ScheduleCornerCell
+          roomsLabel={t("schedule.cornerRoom")}
+          timeLabel={t("schedule.cornerTime")}
+          className="sticky left-0 z-20"
+        />
         {roomsWithBookings.map(({ room }, i) => (
           <Link
             key={room.id}
@@ -107,12 +115,12 @@ export function ScheduleVertical({
           >
             <p className="break-words text-xl font-medium text-white">{room.name}</p>
             <div className="mt-0.5 flex flex-col items-center gap-0.5 text-[10px] font-medium text-black">
-              <span className="flex items-center gap-0.5" title={`Plats för ${room.capacity} personer`}>
+              <span className="flex items-center gap-0.5" title={t("rooms.capacity", { n: room.capacity })}>
                 <UsersIcon />
                 {room.capacity}
               </span>
               {room.hasScreen && (
-                <span title="Har skärm">
+                <span title={t("rooms.screen")}>
                   <ScreenIcon />
                 </span>
               )}
@@ -196,7 +204,7 @@ export function ScheduleVertical({
                       return (
                         <div
                           key={i}
-                          title="Har passerat"
+                          title={t("bookingStatus.pastTooltip")}
                           style={{ top: `${top}%`, height: `${height}%` }}
                           className="absolute inset-x-0 bg-gray-200/70"
                         />
@@ -207,7 +215,7 @@ export function ScheduleVertical({
                         key={i}
                         type="button"
                         onClick={() => onFreeClick(room.id, stepStart)}
-                        title={`${formatTime(stepStart)} – klicka för att boka`}
+                        title={t("bookingStatus.clickToBookTooltip", { time: formatTime(stepStart) })}
                         style={{ top: `${top}%`, height: `${height}%` }}
                         className="absolute inset-x-0 cursor-pointer touch-manipulation"
                       />
@@ -224,7 +232,7 @@ export function ScheduleVertical({
                   {heldBlocks.map(({ hold, top, height }) => (
                     <div
                       key={hold.id}
-                      title="Någon bokar den här tiden just nu"
+                      title={t("bookingStatus.someoneBookingTooltip")}
                       style={{
                         top: `${top}%`,
                         height: `${height}%`,
@@ -250,11 +258,15 @@ export function ScheduleVertical({
                   const label = isOwn || isAdmin
                     ? booking.title
                     : status === "confirmed"
-                      ? "Upptaget"
-                      : "Bokat";
+                      ? t("roomDetail.occupiedLabel")
+                      : t("roomDetail.bookedLabel");
                   const commonProps = {
                     title: `${formatTime(booking.startTime)}–${formatTime(booking.endTime)} · ${
-                      isOwn ? `${booking.title} · Din bokning` : isAdmin ? `${label} · ${booking.user.name}` : label
+                      isOwn
+                        ? `${booking.title} · ${t("bookingStatus.ownBookingTooltip")}`
+                        : isAdmin
+                          ? `${label} · ${booking.user.name}`
+                          : label
                     }`,
                     style: { top: `${top}%`, height: `${height}%` },
                   };

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useI18n } from "@/components/i18n-provider";
 
 export function ConfirmButton({
   bookingId,
@@ -10,6 +11,7 @@ export function ConfirmButton({
   action: (bookingId: string) => Promise<void>;
 }) {
   const [pending, startTransition] = useTransition();
+  const { t } = useI18n();
 
   return (
     <button
@@ -18,7 +20,7 @@ export function ConfirmButton({
       onClick={() => startTransition(() => action(bookingId))}
       className="text-xs font-medium text-green-700 hover:underline disabled:opacity-60"
     >
-      {pending ? "Bekräftar…" : "Bekräfta"}
+      {pending ? t("bookingStatus.confirmPending") : t("bookingStatus.confirm")}
     </button>
   );
 }

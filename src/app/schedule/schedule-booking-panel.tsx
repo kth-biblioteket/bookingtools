@@ -4,6 +4,7 @@ import { useActionState, useEffect, useMemo, useTransition } from "react";
 import { createBooking, updateBooking, cancelBooking, confirmBooking } from "@/app/rooms/[id]/actions";
 import { CancelButton } from "@/components/cancel-button";
 import type { BookingSettings } from "@/lib/settings";
+import { useI18n } from "@/components/i18n-provider";
 
 export type ScheduleFormMode = "create" | "edit";
 
@@ -60,6 +61,7 @@ export function ScheduleBookingPanel({
   onUpdateSuccess: () => void;
   onCreateSuccess: () => void;
 }) {
+  const { t } = useI18n();
   const action = mode === "edit" ? updateBooking : createBooking;
   const [state, formAction, pending] = useActionState(action, undefined);
   const [confirmPending, startConfirmTransition] = useTransition();
@@ -108,15 +110,9 @@ export function ScheduleBookingPanel({
   return (
     <div>
       <h2 className="mb-4 text-base font-medium text-gray-700">
-        {mode === "edit" ? (
-          <>
-            Ändra bokning – <span className="font-semibold text-gray-900">{selectedRoom.name}</span>
-          </>
-        ) : (
-          <>
-            Boka en tid – <span className="font-semibold text-gray-900">{selectedRoom.name}</span>
-          </>
-        )}
+        {mode === "edit" ? t("roomDetail.editTitle") : t("roomDetail.bookTitle")}
+        {" – "}
+        <span className="font-semibold text-gray-900">{selectedRoom.name}</span>
       </h2>
       <form action={formAction} className="flex flex-col gap-4">
         {mode === "edit" ? (
@@ -128,7 +124,7 @@ export function ScheduleBookingPanel({
 
         <div>
           <label htmlFor="schedule-title" className="block text-sm font-medium text-gray-700">
-            Ärende
+            {t("bookingForm.purpose")}
           </label>
           <input
             id="schedule-title"
@@ -137,7 +133,7 @@ export function ScheduleBookingPanel({
             required
             value={title}
             onChange={(e) => onTitleChange(e.target.value)}
-            placeholder="T.ex. gruppmöte projekt X"
+            placeholder={t("bookingForm.purposePlaceholder")}
             className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
           />
         </div>
@@ -145,7 +141,7 @@ export function ScheduleBookingPanel({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label htmlFor="schedule-startTime" className="block text-sm font-medium text-gray-700">
-              Från
+              {t("bookingForm.from")}
             </label>
             <select
               id="schedule-startTime"
@@ -156,7 +152,7 @@ export function ScheduleBookingPanel({
               className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
             >
               <option value="" disabled>
-                Välj tid
+                {t("bookingForm.pickTime")}
               </option>
               {startOptions.map((s) => (
                 <option key={s} value={s}>
@@ -167,7 +163,7 @@ export function ScheduleBookingPanel({
           </div>
           <div>
             <label htmlFor="schedule-endTime" className="block text-sm font-medium text-gray-700">
-              Till
+              {t("bookingForm.to")}
             </label>
             <select
               id="schedule-endTime"
@@ -180,7 +176,7 @@ export function ScheduleBookingPanel({
               className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue disabled:bg-gray-50"
             >
               <option value="" disabled>
-                Välj tid
+                {t("bookingForm.pickTime")}
               </option>
               {endOptions.map((s) => (
                 <option key={s} value={s}>
@@ -201,7 +197,13 @@ export function ScheduleBookingPanel({
             disabled={pending || !!holdError}
             className="rounded-md bg-kth-blue px-4 py-2 text-sm font-medium text-white hover:bg-kth-navy disabled:opacity-60"
           >
-            {mode === "edit" ? (pending ? "Sparar…" : "Spara ändring") : pending ? "Bokar…" : "Boka rum"}
+            {mode === "edit"
+              ? pending
+                ? t("bookingForm.submitEditPending")
+                : t("bookingForm.submitEdit")
+              : pending
+                ? t("bookingForm.submitCreatePending")
+                : t("bookingForm.submitCreate")}
           </button>
           {mode === "edit" && (
             <button
@@ -209,7 +211,7 @@ export function ScheduleBookingPanel({
               onClick={onCancelEdit}
               className="text-sm font-medium text-gray-600 hover:underline"
             >
-              Avbryt
+              {t("common.cancel")}
             </button>
           )}
           {needsConfirmation && editingBookingId && (
@@ -224,7 +226,7 @@ export function ScheduleBookingPanel({
               }
               className="text-xs font-medium text-green-700 hover:underline disabled:opacity-60"
             >
-              {confirmPending ? "Bekräftar…" : "Bekräfta"}
+              {confirmPending ? t("bookingStatus.confirmPending") : t("bookingStatus.confirm")}
             </button>
           )}
           {mode === "edit" && editingBookingId && (

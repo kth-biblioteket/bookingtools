@@ -11,6 +11,7 @@ import { requestHold, releaseMyHold } from "@/app/rooms/[id]/actions";
 import type { getAllRoomsBookingsForDate } from "@/lib/booking";
 import type { ActiveHold } from "@/lib/booking-hold";
 import type { BookingSettings, ScheduleLayout } from "@/lib/settings";
+import { useI18n } from "@/components/i18n-provider";
 
 /** Heartbeat interval for renewing the calling user's hold while the booking
  * modal stays open. Kept safely under HOLD_TTL_MS (60s) so a slow tick or a
@@ -55,6 +56,7 @@ export function ScheduleBoard({
   dayEndHour: number;
   holds: ActiveHold[];
 }) {
+  const { t } = useI18n();
   const [mode, setMode] = useState<ScheduleFormMode>("create");
   const [selectedRoomId, setSelectedRoomId] = useState<string | undefined>();
   const [editingBookingId, setEditingBookingId] = useState<string | undefined>();
@@ -197,7 +199,12 @@ export function ScheduleBoard({
               className="min-w-max"
               style={{ display: "grid", gridTemplateColumns: `5rem repeat(${hourCount}, minmax(50px, 1fr))` }}
             >
-              <ScheduleCornerCell roomsAt="bottom-left" className="sticky left-0 z-20 h-10 overflow-hidden" />
+              <ScheduleCornerCell
+                roomsAt="bottom-left"
+                roomsLabel={t("schedule.cornerRoom")}
+                timeLabel={t("schedule.cornerTime")}
+                className="sticky left-0 z-20 h-10 overflow-hidden"
+              />
               {hours.map((hour, i) => (
                 <div
                   key={hour}
@@ -219,13 +226,13 @@ export function ScheduleBoard({
                     <span className="truncate text-sm font-semibold text-white">{room.name}</span>
                     <span
                       className="flex items-center gap-0.5 text-[9px] font-medium text-black"
-                      title={`Plats för ${room.capacity} personer`}
+                      title={t("rooms.capacity", { n: room.capacity })}
                     >
                       <UsersIcon />
                       {room.capacity}
                     </span>
                     {room.hasScreen && (
-                      <span title="Har skärm">
+                      <span title={t("rooms.screen")}>
                         <ScreenIcon />
                       </span>
                     )}
@@ -266,7 +273,7 @@ export function ScheduleBoard({
             <button
               type="button"
               onClick={resetForm}
-              aria-label="Stäng"
+              aria-label={t("roomDetail.close")}
               className="absolute right-3 top-3 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
             >
               ✕
