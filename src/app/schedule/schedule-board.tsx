@@ -201,7 +201,7 @@ export function ScheduleBoard({
               {hours.map((hour) => (
                 <div
                   key={hour}
-                  className="flex h-10 items-center justify-center border-b border-gray-200 text-sm font-medium text-gray-700"
+                  className="flex h-10 items-center justify-center bg-kth-blue text-sm font-medium text-white"
                 >
                   {String(hour).padStart(2, "0")}:00
                 </div>
