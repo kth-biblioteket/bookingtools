@@ -65,7 +65,7 @@ export function ScheduleVertical({
 
   const hourCount = dayEndHour - dayStartHour;
   const hours = Array.from({ length: hourCount + 1 }, (_, i) => dayStartHour + i);
-  const rowHeightPx = 64;
+  const rowHeightPx = 40;
   const totalHeightPx = hourCount * rowHeightPx;
 
   const totalMinutes = hourCount * 60;
@@ -97,7 +97,7 @@ export function ScheduleVertical({
           style={{ gridColumn: 1, gridRow: 2, height: totalHeightPx }}
         >
           {Array.from({ length: hourCount }, (_, i) => i).map((i) => (
-            <div key={i} className={`h-16 ${i % 2 === 1 ? "bg-gray-50/70" : ""}`} />
+            <div key={i} className={`h-10 ${i % 2 === 1 ? "bg-gray-50/70" : ""}`} />
           ))}
           {hours.map((hour, i) => (
             <span
@@ -146,7 +146,7 @@ export function ScheduleVertical({
               {Array.from({ length: hourCount }, (_, i) => i).map((i) => (
                 <div
                   key={i}
-                  className={`h-16 border-t first:border-t-0 ${
+                  className={`h-10 border-t first:border-t-0 ${
                     i % 2 === 1 ? "border-gray-200 bg-gray-50/70" : "border-gray-200"
                   }`}
                 />
