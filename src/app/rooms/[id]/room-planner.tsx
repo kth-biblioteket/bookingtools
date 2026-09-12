@@ -64,18 +64,15 @@ export function RoomPlanner({
   dayStartHour: number;
   dayEndHour: number;
 }) {
+  const [formOpen, setFormOpen] = useState(false);
   const [mode, setMode] = useState<FormMode>("create");
   const [formDate, setFormDate] = useState(todayStr);
   const [editingBookingId, setEditingBookingId] = useState<string | undefined>();
   const [title, setTitle] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [highlightedBookingId, setHighlightedBookingId] = useState<string | undefined>();
   const [holdError, setHoldError] = useState<string | undefined>();
   const [, startHoldTransition] = useTransition();
-
-  const formSectionRef = useRef<HTMLDivElement>(null);
-  const bookingRefs = useRef(new Map<string, HTMLDivElement>());
 
   // Whether we currently need a hold: only while the create form has a real,
   // free slot picked out (editing an own existing booking doesn't need one).
@@ -86,7 +83,7 @@ export function RoomPlanner({
   // Request/renew the hold whenever the picked slot changes, and release it
   // once the user is no longer trying to book a new free slot.
   useEffect(() => {
-    const isActive = mode === "create" && !!startTime && !!endTime;
+    const isActive = formOpen && mode === "create" && !!startTime && !!endTime;
     const wasActive = holdActiveRef.current;
     holdActiveRef.current = isActive;
 
@@ -109,7 +106,7 @@ export function RoomPlanner({
 
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, startTime, endTime, roomId, formDate]);
+  }, [formOpen, mode, startTime, endTime, roomId, formDate]);
 
   // Heartbeat: renew the hold periodically using the latest form values, well
   // under the server-side TTL, so a long-open form doesn't silently expire.
@@ -142,12 +139,29 @@ export function RoomPlanner({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function scrollToForm() {
-    formSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }
+  // Close the modal on Escape while it's open.
+  useEffect(() => {
+    if (!formOpen) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") resetForm();
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formOpen]);
 
-  function scrollToBooking(id: string) {
-    bookingRefs.current.get(id)?.scrollIntoView({ behavior: "smooth", block: "center" });
+  function resetForm() {
+    if (mode === "create" && formOpen) {
+      void releaseMyHold();
+    }
+    setFormOpen(false);
+    setMode("create");
+    setFormDate(todayStr);
+    setEditingBookingId(undefined);
+    setTitle("");
+    setStartTime("");
+    setEndTime("");
+    setHoldError(undefined);
   }
 
   function handleFreeSlotClick(dateStr: string, start: Date) {
@@ -159,13 +173,7 @@ export function RoomPlanner({
     setTitle("");
     setStartTime(toTimeLabel(alignedStart));
     setEndTime(toTimeLabel(alignedStart + settings.minMinutes));
-    setHighlightedBookingId(undefined);
-    scrollToForm();
-  }
-
-  function handleOwnSlotClick(booking: Booking) {
-    setHighlightedBookingId(booking.id);
-    scrollToBooking(booking.id);
+    setFormOpen(true);
   }
 
   function handleEditClick(booking: Booking) {
@@ -175,31 +183,7 @@ export function RoomPlanner({
     setTitle(booking.title);
     setStartTime(timeLabelFromDate(booking.startTime));
     setEndTime(timeLabelFromDate(booking.endTime));
-    scrollToForm();
-  }
-
-  function handleCancelEdit() {
-    setMode("create");
-    setFormDate(todayStr);
-    setEditingBookingId(undefined);
-    setTitle("");
-    setStartTime("");
-    setEndTime("");
-  }
-
-  function handleUpdateSuccess() {
-    setMode("create");
-    setFormDate(todayStr);
-    setEditingBookingId(undefined);
-    setTitle("");
-    setStartTime("");
-    setEndTime("");
-  }
-
-  function handleCreateSuccess() {
-    setTitle("");
-    setStartTime("");
-    setEndTime("");
+    setFormOpen(true);
   }
 
   const weekBookings = weekDates
@@ -207,111 +191,120 @@ export function RoomPlanner({
     .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
   return (
-    <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2">
-      <div>
-        <h2 className="mb-2 text-sm font-medium text-gray-700">Schema för veckan</h2>
-        <RoomWeekVertical
-          weekDates={weekDates}
-          bookingsByDate={bookingsByDate}
-          holdsByDate={holdsByDate}
-          currentUserId={currentUserId}
-          isAdmin={isAdmin}
-          todayStr={todayStr}
-          dayStartHour={dayStartHour}
-          dayEndHour={dayEndHour}
-          stepMinutes={settings.stepMinutes}
-          settings={settings}
-          onFreeClick={handleFreeSlotClick}
-          onOwnBookingClick={(_date, booking) => handleOwnSlotClick(booking)}
-        />
+    <div className="mt-6">
+      <h2 className="mb-2 text-sm font-medium text-gray-700">Schema för veckan</h2>
+      <RoomWeekVertical
+        weekDates={weekDates}
+        bookingsByDate={bookingsByDate}
+        holdsByDate={holdsByDate}
+        currentUserId={currentUserId}
+        isAdmin={isAdmin}
+        todayStr={todayStr}
+        dayStartHour={dayStartHour}
+        dayEndHour={dayEndHour}
+        stepMinutes={settings.stepMinutes}
+        settings={settings}
+        onFreeClick={handleFreeSlotClick}
+        onOwnBookingClick={(_date, booking) => handleEditClick(booking)}
+      />
 
-        {weekBookings.length > 0 && (
-          <div className="mt-4 space-y-2">
-            {weekBookings.map((b) => {
-              const isOwn = b.userId === currentUserId;
-              const confirmationStatus = getBookingConfirmationStatus(b, settings);
-              const needsConfirm =
-                confirmationStatus === "preliminary" || confirmationStatus === "needs_confirmation";
-              const statusDotColor =
-                confirmationStatus === "preliminary"
-                  ? "bg-yellow-400"
-                  : confirmationStatus === "needs_confirmation"
-                    ? "bg-orange-500"
-                    : "bg-red-500";
-              const statusLabel =
-                confirmationStatus === "preliminary"
-                  ? "Preliminär"
-                  : confirmationStatus === "needs_confirmation"
-                    ? "Väntar på bekräftelse"
-                    : "Bekräftad";
-              return (
-                <div
-                  key={b.id}
-                  ref={(el) => {
-                    if (el) bookingRefs.current.set(b.id, el);
-                    else bookingRefs.current.delete(b.id);
-                  }}
-                  className={`flex items-center justify-between rounded-md border bg-white px-3 py-2 text-sm transition ${
-                    highlightedBookingId === b.id ? "border-kth-sky ring-2 ring-kth-light-blue" : "border-gray-200"
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <span
-                      className={`inline-block h-2 w-2 shrink-0 rounded-full ${statusDotColor}`}
-                      title={statusLabel}
-                    />
-                    {dateStrFromDate(b.startTime)} {timeLabelFromDate(b.startTime)}–{timeLabelFromDate(b.endTime)}{" "}
-                    {isOwn
-                      ? `· ${b.title} (du)`
-                      : isAdmin
-                        ? `· ${b.title} (${b.user.name})`
-                        : confirmationStatus === "confirmed"
-                          ? "· Upptaget"
-                          : "· Bokat"}
+      {weekBookings.length > 0 && (
+        <div className="mt-4 space-y-2">
+          {weekBookings.map((b) => {
+            const isOwn = b.userId === currentUserId;
+            const confirmationStatus = getBookingConfirmationStatus(b, settings);
+            const needsConfirm =
+              confirmationStatus === "preliminary" || confirmationStatus === "needs_confirmation";
+            const statusDotColor =
+              confirmationStatus === "preliminary"
+                ? "bg-yellow-400"
+                : confirmationStatus === "needs_confirmation"
+                  ? "bg-orange-500"
+                  : "bg-red-500";
+            const statusLabel =
+              confirmationStatus === "preliminary"
+                ? "Preliminär"
+                : confirmationStatus === "needs_confirmation"
+                  ? "Väntar på bekräftelse"
+                  : "Bekräftad";
+            return (
+              <div
+                key={b.id}
+                className="flex items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2 text-sm"
+              >
+                <span className="flex items-center gap-2">
+                  <span
+                    className={`inline-block h-2 w-2 shrink-0 rounded-full ${statusDotColor}`}
+                    title={statusLabel}
+                  />
+                  {dateStrFromDate(b.startTime)} {timeLabelFromDate(b.startTime)}–{timeLabelFromDate(b.endTime)}{" "}
+                  {isOwn
+                    ? `· ${b.title} (du)`
+                    : isAdmin
+                      ? `· ${b.title} (${b.user.name})`
+                      : confirmationStatus === "confirmed"
+                        ? "· Upptaget"
+                        : "· Bokat"}
+                </span>
+                {isOwn && (
+                  <span className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleEditClick(b)}
+                      className="text-xs font-medium text-kth-blue hover:underline"
+                    >
+                      Ändra tid
+                    </button>
+                    {needsConfirm && <ConfirmButton bookingId={b.id} action={confirmBooking} />}
+                    <CancelButton bookingId={b.id} action={cancelBooking} />
                   </span>
-                  {isOwn && (
-                    <span className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => handleEditClick(b)}
-                        className="text-xs font-medium text-kth-blue hover:underline"
-                      >
-                        Ändra tid
-                      </button>
-                      {needsConfirm && <ConfirmButton bookingId={b.id} action={confirmBooking} />}
-                      <CancelButton bookingId={b.id} action={cancelBooking} />
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
-      <div ref={formSectionRef}>
-        <h2 className="mb-2 text-sm font-medium text-gray-700">
-          {mode === "edit" ? "Ändra bokning" : "Boka en tid"}
-        </h2>
-        <BookingForm
-          roomId={roomId}
-          date={formDate}
-          slots={slots.map((s) => s.label)}
-          settings={settings}
-          mode={mode}
-          editingBookingId={editingBookingId}
-          title={title}
-          startTime={startTime}
-          endTime={endTime}
-          onTitleChange={setTitle}
-          onStartTimeChange={setStartTime}
-          onEndTimeChange={setEndTime}
-          onCancelEdit={handleCancelEdit}
-          onUpdateSuccess={handleUpdateSuccess}
-          onCreateSuccess={handleCreateSuccess}
-          holdError={mode === "create" ? holdError : undefined}
-        />
-      </div>
+      {formOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={resetForm}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={resetForm}
+              aria-label="Stäng"
+              className="absolute right-3 top-3 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            >
+              ✕
+            </button>
+            <h2 className="mb-4 text-base font-medium text-gray-700">
+              {mode === "edit" ? "Ändra bokning" : "Boka en tid"}
+            </h2>
+            <BookingForm
+              roomId={roomId}
+              date={formDate}
+              slots={slots.map((s) => s.label)}
+              settings={settings}
+              mode={mode}
+              editingBookingId={editingBookingId}
+              title={title}
+              startTime={startTime}
+              endTime={endTime}
+              onTitleChange={setTitle}
+              onStartTimeChange={setStartTime}
+              onEndTimeChange={setEndTime}
+              onCancelEdit={resetForm}
+              onUpdateSuccess={resetForm}
+              onCreateSuccess={resetForm}
+              holdError={mode === "create" ? holdError : undefined}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

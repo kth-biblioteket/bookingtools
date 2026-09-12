@@ -86,7 +86,7 @@ export function BookingForm({
   }, [startTime, settings.minMinutes, settings.maxMinutes, settings.stepMinutes]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-4 rounded-lg border border-gray-200 bg-white p-4">
+    <form action={formAction} className="flex flex-col gap-4">
       {mode === "edit" ? (
         <input type="hidden" name="bookingId" value={editingBookingId} />
       ) : (
