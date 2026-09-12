@@ -112,7 +112,24 @@ export function ScheduleVertical({
     <div className="overflow-x-auto pb-3">
       <div className="min-w-max" style={{ display: "grid", gridTemplateColumns }}>
         {/* Header row */}
-        <div className="sticky left-0 z-20 bg-kth-sky" />
+        {/* Corner cell: split diagonally — the half facing the room-name row
+            (top-right) matches its kth-sky background and says "Rum"; the
+            half facing the hour column (bottom-left) matches its kth-blue
+            background and says "Tid". clip-path (not a gradient) guarantees
+            the split runs exactly corner-to-corner regardless of this cell's
+            actual width/height. */}
+        <div className="sticky left-0 z-20 relative">
+          <div
+            className="absolute inset-0 bg-kth-sky"
+            style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%)" }}
+          />
+          <div
+            className="absolute inset-0 bg-kth-blue"
+            style={{ clipPath: "polygon(0 0, 0 100%, 100% 100%)" }}
+          />
+          <span className="absolute right-1 top-0.5 text-[9px] font-medium text-white">Rum</span>
+          <span className="absolute bottom-0.5 left-1 text-[9px] font-medium text-white">Tid</span>
+        </div>
         {roomsWithBookings.map(({ room }) => (
           <Link
             key={room.id}
