@@ -115,6 +115,7 @@ export interface Dictionary {
   bookingActions: {
     loginRequiredBook: string;
     loginRequiredEdit: string;
+    titleRequired: string;
     roomGone: string;
     endBeforeStart: string;
     pastStartCreate: string;

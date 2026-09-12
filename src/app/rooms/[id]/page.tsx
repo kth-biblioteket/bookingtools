@@ -14,6 +14,7 @@ import { getBookingSettings } from "@/lib/settings";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { DateNav } from "@/components/date-nav";
 import { addDays, getWeekDates } from "@/lib/date";
+import { getT } from "@/lib/i18n/get-dictionary";
 import { RoomPlanner } from "./room-planner";
 
 export default async function RoomPage({
@@ -37,11 +38,12 @@ export default async function RoomPage({
   const weekStart = weekDates[0];
   const weekEnd = weekDates[weekDates.length - 1];
 
-  const [bookings, holds, slots, settings] = await Promise.all([
+  const [bookings, holds, slots, settings, { t }] = await Promise.all([
     getBookingsForRoomInRange(id, weekStart, weekEnd),
     getActiveHoldsForRoomInRange(id, weekStart, weekEnd),
     Promise.resolve(generateDaySlots(date)),
     getBookingSettings(),
+    getT(),
   ]);
 
   function dateStrFromDate(d: Date) {
@@ -69,14 +71,14 @@ export default async function RoomPage({
     <div className="mx-auto w-full max-w-4xl flex-1 px-4 py-8">
       <AutoRefresh />
       <Link href="/rooms" className="text-sm text-kth-blue hover:underline">
-        ← Alla rum
+        {t("roomDetail.backToRooms")}
       </Link>
 
       <div className="mt-2 flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">{room.name}</h1>
           <p className="text-sm text-gray-500">
-            {room.building} · {room.campus} · Plats för {room.capacity} personer
+            {room.building} · {room.campus} · {t("rooms.capacity", { n: room.capacity })}
           </p>
         </div>
       </div>
@@ -86,14 +88,14 @@ export default async function RoomPage({
           href={`/rooms/${id}?date=${addDays(date, -7)}`}
           className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
         >
-          ← Föregående vecka
+          {t("roomDetail.prevWeek")}
         </Link>
         <DateNav date={date} today={todayStr()} basePath={`/rooms/${id}`} />
         <Link
           href={`/rooms/${id}?date=${addDays(date, 7)}`}
           className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
         >
-          Nästa vecka →
+          {t("roomDetail.nextWeek")}
         </Link>
       </div>
 

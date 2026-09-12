@@ -112,6 +112,7 @@ const sv: Dictionary = {
   bookingActions: {
     loginRequiredBook: "Du måste vara inloggad för att boka",
     loginRequiredEdit: "Du måste vara inloggad för att ändra en bokning",
+    titleRequired: "Ange ett ärende för bokningen",
     roomGone: "Rummet finns inte längre",
     endBeforeStart: "Sluttiden måste vara efter starttiden",
     pastStartCreate: "Du kan inte boka en tid som redan passerat",

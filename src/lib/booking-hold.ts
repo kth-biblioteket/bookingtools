@@ -31,20 +31,20 @@ export async function releaseExpiredHolds() {
  * heartbeat renewing the same one) replaces any previous hold via upsert on
  * the unique userId.
  *
- * Returns an error instead of throwing if the slot is already booked, or
- * already held by a different user, so the caller can surface that in the
- * UI without a try/catch.
+ * Returns an error code instead of throwing if the slot is already booked,
+ * or already held by a different user, so the caller can surface that in
+ * the UI (translated) without a try/catch.
  */
 export async function createOrRenewHold(
   userId: string,
   roomId: string,
   start: Date,
   end: Date
-): Promise<{ error: string } | { hold: ActiveHold }> {
+): Promise<{ error: "room_booked" | "slot_held" } | { hold: ActiveHold }> {
   await releaseExpiredHolds();
 
   if (await hasOverlap(roomId, start, end)) {
-    return { error: "Rummet är redan bokat under den valda tiden" };
+    return { error: "room_booked" };
   }
 
   const conflictingHold = await db.bookingHold.findFirst({
@@ -56,7 +56,7 @@ export async function createOrRenewHold(
     },
   });
   if (conflictingHold) {
-    return { error: "Någon annan håller redan på att boka den här tiden" };
+    return { error: "slot_held" };
   }
 
   const hold = await db.bookingHold.upsert({

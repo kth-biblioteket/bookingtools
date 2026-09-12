@@ -7,14 +7,7 @@ import { db } from "@/lib/db";
 import { hasOverlap } from "@/lib/booking";
 import { getBookingSettings } from "@/lib/settings";
 import { createOrRenewHold, releaseHold } from "@/lib/booking-hold";
-
-const bookSchema = z.object({
-  roomId: z.string().min(1),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  startTime: z.string().regex(/^\d{2}:\d{2}$/),
-  endTime: z.string().regex(/^\d{2}:\d{2}$/),
-  title: z.string().trim().min(1, "Ange ett ärende för bokningen").max(100),
-});
+import { getT } from "@/lib/i18n/get-dictionary";
 
 export type BookState = { error?: string; success?: string } | undefined;
 
@@ -22,8 +15,17 @@ export async function createBooking(
   _prevState: BookState,
   formData: FormData
 ): Promise<BookState> {
+  const { t } = await getT();
   const user = await getCurrentUser();
-  if (!user) return { error: "Du måste vara inloggad för att boka" };
+  if (!user) return { error: t("bookingActions.loginRequiredBook") };
+
+  const bookSchema = z.object({
+    roomId: z.string().min(1),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    startTime: z.string().regex(/^\d{2}:\d{2}$/),
+    endTime: z.string().regex(/^\d{2}:\d{2}$/),
+    title: z.string().trim().min(1, t("bookingActions.titleRequired")).max(100),
+  });
 
   const parsed = bookSchema.safeParse({
     roomId: formData.get("roomId"),
@@ -34,22 +36,22 @@ export async function createBooking(
   });
 
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Ogiltiga uppgifter" };
+    return { error: parsed.error.issues[0]?.message ?? t("common.invalidData") };
   }
 
   const { roomId, date, startTime, endTime, title } = parsed.data;
 
   const room = await db.room.findUnique({ where: { id: roomId } });
-  if (!room) return { error: "Rummet finns inte längre" };
+  if (!room) return { error: t("bookingActions.roomGone") };
 
   const start = new Date(`${date}T${startTime}:00`);
   const end = new Date(`${date}T${endTime}:00`);
 
   if (end <= start) {
-    return { error: "Sluttiden måste vara efter starttiden" };
+    return { error: t("bookingActions.endBeforeStart") };
   }
   if (start < new Date()) {
-    return { error: "Du kan inte boka en tid som redan passerat" };
+    return { error: t("bookingActions.pastStartCreate") };
   }
 
   const { stepMinutes, minMinutes, maxMinutes, requirePreliminaryConfirmation } =
@@ -62,18 +64,18 @@ export async function createBooking(
     durationMinutes % stepMinutes !== 0
   ) {
     return {
-      error: `Bokningen måste vara mellan ${minMinutes} och ${maxMinutes} minuter, i steg om ${stepMinutes} minuter.`,
+      error: t("bookingActions.durationRule", { min: minMinutes, max: maxMinutes, step: stepMinutes }),
     };
   }
 
   const startMinutesOfDay = start.getHours() * 60 + start.getMinutes();
   if (startMinutesOfDay % stepMinutes !== 0) {
-    return { error: "Starttiden måste vara på ett tillåtet klockslag." };
+    return { error: t("bookingActions.invalidStartTime") };
   }
 
   const overlap = await hasOverlap(roomId, start, end);
   if (overlap) {
-    return { error: "Rummet är redan bokat under en del av den valda tiden" };
+    return { error: t("bookingActions.overlap") };
   }
 
   await db.booking.create({
@@ -92,23 +94,24 @@ export async function createBooking(
   revalidatePath("/rooms");
   revalidatePath("/bookings");
   revalidatePath("/schedule");
-  return { success: "Bokningen är klar!" };
+  return { success: t("bookingActions.createSuccess") };
 }
-
-const updateBookSchema = z.object({
-  bookingId: z.string().min(1),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  startTime: z.string().regex(/^\d{2}:\d{2}$/),
-  endTime: z.string().regex(/^\d{2}:\d{2}$/),
-  title: z.string().trim().min(1, "Ange ett ärende för bokningen").max(100),
-});
 
 export async function updateBooking(
   _prevState: BookState,
   formData: FormData
 ): Promise<BookState> {
+  const { t } = await getT();
   const user = await getCurrentUser();
-  if (!user) return { error: "Du måste vara inloggad för att ändra en bokning" };
+  if (!user) return { error: t("bookingActions.loginRequiredEdit") };
+
+  const updateBookSchema = z.object({
+    bookingId: z.string().min(1),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    startTime: z.string().regex(/^\d{2}:\d{2}$/),
+    endTime: z.string().regex(/^\d{2}:\d{2}$/),
+    title: z.string().trim().min(1, t("bookingActions.titleRequired")).max(100),
+  });
 
   const parsed = updateBookSchema.safeParse({
     bookingId: formData.get("bookingId"),
@@ -119,7 +122,7 @@ export async function updateBooking(
   });
 
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Ogiltiga uppgifter" };
+    return { error: parsed.error.issues[0]?.message ?? t("common.invalidData") };
   }
 
   const { bookingId, date, startTime, endTime, title } = parsed.data;
@@ -127,16 +130,16 @@ export async function updateBooking(
   const booking = await db.booking.findFirst({
     where: { id: bookingId, userId: user.id },
   });
-  if (!booking) return { error: "Bokningen finns inte eller tillhör dig inte" };
+  if (!booking) return { error: t("bookingActions.bookingNotFoundOrNotYours") };
 
   const start = new Date(`${date}T${startTime}:00`);
   const end = new Date(`${date}T${endTime}:00`);
 
   if (end <= start) {
-    return { error: "Sluttiden måste vara efter starttiden" };
+    return { error: t("bookingActions.endBeforeStart") };
   }
   if (start < new Date()) {
-    return { error: "Du kan inte ändra till en tid som redan passerat" };
+    return { error: t("bookingActions.pastStartEdit") };
   }
 
   const { stepMinutes, minMinutes, maxMinutes } = await getBookingSettings();
@@ -148,18 +151,18 @@ export async function updateBooking(
     durationMinutes % stepMinutes !== 0
   ) {
     return {
-      error: `Bokningen måste vara mellan ${minMinutes} och ${maxMinutes} minuter, i steg om ${stepMinutes} minuter.`,
+      error: t("bookingActions.durationRule", { min: minMinutes, max: maxMinutes, step: stepMinutes }),
     };
   }
 
   const startMinutesOfDay = start.getHours() * 60 + start.getMinutes();
   if (startMinutesOfDay % stepMinutes !== 0) {
-    return { error: "Starttiden måste vara på ett tillåtet klockslag." };
+    return { error: t("bookingActions.invalidStartTime") };
   }
 
   const overlap = await hasOverlap(booking.roomId, start, end, bookingId);
   if (overlap) {
-    return { error: "Rummet är redan bokat under en del av den valda tiden" };
+    return { error: t("bookingActions.overlap") };
   }
 
   await db.booking.update({
@@ -172,7 +175,7 @@ export async function updateBooking(
   revalidatePath("/rooms");
   revalidatePath("/bookings");
   revalidatePath("/schedule");
-  return { success: "Bokningen är uppdaterad!" };
+  return { success: t("bookingActions.updateSuccess") };
 }
 
 const holdSchema = z.object({
@@ -186,10 +189,10 @@ export type HoldState = { error?: string } | undefined;
 
 /**
  * Called when the booking modal opens for a free slot, and again on a
- * heartbeat while it stays open, so other clients see "någon bokar..."
- * instead of letting two people fill in the same slot at once. Purely
- * advisory — see src/lib/booking-hold.ts for why this can't be the only
- * thing preventing a double booking.
+ * heartbeat while it stays open, so other clients see "someone is
+ * booking..." instead of letting two people fill in the same slot at once.
+ * Purely advisory — see src/lib/booking-hold.ts for why this can't be the
+ * only thing preventing a double booking.
  */
 export async function requestHold(
   roomId: string,
@@ -197,17 +200,24 @@ export async function requestHold(
   startTime: string,
   endTime: string
 ): Promise<HoldState> {
+  const { t } = await getT();
   const user = await getCurrentUser();
-  if (!user) return { error: "Du måste vara inloggad" };
+  if (!user) return { error: t("bookingActions.holdLoginRequired") };
 
   const parsed = holdSchema.safeParse({ roomId, date, startTime, endTime });
-  if (!parsed.success) return { error: "Ogiltiga uppgifter" };
+  if (!parsed.success) return { error: t("common.invalidData") };
 
   const start = new Date(`${parsed.data.date}T${parsed.data.startTime}:00`);
   const end = new Date(`${parsed.data.date}T${parsed.data.endTime}:00`);
 
   const result = await createOrRenewHold(user.id, roomId, start, end);
-  if ("error" in result) return { error: result.error };
+  if ("error" in result) {
+    return {
+      error: t(
+        result.error === "room_booked" ? "bookingActions.holdRoomBooked" : "bookingActions.holdSlotTaken"
+      ),
+    };
+  }
   return undefined;
 }
 

@@ -10,6 +10,7 @@ import { RoomWeekVertical } from "@/components/room-week-vertical";
 import type { getBookingsForRoomInRange, generateDaySlots } from "@/lib/booking";
 import type { BookingSettings } from "@/lib/settings";
 import type { ActiveHold } from "@/lib/booking-hold";
+import { useI18n } from "@/components/i18n-provider";
 
 /** How often to renew our hold while the booking form is open, safely under HOLD_TTL_MS. */
 const HOLD_HEARTBEAT_MS = 20_000;
@@ -64,6 +65,7 @@ export function RoomPlanner({
   dayStartHour: number;
   dayEndHour: number;
 }) {
+  const { t } = useI18n();
   const [formOpen, setFormOpen] = useState(false);
   const [mode, setMode] = useState<FormMode>("create");
   const [formDate, setFormDate] = useState(todayStr);
@@ -192,7 +194,7 @@ export function RoomPlanner({
 
   return (
     <div className="mt-6">
-      <h2 className="mb-2 text-sm font-medium text-gray-700">Schema för veckan</h2>
+      <h2 className="mb-2 text-sm font-medium text-gray-700">{t("roomDetail.scheduleHeading")}</h2>
       <RoomWeekVertical
         weekDates={weekDates}
         bookingsByDate={bookingsByDate}
@@ -223,10 +225,10 @@ export function RoomPlanner({
                   : "bg-red-500";
             const statusLabel =
               confirmationStatus === "preliminary"
-                ? "Preliminär"
+                ? t("bookingStatus.preliminary")
                 : confirmationStatus === "needs_confirmation"
-                  ? "Väntar på bekräftelse"
-                  : "Bekräftad";
+                  ? t("bookingStatus.needsConfirmation")
+                  : t("bookingStatus.confirmed");
             return (
               <div
                 key={b.id}
@@ -239,12 +241,12 @@ export function RoomPlanner({
                   />
                   {dateStrFromDate(b.startTime)} {timeLabelFromDate(b.startTime)}–{timeLabelFromDate(b.endTime)}{" "}
                   {isOwn
-                    ? `· ${b.title} (du)`
+                    ? `· ${b.title} ${t("roomDetail.ownSuffix")}`
                     : isAdmin
                       ? `· ${b.title} (${b.user.name})`
                       : confirmationStatus === "confirmed"
-                        ? "· Upptaget"
-                        : "· Bokat"}
+                        ? `· ${t("roomDetail.occupiedLabel")}`
+                        : `· ${t("roomDetail.bookedLabel")}`}
                 </span>
                 {isOwn && (
                   <span className="flex items-center gap-3">
@@ -253,7 +255,7 @@ export function RoomPlanner({
                       onClick={() => handleEditClick(b)}
                       className="text-xs font-medium text-kth-blue hover:underline"
                     >
-                      Ändra tid
+                      {t("roomDetail.editTime")}
                     </button>
                     {needsConfirm && <ConfirmButton bookingId={b.id} action={confirmBooking} />}
                     <CancelButton bookingId={b.id} action={cancelBooking} />
@@ -276,13 +278,13 @@ export function RoomPlanner({
             <button
               type="button"
               onClick={resetForm}
-              aria-label="Stäng"
+              aria-label={t("roomDetail.close")}
               className="absolute right-3 top-3 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
             >
               ✕
             </button>
             <h2 className="mb-4 text-base font-medium text-gray-700">
-              {mode === "edit" ? "Ändra bokning" : "Boka en tid"}
+              {mode === "edit" ? t("roomDetail.editTitle") : t("roomDetail.bookTitle")}
             </h2>
             <BookingForm
               roomId={roomId}

@@ -112,6 +112,7 @@ const en: Dictionary = {
   bookingActions: {
     loginRequiredBook: "You must be logged in to book",
     loginRequiredEdit: "You must be logged in to change a booking",
+    titleRequired: "Enter a purpose for the booking",
     roomGone: "The room no longer exists",
     endBeforeStart: "End time must be after start time",
     pastStartCreate: "You can't book a time that has already passed",

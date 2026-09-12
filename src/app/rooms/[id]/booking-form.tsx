@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useMemo } from "react";
 import { createBooking, updateBooking } from "./actions";
 import type { BookingSettings } from "@/lib/settings";
+import { useI18n } from "@/components/i18n-provider";
 
 function toMinutes(time: string) {
   const [h, m] = time.split(":").map(Number);
@@ -53,6 +54,7 @@ export function BookingForm({
   /** Set when someone else already grabbed this slot's hold — blocks submission. */
   holdError?: string;
 }) {
+  const { t } = useI18n();
   const action = mode === "edit" ? updateBooking : createBooking;
   const [state, formAction, pending] = useActionState(action, undefined);
 
@@ -96,7 +98,7 @@ export function BookingForm({
 
       <div>
         <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-          Ärende
+          {t("bookingForm.purpose")}
         </label>
         <input
           id="title"
@@ -105,7 +107,7 @@ export function BookingForm({
           required
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
-          placeholder="T.ex. gruppmöte projekt X"
+          placeholder={t("bookingForm.purposePlaceholder")}
           className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
@@ -113,7 +115,7 @@ export function BookingForm({
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">
-            Från
+            {t("bookingForm.from")}
           </label>
           <select
             id="startTime"
@@ -124,7 +126,7 @@ export function BookingForm({
             className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
           >
             <option value="" disabled>
-              Välj tid
+              {t("bookingForm.pickTime")}
             </option>
             {startOptions.map((s) => (
               <option key={s} value={s}>
@@ -135,7 +137,7 @@ export function BookingForm({
         </div>
         <div>
           <label htmlFor="endTime" className="block text-sm font-medium text-gray-700">
-            Till
+            {t("bookingForm.to")}
           </label>
           <select
             id="endTime"
@@ -148,7 +150,7 @@ export function BookingForm({
             className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue disabled:bg-gray-50"
           >
             <option value="" disabled>
-              Välj tid
+              {t("bookingForm.pickTime")}
             </option>
             {endOptions.map((s) => (
               <option key={s} value={s}>
@@ -169,7 +171,13 @@ export function BookingForm({
           disabled={pending || !!holdError}
           className="rounded-md bg-kth-blue px-4 py-2 text-sm font-medium text-white hover:bg-kth-navy disabled:opacity-60"
         >
-          {mode === "edit" ? (pending ? "Sparar…" : "Spara ändring") : pending ? "Bokar…" : "Boka rum"}
+          {mode === "edit"
+            ? pending
+              ? t("bookingForm.submitEditPending")
+              : t("bookingForm.submitEdit")
+            : pending
+              ? t("bookingForm.submitCreatePending")
+              : t("bookingForm.submitCreate")}
         </button>
         {mode === "edit" && (
           <button
@@ -177,7 +185,7 @@ export function BookingForm({
             onClick={onCancelEdit}
             className="text-sm font-medium text-gray-600 hover:underline"
           >
-            Avbryt
+            {t("common.cancel")}
           </button>
         )}
       </div>
