@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 /**
- * The date display in the middle of a day-navigation bar: shows the current
- * date, a quick "Visa idag" link back to today when viewing a different day,
- * and a native date picker for jumping straight to an arbitrary day.
+ * The date display in the middle of a day-navigation bar: a native date
+ * picker for jumping straight to an arbitrary day (it already shows the
+ * current date, so no separate text label is needed alongside it), plus a
+ * quick "Visa idag" link back to today when viewing a different day.
  */
 export function DateNav({
   date,
@@ -22,7 +23,6 @@ export function DateNav({
 
   return (
     <div className="flex items-center gap-3">
-      <span className="font-medium text-gray-900">{date}</span>
       {!isToday && (
         <Link
           href={`${basePath}?date=${today}`}
