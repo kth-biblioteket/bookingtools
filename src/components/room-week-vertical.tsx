@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { getBookingConfirmationStatus, type BookingConfirmationStatus } from "@/lib/booking-status";
 import type { ActiveHold } from "@/lib/booking-hold";
 import type { BookingSettings } from "@/lib/settings";
@@ -81,15 +82,17 @@ export function RoomWeekVertical<B extends TimelineBooking>({
           className="sticky left-0 z-20"
         />
         {weekDates.map((date, i) => (
-          <div
+          <Link
             key={date}
-            className={`border-b border-black/10 px-1 py-1.5 text-center ${
+            href={`/schedule?date=${date}`}
+            title={t("roomDetail.viewDayForAllRooms")}
+            className={`border-b border-black/10 px-1 py-1.5 text-center hover:brightness-95 ${
               date === todayStr ? "bg-kth-blue" : "bg-kth-sky"
             } ${i > 0 ? "border-l border-l-black/10" : ""}`}
           >
             <p className="text-xl font-medium capitalize text-white">{weekdayLabel(date, locale)}</p>
             <p className="text-sm font-medium text-white">{dayMonthLabel(date, locale)}</p>
-          </div>
+          </Link>
         ))}
 
         {/* Hour label column — stays put when scrolling horizontally */}

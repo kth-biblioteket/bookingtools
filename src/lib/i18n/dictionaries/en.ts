@@ -79,6 +79,7 @@ const en: Dictionary = {
     bookedLabel: "Booked",
     occupiedLabel: "Occupied",
     editTime: "Change time",
+    viewDayForAllRooms: "View this day's schedule for all rooms",
   },
   dateNav: {
     showToday: "Show today",

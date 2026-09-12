@@ -79,6 +79,7 @@ const sv: Dictionary = {
     bookedLabel: "Bokat",
     occupiedLabel: "Upptaget",
     editTime: "Ändra tid",
+    viewDayForAllRooms: "Se schema för alla rum den här dagen",
   },
   dateNav: {
     showToday: "Visa idag",
