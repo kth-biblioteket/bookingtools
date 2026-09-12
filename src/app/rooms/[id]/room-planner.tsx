@@ -229,7 +229,9 @@ export function RoomPlanner({
                   slot.booking
                     ? isOwn
                       ? `Din bokning: ${slot.booking.title}`
-                      : `Bokat: ${slot.booking.title}`
+                      : confirmationStatus === "confirmed"
+                        ? "Upptaget"
+                        : "Bokat"
                     : slot.heldByOther
                       ? "Någon bokar den här tiden just nu"
                       : isPastFree
@@ -290,7 +292,7 @@ export function RoomPlanner({
                       title={statusLabel}
                     />
                     {timeLabelFromDate(b.startTime)}–{timeLabelFromDate(b.endTime)}{" "}
-                    {isOwn ? `· ${b.title} (du)` : "· Bokat"}
+                    {isOwn ? `· ${b.title} (du)` : confirmationStatus === "confirmed" ? "· Upptaget" : "· Bokat"}
                   </span>
                   {isOwn && (
                     <span className="flex items-center gap-3">

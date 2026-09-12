@@ -140,9 +140,13 @@ export function RoomTimeline({
 
       {blocks.map(({ booking, left, width, isOwn }) => {
         const status = getBookingConfirmationStatus(booking, settings);
+        // Other users' bookings only ever show their confirmation status,
+        // never the actual title — that's private to the booker. Only the
+        // current user's own bookings show their real title.
+        const label = isOwn ? booking.title : status === "confirmed" ? "Upptaget" : "Bokat";
         const commonProps = {
-          title: `${formatTime(booking.startTime)}–${formatTime(booking.endTime)} · ${booking.title} · ${
-            isOwn ? "Din bokning" : booking.user.name
+          title: `${formatTime(booking.startTime)}–${formatTime(booking.endTime)} · ${
+            isOwn ? `${booking.title} · Din bokning` : label
           }`,
           style: { left: `${left}%`, width: `${width}%` },
         };
@@ -159,14 +163,14 @@ export function RoomTimeline({
               onClick={() => onOwnBookingClick(booking)}
               className={`${commonClassName} cursor-pointer hover:brightness-95`}
             >
-              {formatTime(booking.startTime)}–{formatTime(booking.endTime)} {booking.title}
+              {formatTime(booking.startTime)}–{formatTime(booking.endTime)} {label}
             </button>
           );
         }
 
         return (
           <div key={booking.id} {...commonProps} className={commonClassName}>
-            {formatTime(booking.startTime)}–{formatTime(booking.endTime)} {booking.title}
+            {formatTime(booking.startTime)}–{formatTime(booking.endTime)} {label}
           </div>
         );
       })}

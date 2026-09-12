@@ -284,9 +284,14 @@ export function ScheduleVertical({
               <div className="pointer-events-none absolute inset-0 z-10">
                 {blocks.map(({ booking, top, height, isOwn }) => {
                   const status = getBookingConfirmationStatus(booking, settings);
+                  // Other users' bookings only ever show their confirmation
+                  // status, never the actual title — that's private to the
+                  // booker. Only the current user's own bookings show their
+                  // real title.
+                  const label = isOwn ? booking.title : status === "confirmed" ? "Upptaget" : "Bokat";
                   const commonProps = {
-                    title: `${formatTime(booking.startTime)}–${formatTime(booking.endTime)} · ${booking.title} · ${
-                      isOwn ? "Din bokning" : booking.user.name
+                    title: `${formatTime(booking.startTime)}–${formatTime(booking.endTime)} · ${
+                      isOwn ? `${booking.title} · Din bokning` : label
                     }`,
                     style: { top: `${top}%`, height: `${height}%` },
                   };
@@ -306,7 +311,7 @@ export function ScheduleVertical({
                         <span className="block break-words">
                           {formatTime(booking.startTime)}–{formatTime(booking.endTime)}
                         </span>
-                        <span className="block break-words">{booking.title}</span>
+                        <span className="block break-words">{label}</span>
                       </button>
                     );
                   }
@@ -316,7 +321,7 @@ export function ScheduleVertical({
                       <span className="block break-words">
                         {formatTime(booking.startTime)}–{formatTime(booking.endTime)}
                       </span>
-                      <span className="block break-words">{booking.title}</span>
+                      <span className="block break-words">{label}</span>
                     </div>
                   );
                 })}
