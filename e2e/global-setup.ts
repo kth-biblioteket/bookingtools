@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 
-const TEST_DATABASE_URL = "postgresql://kth_grupprum:kth_grupprum@localhost:5434/kth_grupprum_test";
+const TEST_DATABASE_URL = "postgresql://bookingtools:bookingtools@localhost:5434/bookingtools_test";
 
 export default async function globalSetup() {
   const env = {

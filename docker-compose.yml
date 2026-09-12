@@ -3,9 +3,9 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: kth_grupprum
-      POSTGRES_PASSWORD: kth_grupprum
-      POSTGRES_DB: kth_grupprum
+      POSTGRES_USER: bookingtools
+      POSTGRES_PASSWORD: bookingtools
+      POSTGRES_DB: bookingtools
     ports:
       - "5434:5432"
     volumes:
@@ -15,7 +15,7 @@ services:
       # shares data with the dev database above.
       - ./docker/init-test-db.sql:/docker-entrypoint-initdb.d/init-test-db.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U kth_grupprum"]
+      test: ["CMD-SHELL", "pg_isready -U bookingtools"]
       interval: 2s
       timeout: 2s
       retries: 15

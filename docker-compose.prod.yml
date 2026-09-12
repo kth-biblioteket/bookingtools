@@ -5,40 +5,40 @@
 #
 # Deploy prerequisites on the server:
 #   - the external "apps-net" network already exists (docker network create apps-net)
-#   - a kth-grupprum.env file next to this one (copy kth-grupprum.env.example and fill it in)
+#   - a bookingtools.env file next to this one (copy bookingtools.env.example and fill it in)
 #
 # First deploy / after pulling a new image:
 #   docker compose -f docker-compose.prod.yml up -d
 # (prisma migrate deploy runs automatically on container start — see docker-entrypoint.sh)
 
 services:
-  kth-grupprum:
-    container_name: kth-grupprum
+  bookingtools:
+    container_name: bookingtools
     # Adjust the ghcr.io org below if this repo doesn't live under kth-biblioteket.
-    image: ghcr.io/kth-biblioteket/kth-grupprum:${REPO_TYPE}
+    image: ghcr.io/kth-biblioteket/bookingtools:${REPO_TYPE}
     depends_on:
-      - kth-grupprum-db
+      - bookingtools-db
     restart: always
     environment:
       TZ: ${TZ}
-      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@kth-grupprum-db:5432/${DB_DATABASE}
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@bookingtools-db:5432/${DB_DATABASE}
       # Must match both the Traefik PathPrefix below AND the BASE_PATH the
       # image was built with (see Dockerfile) — Next.js needs it at runtime
       # too, not just at build time, to route requests correctly.
       BASE_PATH: ${PATHPREFIX}
     env_file:
-      - kth-grupprum.env
+      - bookingtools.env
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.kth-grupprum.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`${PATHPREFIX}`)"
-      - "traefik.http.routers.kth-grupprum.entrypoints=websecure"
-      - "traefik.http.routers.kth-grupprum.tls=true"
-      - "traefik.http.routers.kth-grupprum.tls.certresolver=myresolver"
+      - "traefik.http.routers.bookingtools.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`${PATHPREFIX}`)"
+      - "traefik.http.routers.bookingtools.entrypoints=websecure"
+      - "traefik.http.routers.bookingtools.tls=true"
+      - "traefik.http.routers.bookingtools.tls.certresolver=myresolver"
     networks:
       - "apps-net"
 
-  kth-grupprum-db:
-    container_name: kth-grupprum-db
+  bookingtools-db:
+    container_name: bookingtools-db
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -47,12 +47,12 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
-      - persistent-kth-grupprum-db:/var/lib/postgresql/data
+      - persistent-bookingtools-db:/var/lib/postgresql/data
     networks:
       - "apps-net"
 
 volumes:
-  persistent-kth-grupprum-db:
+  persistent-bookingtools-db:
 
 networks:
   apps-net:

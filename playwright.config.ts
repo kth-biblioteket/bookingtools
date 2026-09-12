@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const TEST_DATABASE_URL = "postgresql://kth_grupprum:kth_grupprum@localhost:5434/kth_grupprum_test";
+const TEST_DATABASE_URL = "postgresql://bookingtools:bookingtools@localhost:5434/bookingtools_test";
 const PORT = 3100;
 const BASE_URL = `http://localhost:${PORT}`;
 

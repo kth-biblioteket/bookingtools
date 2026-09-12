@@ -1,1 +1,1 @@
-CREATE DATABASE kth_grupprum_test;
+CREATE DATABASE bookingtools_test;

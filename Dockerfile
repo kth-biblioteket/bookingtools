@@ -1,4 +1,4 @@
-# Production image for kth-grupprum. Not used for local dev — see
+# Production image for bookingtools. Not used for local dev — see
 # docker-compose.yml (Postgres only) and `npm run dev` for that.
 
 # ---- deps: install once, reused by the builder stage ----
