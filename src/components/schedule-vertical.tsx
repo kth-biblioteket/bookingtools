@@ -77,7 +77,15 @@ export function ScheduleVertical({
   const gridTemplateColumns = `4rem repeat(${roomsWithBookings.length}, minmax(40px, 1fr))`;
 
   return (
-    <div className="overflow-x-auto">
+    // pb-3: the last hour label (e.g. "20") is centered on the grid's bottom
+    // edge via -translate-y-1/2, so half its line-height visually pokes out
+    // below the grid's own box. That "ink overflow" from the transform was
+    // enough to make this element's own overflow-x-auto pick up a phantom
+    // vertical scrollbar (per the CSS spec, an element with overflow-x:auto
+    // implicitly gets overflow-y:auto too) instead of the page just growing
+    // to fit. This padding gives the label room without affecting any of the
+    // hour-percentage math used to position bookings/holds inside.
+    <div className="overflow-x-auto pb-3">
       <div className="min-w-max" style={{ display: "grid", gridTemplateColumns }}>
         {/* Header row */}
         <div className="sticky left-0 z-20 bg-gray-50" />
