@@ -39,7 +39,9 @@ services:
 
   bookingtools-db:
     container_name: bookingtools-db
-    image: postgres:16-alpine
+    # Pinned to the exact same patch version as docker-compose.yml's
+    # postgres service (local dev) — see the comment there.
+    image: postgres:16.14-alpine
     restart: unless-stopped
     environment:
       TZ: ${TZ}

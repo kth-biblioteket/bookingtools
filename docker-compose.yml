@@ -1,6 +1,10 @@
 services:
+  # Pinned to the exact same patch version as docker-compose.prod.yml's
+  # postgres service, so a schema/behavior difference between Postgres
+  # versions can never be the reason something works locally but not in
+  # production (or vice versa). Bump both together, deliberately.
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16.14-alpine
     restart: unless-stopped
     environment:
       POSTGRES_USER: bookingtools

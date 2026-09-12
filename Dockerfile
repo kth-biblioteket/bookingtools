@@ -1,14 +1,19 @@
 # Production image for bookingtools. Not used for local dev — see
 # docker-compose.yml (Postgres only) and `npm run dev` for that.
+#
+# The Node version below is pinned to an exact patch (not just "22-alpine")
+# and matches .nvmrc/package.json's "engines", so local dev and this image
+# never silently drift onto different Node patch releases. Bump all three
+# together when upgrading Node.
 
 # ---- deps: install once, reused by the builder stage ----
-FROM node:22-alpine AS deps
+FROM node:22.23.2-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
 # ---- builder: generate the Prisma client and build the Next.js app ----
-FROM node:22-alpine AS builder
+FROM node:22.23.2-alpine AS builder
 WORKDIR /app
 # Baked into the build — see the matching comment in next.config.ts. Must
 # match the Traefik PathPrefix this image is deployed behind (PATHPREFIX in
@@ -25,7 +30,7 @@ RUN npx prisma generate
 RUN npm run build
 
 # ---- runner: the smallest image that can actually run the app ----
-FROM node:22-alpine AS runner
+FROM node:22.23.2-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
