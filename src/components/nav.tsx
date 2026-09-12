@@ -53,7 +53,7 @@ export async function Nav() {
     <header className="relative bg-kth-navy">
       <div className="mx-auto flex h-24 max-w-5xl items-center justify-between px-4">
         <Link href="/rooms" className="flex items-center gap-3 text-lg font-semibold text-white">
-          <Image src="/kth-logo-white.svg" alt="KTH" width={50} height={56} className="h-14 w-auto" priority />
+          <Image src="/kth-logo-white.svg" alt="KTH" width={57} height={64} className="h-16 w-auto" priority />
           {t("nav.brand")}
         </Link>
         {/* Single row of links — only enough horizontal room on wider screens. */}
