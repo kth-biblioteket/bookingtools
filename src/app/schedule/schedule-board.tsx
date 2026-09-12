@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { RoomTimeline, type TimelineBooking } from "@/components/room-timeline";
 import { ScheduleVertical } from "@/components/schedule-vertical";
@@ -187,53 +187,48 @@ export function ScheduleBoard({
             onOwnBookingClick={handleOwnBookingClick}
           />
         ) : (
-          <div className="overflow-x-auto">
-            <div className="space-y-2">
-              <div className="flex items-center gap-4">
-                <ScheduleCornerCell
-                  roomsAt="bottom-left"
-                  className="sticky left-0 z-10 h-6 w-15 shrink-0 overflow-hidden rounded-md"
-                />
-                {/* Each hour gets a 50px floor — the ruler and every room's
-                    timeline below share this same min-width so their hour
-                    marks line up, and the outer overflow-x-auto only
-                    scrolls once even that floor no longer fits. */}
-                <div className="relative h-5 flex-1" style={{ minWidth: hourCount * 50 }}>
-                  {hours.map((hour, i) => (
-                    <span
-                      key={hour}
-                      style={{ left: `${((i + 0.5) / hourCount) * 100}%` }}
-                      className="absolute -translate-x-1/2 text-sm font-medium text-gray-700"
-                    >
-                      {String(hour).padStart(2, "0")}:00
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {roomsWithBookings.map(({ room, bookings }) => (
+          // A real grid, matching the vertical layout: shared gridlines and
+          // one row per room, rather than each room being its own bordered
+          // card. Every hour gets the same 50px floor as the vertical
+          // layout's room columns; overflow-x-auto only kicks in once that
+          // floor no longer fits.
+          <div className="overflow-x-auto pb-3">
+            <div
+              className="min-w-max"
+              style={{ display: "grid", gridTemplateColumns: `5rem repeat(${hourCount}, minmax(50px, 1fr))` }}
+            >
+              <ScheduleCornerCell roomsAt="bottom-left" className="sticky left-0 z-20 h-10 overflow-hidden" />
+              {hours.map((hour) => (
                 <div
-                  key={room.id}
-                  className="flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
+                  key={hour}
+                  className="flex h-10 items-center justify-center border-b border-gray-200 text-sm font-medium text-gray-700"
                 >
+                  {String(hour).padStart(2, "0")}:00
+                </div>
+              ))}
+
+              {roomsWithBookings.map(({ room, bookings }, rowIndex) => (
+                <Fragment key={room.id}>
                   <Link
                     href={`/rooms/${room.id}?date=${date}`}
-                    className="sticky left-0 z-10 flex w-15 shrink-0 flex-col items-center rounded-md bg-kth-sky py-1.5 text-center hover:bg-kth-blue"
+                    style={{ gridRow: rowIndex + 2 }}
+                    className="sticky left-0 z-10 flex items-center justify-center gap-1 border-t border-gray-200 bg-kth-sky px-1 hover:bg-kth-blue"
                   >
-                    <p className="break-words text-xl font-medium text-white">{room.name}</p>
-                    <div className="mt-0.5 flex items-center justify-center gap-1 text-[10px] font-medium text-black">
-                      <span className="flex items-center gap-0.5" title={`Plats för ${room.capacity} personer`}>
-                        <UsersIcon />
-                        {room.capacity}
+                    <span className="truncate text-sm font-semibold text-white">{room.name}</span>
+                    <span
+                      className="flex items-center gap-0.5 text-[9px] font-medium text-black"
+                      title={`Plats för ${room.capacity} personer`}
+                    >
+                      <UsersIcon />
+                      {room.capacity}
+                    </span>
+                    {room.hasScreen && (
+                      <span title="Har skärm">
+                        <ScreenIcon />
                       </span>
-                      {room.hasScreen && (
-                        <span title="Har skärm">
-                          <ScreenIcon />
-                        </span>
-                      )}
-                    </div>
+                    )}
                   </Link>
-                  <div className="flex-1" style={{ minWidth: hourCount * 50 }}>
+                  <div style={{ gridRow: rowIndex + 2, gridColumn: `2 / -1` }}>
                     <RoomTimeline
                       bookings={bookings}
                       holds={holds.filter((h) => h.roomId === room.id)}
@@ -248,7 +243,7 @@ export function ScheduleBoard({
                       onOwnBookingClick={(booking) => handleOwnBookingClick(room.id, booking)}
                     />
                   </div>
-                </div>
+                </Fragment>
               ))}
             </div>
           </div>

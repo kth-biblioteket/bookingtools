@@ -86,7 +86,7 @@ export function RoomTimeline({
     .filter((h): h is NonNullable<typeof h> => h !== null);
 
   return (
-    <div className="relative h-10 w-full overflow-hidden rounded-md border border-gray-200">
+    <div className="relative h-10 w-full border-t border-gray-200">
       {/* Hourly zebra striping, matching the vertical layout's row shading. */}
       {Array.from({ length: hourCount }, (_, i) => i).map((i) => (
         <div
