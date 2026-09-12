@@ -2,21 +2,29 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-Recommended: run everything in Docker, so local dev uses the same Node/Alpine platform as the production image instead of whatever's on your host (see the `app` service in docker-compose.yml for why that matters — a past issue with Prisma's native query engine specifically):
+Everything — the app and its database — runs in Docker, so local dev uses
+the same Node/Alpine platform as the production image instead of whatever's
+on your host (see the `bookingtools` service in docker-compose.yml for why
+that matters — a past issue with Prisma's native query engine specifically):
 
 ```bash
 docker compose up -d
 ```
 
-That starts Postgres, then installs dependencies and runs the dev server inside a container on http://localhost:3000, with hot reload via a bind mount. First start is slower (installing deps in the container); `docker compose logs -f app` to watch it.
+That starts Postgres, then installs dependencies and runs the dev server
+inside a container on http://localhost:3000, with hot reload via a bind
+mount. First start is slower (installing deps in the container);
+`docker compose logs -f bookingtools` to watch it.
 
-Alternatively, for a faster local loop without Docker for the app itself (just be sure your Node version matches `.nvmrc`):
+Run one-off Prisma commands (migrations, seeding, `prisma studio`) inside
+the app container, not on the host — `DATABASE_URL` in `.env` points at the
+`bookingtools-db` service name, which only resolves inside the Docker
+network:
 
 ```bash
-docker compose up -d postgres
-npx prisma migrate deploy
-npx prisma db seed
-npm run dev
+docker exec bookingtools npx prisma migrate deploy
+docker exec bookingtools npx prisma db seed
+docker exec -it bookingtools npx prisma studio
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.

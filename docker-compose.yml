@@ -52,15 +52,17 @@ services:
     # package-lock.json (e.g. after switching branches).
     command: sh -c "npm ci && npx prisma generate && npm run dev"
     environment:
-      # The container reaches Postgres by service name, not localhost:5434
-      # (that port mapping is only for access from the host) — same
-      # service-name-as-hostname pattern docker-compose.prod.yml uses.
-      DATABASE_URL: postgresql://bookingtools:bookingtools@bookingtools-db:5432/bookingtools
       # Next.js's file watcher doesn't always pick up changes made from
       # outside the container (bind mounts on Docker Desktop for Mac don't
       # reliably deliver inotify events) — polling is slightly less
       # efficient but reliable.
       WATCHPACK_POLLING: "true"
+    # DATABASE_URL comes from .env itself now (pointed at the bookingtools-db
+    # service name, not localhost:5434) — since everything runs in Docker
+    # here, there's no separate host-side value to override it with. Run
+    # any one-off Prisma command (migrate, seed, studio) via
+    # `docker exec bookingtools npx prisma ...`, not directly on the host —
+    # "bookingtools-db" only resolves inside the Docker network.
     env_file:
       - .env
     ports:
