@@ -174,7 +174,7 @@ export function RoomWeekVertical<B extends TimelineBooking>({
           return (
             <div
               key={date}
-              className="relative min-w-[80px] border-l border-gray-200"
+              className="relative min-w-[80px] border-l border-gray-400"
               style={{ gridRow: 2, height: totalHeightPx }}
             >
               {/* hour gridlines, with zebra striping to make each hour row easy to trace */}
@@ -182,7 +182,7 @@ export function RoomWeekVertical<B extends TimelineBooking>({
                 <div
                   key={i}
                   className={`h-10 border-t first:border-t-0 ${
-                    i % 2 === 1 ? "border-gray-200 bg-gray-50/70" : "border-gray-200"
+                    i % 2 === 1 ? "border-gray-400 bg-gray-50/70" : "border-gray-400"
                   }`}
                 />
               ))}
@@ -201,7 +201,7 @@ export function RoomWeekVertical<B extends TimelineBooking>({
                           key={i}
                           title={isPast ? t("bookingStatus.pastTooltip") : t("roomDetail.closedDay")}
                           style={{ top: `${top}%`, height: `${height}%` }}
-                          className="absolute inset-x-0 bg-gray-200/70"
+                          className="absolute inset-x-0 bg-gray-300/80"
                         />
                       );
                     }

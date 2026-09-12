@@ -179,7 +179,7 @@ export function ScheduleVertical({
           return (
             <div
               key={room.id}
-              className="relative min-w-[40px] border-l border-gray-200"
+              className="relative min-w-[40px] border-l border-gray-400"
               style={{ gridRow: 2, height: totalHeightPx }}
             >
               {/* hour gridlines, with zebra striping to make each hour row easy to trace */}
@@ -187,7 +187,7 @@ export function ScheduleVertical({
                 <div
                   key={i}
                   className={`h-10 border-t first:border-t-0 ${
-                    i % 2 === 1 ? "border-gray-200 bg-gray-50/70" : "border-gray-200"
+                    i % 2 === 1 ? "border-gray-400 bg-gray-50/70" : "border-gray-400"
                   }`}
                 />
               ))}
@@ -206,7 +206,7 @@ export function ScheduleVertical({
                           key={i}
                           title={t("bookingStatus.pastTooltip")}
                           style={{ top: `${top}%`, height: `${height}%` }}
-                          className="absolute inset-x-0 bg-gray-200/70"
+                          className="absolute inset-x-0 bg-gray-300/80"
                         />
                       );
                     }

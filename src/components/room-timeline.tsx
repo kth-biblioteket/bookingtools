@@ -90,13 +90,13 @@ export function RoomTimeline({
     .filter((h): h is NonNullable<typeof h> => h !== null);
 
   return (
-    <div className="relative h-10 w-full border-t border-gray-200">
+    <div className="relative h-10 w-full border-t border-gray-400">
       {/* Hourly zebra striping, matching the vertical layout's row shading. */}
       {Array.from({ length: hourCount }, (_, i) => i).map((i) => (
         <div
           key={i}
           className={`absolute inset-y-0 border-l first:border-l-0 ${
-            i % 2 === 1 ? "border-gray-200 bg-gray-50/70" : "border-gray-200"
+            i % 2 === 1 ? "border-gray-400 bg-gray-50/70" : "border-gray-400"
           }`}
           style={{ left: `${(i / hourCount) * 100}%`, width: `${(1 / hourCount) * 100}%` }}
         />
@@ -114,7 +114,7 @@ export function RoomTimeline({
                 key={i}
                 title={t("bookingStatus.pastTooltip")}
                 style={{ left: `${left}%`, width: `${width}%` }}
-                className="absolute inset-y-0 z-0 bg-gray-200/70"
+                className="absolute inset-y-0 z-0 bg-gray-300/80"
               />
             );
           }
