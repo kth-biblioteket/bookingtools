@@ -35,6 +35,10 @@ yarn-error.log*
 .env*
 !.env.test
 
+# production secrets (real values live only on the deploy server) — the
+# committed kth-grupprum.env.example is the template, never this file
+kth-grupprum.env
+
 # vercel
 .vercel
 

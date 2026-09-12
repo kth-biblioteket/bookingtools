@@ -1,0 +1,11 @@
+node_modules
+.next
+.next-e2e
+prisma/*.db
+prisma/*.db-journal
+.env
+.env.test
+.git
+test-results
+playwright-report
+e2e

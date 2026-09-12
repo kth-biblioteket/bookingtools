@@ -1,0 +1,59 @@
+# Production deployment, matching the almatools example: images built and
+# pushed to ghcr.io by CI, run on the shared apps-net network behind
+# Traefik. Not used for local dev — see docker-compose.yml for that
+# (Postgres only, run alongside `npm run dev`).
+#
+# Deploy prerequisites on the server:
+#   - the external "apps-net" network already exists (docker network create apps-net)
+#   - a kth-grupprum.env file next to this one (copy kth-grupprum.env.example and fill it in)
+#
+# First deploy / after pulling a new image:
+#   docker compose -f docker-compose.prod.yml up -d
+# (prisma migrate deploy runs automatically on container start — see docker-entrypoint.sh)
+
+services:
+  kth-grupprum:
+    container_name: kth-grupprum
+    # Adjust the ghcr.io org below if this repo doesn't live under kth-biblioteket.
+    image: ghcr.io/kth-biblioteket/kth-grupprum:${REPO_TYPE}
+    depends_on:
+      - kth-grupprum-db
+    restart: always
+    environment:
+      TZ: ${TZ}
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@kth-grupprum-db:5432/${DB_DATABASE}
+      # Must match both the Traefik PathPrefix below AND the BASE_PATH the
+      # image was built with (see Dockerfile) — Next.js needs it at runtime
+      # too, not just at build time, to route requests correctly.
+      BASE_PATH: ${PATHPREFIX}
+    env_file:
+      - kth-grupprum.env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kth-grupprum.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`${PATHPREFIX}`)"
+      - "traefik.http.routers.kth-grupprum.entrypoints=websecure"
+      - "traefik.http.routers.kth-grupprum.tls=true"
+      - "traefik.http.routers.kth-grupprum.tls.certresolver=myresolver"
+    networks:
+      - "apps-net"
+
+  kth-grupprum-db:
+    container_name: kth-grupprum-db
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ}
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - persistent-kth-grupprum-db:/var/lib/postgresql/data
+    networks:
+      - "apps-net"
+
+volumes:
+  persistent-kth-grupprum-db:
+
+networks:
+  apps-net:
+    external: true
