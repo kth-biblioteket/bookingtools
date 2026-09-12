@@ -24,5 +24,47 @@ services:
       timeout: 2s
       retries: 15
 
+  # Runs the app itself in dev mode, on the exact same Node/Alpine base as
+  # the production image (Dockerfile) — not `npm run dev` on the host. That
+  # matters because native/platform-specific pieces (the Prisma query
+  # engine binary, in particular) get installed/built for whatever OS the
+  # `npm ci` below actually runs on; running it on the host would build them
+  # for macOS, which is a different platform than the Linux container this
+  # app actually deploys to. `npm run dev` on the host is still fine for
+  # quick iteration if you want it — this is the option that also catches
+  # "works on my Mac, breaks in the container" before it ships.
+  #
+  # Source is bind-mounted for hot reload; node_modules is a separate named
+  # volume (not the bind mount) specifically so the Linux-built packages in
+  # it are never shadowed by whatever's in the host's own node_modules.
+  app:
+    image: node:22.23.2-alpine
+    working_dir: /app
+    # Re-installs on every start rather than only when node_modules is
+    # missing — a few extra seconds at startup, in exchange for never
+    # running against a dependency set that's silently out of sync with
+    # package-lock.json (e.g. after switching branches).
+    command: sh -c "npm ci && npx prisma generate && npm run dev"
+    environment:
+      # The container reaches Postgres by service name, not localhost:5434
+      # (that port mapping is only for access from the host).
+      DATABASE_URL: postgresql://bookingtools:bookingtools@postgres:5432/bookingtools
+      # Next.js's file watcher doesn't always pick up changes made from
+      # outside the container (bind mounts on Docker Desktop for Mac don't
+      # reliably deliver inotify events) — polling is slightly less
+      # efficient but reliable.
+      WATCHPACK_POLLING: "true"
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - app_node_modules:/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres_data:
+  app_node_modules:

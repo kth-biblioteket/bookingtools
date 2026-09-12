@@ -2,24 +2,21 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-Start the local Postgres database (used by both the dev server and the Playwright test suite, in separate databases on the same instance):
+Recommended: run everything in Docker, so local dev uses the same Node/Alpine platform as the production image instead of whatever's on your host (see the `app` service in docker-compose.yml for why that matters — a past issue with Prisma's native query engine specifically):
+
+```bash
+docker compose up -d
+```
+
+That starts Postgres, then installs dependencies and runs the dev server inside a container on http://localhost:3000, with hot reload via a bind mount. First start is slower (installing deps in the container); `docker compose logs -f app` to watch it.
+
+Alternatively, for a faster local loop without Docker for the app itself (just be sure your Node version matches `.nvmrc`):
 
 ```bash
 docker compose up -d postgres
 npx prisma migrate deploy
 npx prisma db seed
-```
-
-Then run the development server:
-
-```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
