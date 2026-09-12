@@ -187,64 +187,71 @@ export function ScheduleBoard({
             onOwnBookingClick={handleOwnBookingClick}
           />
         ) : (
-          <div className="space-y-2">
-            <div className="flex items-center gap-4">
-              <ScheduleCornerCell
-                roomsAt="bottom-left"
-                className="h-6 w-48 shrink-0 overflow-hidden rounded-md"
-              />
-              <div className="relative h-5 flex-1">
-                {hours.map((hour, i) => (
-                  <span
-                    key={hour}
-                    style={{ left: `${((i + 0.5) / hourCount) * 100}%` }}
-                    className="absolute -translate-x-1/2 text-sm font-medium text-gray-700"
-                  >
-                    {String(hour).padStart(2, "0")}:00
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {roomsWithBookings.map(({ room, bookings }) => (
-              <div
-                key={room.id}
-                className="flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
-              >
-                <Link
-                  href={`/rooms/${room.id}?date=${date}`}
-                  className="flex w-48 shrink-0 flex-col items-center rounded-md bg-kth-sky py-1.5 text-center hover:bg-kth-blue"
-                >
-                  <p className="break-words text-xl font-medium text-white">{room.name}</p>
-                  <div className="mt-0.5 flex items-center justify-center gap-1 text-[10px] font-medium text-black">
-                    <span className="flex items-center gap-0.5" title={`Plats för ${room.capacity} personer`}>
-                      <UsersIcon />
-                      {room.capacity}
+          <div className="overflow-x-auto">
+            <div className="space-y-2">
+              <div className="flex items-center gap-4">
+                <ScheduleCornerCell
+                  roomsAt="bottom-left"
+                  className="sticky left-0 z-10 h-6 w-48 shrink-0 overflow-hidden rounded-md"
+                />
+                {/* Each hour gets a 40px floor, same as the vertical layout's
+                    room columns — the ruler and every room's timeline below
+                    share this same min-width so their hour marks line up,
+                    and the outer overflow-x-auto only scrolls once even
+                    that floor no longer fits. */}
+                <div className="relative h-5 flex-1" style={{ minWidth: hourCount * 40 }}>
+                  {hours.map((hour, i) => (
+                    <span
+                      key={hour}
+                      style={{ left: `${((i + 0.5) / hourCount) * 100}%` }}
+                      className="absolute -translate-x-1/2 text-sm font-medium text-gray-700"
+                    >
+                      {String(hour).padStart(2, "0")}:00
                     </span>
-                    {room.hasScreen && (
-                      <span title="Har skärm">
-                        <ScreenIcon />
-                      </span>
-                    )}
-                  </div>
-                </Link>
-                <div className="flex-1">
-                  <RoomTimeline
-                    bookings={bookings}
-                    holds={holds.filter((h) => h.roomId === room.id)}
-                    currentUserId={currentUserId}
-                    isAdmin={isAdmin}
-                    dateStr={date}
-                    dayStartHour={dayStartHour}
-                    dayEndHour={dayEndHour}
-                    stepMinutes={settings.stepMinutes}
-                    settings={settings}
-                    onFreeClick={(start) => handleFreeClick(room.id, start)}
-                    onOwnBookingClick={(booking) => handleOwnBookingClick(room.id, booking)}
-                  />
+                  ))}
                 </div>
               </div>
-            ))}
+
+              {roomsWithBookings.map(({ room, bookings }) => (
+                <div
+                  key={room.id}
+                  className="flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
+                >
+                  <Link
+                    href={`/rooms/${room.id}?date=${date}`}
+                    className="sticky left-0 z-10 flex w-48 shrink-0 flex-col items-center rounded-md bg-kth-sky py-1.5 text-center hover:bg-kth-blue"
+                  >
+                    <p className="break-words text-xl font-medium text-white">{room.name}</p>
+                    <div className="mt-0.5 flex items-center justify-center gap-1 text-[10px] font-medium text-black">
+                      <span className="flex items-center gap-0.5" title={`Plats för ${room.capacity} personer`}>
+                        <UsersIcon />
+                        {room.capacity}
+                      </span>
+                      {room.hasScreen && (
+                        <span title="Har skärm">
+                          <ScreenIcon />
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                  <div className="flex-1" style={{ minWidth: hourCount * 40 }}>
+                    <RoomTimeline
+                      bookings={bookings}
+                      holds={holds.filter((h) => h.roomId === room.id)}
+                      currentUserId={currentUserId}
+                      isAdmin={isAdmin}
+                      dateStr={date}
+                      dayStartHour={dayStartHour}
+                      dayEndHour={dayEndHour}
+                      stepMinutes={settings.stepMinutes}
+                      settings={settings}
+                      onFreeClick={(start) => handleFreeClick(room.id, start)}
+                      onOwnBookingClick={(booking) => handleOwnBookingClick(room.id, booking)}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
