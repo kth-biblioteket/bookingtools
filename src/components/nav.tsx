@@ -50,8 +50,9 @@ export async function Nav() {
 
   return (
     <header className="relative bg-kth-navy">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-        <Link href="/rooms" className="text-lg font-semibold text-white">
+      <div className="mx-auto flex h-24 max-w-5xl items-center justify-between px-4">
+        <Link href="/rooms" className="flex items-center gap-3 text-lg font-semibold text-white">
+          {/* TODO: swap in the real KTH logo asset once provided — see public/. */}
           {t("nav.brand")}
         </Link>
         {/* Single row of links — only enough horizontal room on wider screens. */}
