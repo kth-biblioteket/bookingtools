@@ -228,7 +228,7 @@ export function ScheduleVertical({
                   only, but shown (and left clickable-blocking) so a second
                   person doesn't start filling in the same slot. */}
               {heldBlocks.length > 0 && (
-                <div className="absolute inset-0 z-[5]">
+                <div className="pointer-events-none absolute inset-0 z-[5]">
                   {heldBlocks.map(({ hold, top, height }) => (
                     <div
                       key={hold.id}
@@ -239,7 +239,7 @@ export function ScheduleVertical({
                         backgroundImage:
                           "repeating-linear-gradient(45deg, rgba(71,85,105,0.35) 0px, rgba(71,85,105,0.35) 6px, transparent 6px, transparent 12px)",
                       }}
-                      className="absolute inset-x-0 bg-slate-300/50"
+                      className="pointer-events-auto absolute inset-x-0 bg-slate-300/50"
                     />
                   ))}
                 </div>

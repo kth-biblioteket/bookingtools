@@ -222,7 +222,7 @@ export function RoomWeekVertical<B extends TimelineBooking>({
 
               {/* other users' active holds on otherwise-free time */}
               {heldBlocks.length > 0 && (
-                <div className="absolute inset-0 z-[5]">
+                <div className="pointer-events-none absolute inset-0 z-[5]">
                   {heldBlocks.map(({ hold, top, height }) => (
                     <div
                       key={hold.id}
@@ -233,7 +233,7 @@ export function RoomWeekVertical<B extends TimelineBooking>({
                         backgroundImage:
                           "repeating-linear-gradient(45deg, rgba(71,85,105,0.35) 0px, rgba(71,85,105,0.35) 6px, transparent 6px, transparent 12px)",
                       }}
-                      className="absolute inset-x-0 bg-slate-300/50"
+                      className="pointer-events-auto absolute inset-x-0 bg-slate-300/50"
                     />
                   ))}
                 </div>
