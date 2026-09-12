@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="sv" className={`${figtree.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-kth-sand text-gray-900">
+      <body className="min-h-full flex flex-col bg-white text-gray-900">
         <Nav />
         <main className="flex flex-1 flex-col">{children}</main>
       </body>
