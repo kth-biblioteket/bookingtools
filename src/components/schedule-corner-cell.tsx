@@ -5,25 +5,40 @@
  * kth-blue background and says "Tid". clip-path (not a gradient) guarantees
  * the split runs exactly corner-to-corner regardless of this cell's actual
  * width/height.
+ *
+ * Which triangle gets which label/color depends on which side that axis
+ * actually continues on: in the vertical layout, rooms run along the top
+ * (to the right of this cell) and hours run down the left (below this
+ * cell), so "Rum" belongs in the top-right triangle. In the horizontal
+ * layout, hours run along the top (to the right of this cell) and rooms
+ * run down the left (below this cell) instead — the axes are swapped, so
+ * `roomsAt` flips which triangle is which.
  */
-export function ScheduleCornerCell({ className = "" }: { className?: string }) {
+export function ScheduleCornerCell({
+  roomsAt = "top-right",
+  className = "",
+}: {
+  roomsAt?: "top-right" | "bottom-left";
+  className?: string;
+}) {
+  const roomsClip =
+    roomsAt === "top-right" ? "polygon(0 0, 100% 0, 100% 100%)" : "polygon(0 0, 0 100%, 100% 100%)";
+  const hoursClip =
+    roomsAt === "top-right" ? "polygon(0 0, 0 100%, 100% 100%)" : "polygon(0 0, 100% 0, 100% 100%)";
+  // Each label sits at its triangle's centroid — the average of its three
+  // corners — so it's centered within its own half rather than the cell as
+  // a whole.
+  const roomsPos = roomsAt === "top-right" ? { left: "66.7%", top: "33.3%" } : { left: "33.3%", top: "66.7%" };
+  const hoursPos = roomsAt === "top-right" ? { left: "33.3%", top: "66.7%" } : { left: "66.7%", top: "33.3%" };
+
   return (
     <div className={`relative ${className}`}>
-      <div className="absolute inset-0 bg-kth-sky" style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%)" }} />
-      <div className="absolute inset-0 bg-kth-blue" style={{ clipPath: "polygon(0 0, 0 100%, 100% 100%)" }} />
-      {/* Positioned at each triangle's centroid — the average of its three
-          corners — so the label sits centered within its own half rather
-          than the cell as a whole. */}
-      <span
-        className="absolute -translate-x-1/2 -translate-y-1/2 text-xs font-medium text-white"
-        style={{ left: "66.7%", top: "33.3%" }}
-      >
+      <div className="absolute inset-0 bg-kth-sky" style={{ clipPath: roomsClip }} />
+      <div className="absolute inset-0 bg-kth-blue" style={{ clipPath: hoursClip }} />
+      <span className="absolute -translate-x-1/2 -translate-y-1/2 text-xs font-medium text-white" style={roomsPos}>
         Rum
       </span>
-      <span
-        className="absolute -translate-x-1/2 -translate-y-1/2 text-xs font-medium text-white"
-        style={{ left: "33.3%", top: "66.7%" }}
-      >
+      <span className="absolute -translate-x-1/2 -translate-y-1/2 text-xs font-medium text-white" style={hoursPos}>
         Tid
       </span>
     </div>

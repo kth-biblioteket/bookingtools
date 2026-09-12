@@ -189,7 +189,10 @@ export function ScheduleBoard({
         ) : (
           <div className="space-y-2">
             <div className="flex items-center gap-4">
-              <ScheduleCornerCell className="h-6 w-48 shrink-0 overflow-hidden rounded-md" />
+              <ScheduleCornerCell
+                roomsAt="bottom-left"
+                className="h-6 w-48 shrink-0 overflow-hidden rounded-md"
+              />
               <div className="relative h-5 flex-1">
                 {hours.map((hour, i) => (
                   <span
