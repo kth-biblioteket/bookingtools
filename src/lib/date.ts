@@ -28,8 +28,13 @@ export function weekdayLabel(dateStr: string): string {
   return WEEKDAY_LABELS[isoDayOfWeek];
 }
 
-/** "D/M" day-of-month/month label for an ISO date string. */
+const MONTH_LABELS = [
+  "jan", "feb", "mar", "apr", "maj", "jun",
+  "jul", "aug", "sep", "okt", "nov", "dec",
+];
+
+/** "mon D" abbreviated-month/day-of-month label for an ISO date string (e.g. "sep 12"). */
 export function dayMonthLabel(dateStr: string): string {
   const d = new Date(`${dateStr}T00:00:00`);
-  return `${d.getDate()}/${d.getMonth() + 1}`;
+  return `${MONTH_LABELS[d.getMonth()]} ${d.getDate()}`;
 }

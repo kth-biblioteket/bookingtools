@@ -75,12 +75,12 @@ export function RoomWeekVertical<B extends TimelineBooking>({
         {weekDates.map((date, i) => (
           <div
             key={date}
-            className={`border-b border-black/10 bg-kth-sky px-1 py-1.5 text-center ${
-              i > 0 ? "border-l border-l-black/10" : ""
-            } ${date === todayStr ? "ring-2 ring-inset ring-white" : ""}`}
+            className={`border-b border-black/10 px-1 py-1.5 text-center ${
+              date === todayStr ? "bg-kth-blue" : "bg-kth-sky"
+            } ${i > 0 ? "border-l border-l-black/10" : ""}`}
           >
             <p className="text-xl font-medium capitalize text-white">{weekdayLabel(date)}</p>
-            <p className="text-xs font-medium text-black">{dayMonthLabel(date)}</p>
+            <p className="text-sm font-medium text-white">{dayMonthLabel(date)}</p>
           </div>
         ))}
 
