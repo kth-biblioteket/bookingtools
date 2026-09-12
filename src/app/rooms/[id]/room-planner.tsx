@@ -40,6 +40,7 @@ export function RoomPlanner({
   slots,
   settings,
   currentUserId,
+  isAdmin,
   holds,
 }: {
   roomId: string;
@@ -48,6 +49,9 @@ export function RoomPlanner({
   slots: Slot[];
   settings: BookingSettings;
   currentUserId: string;
+  /** Admins see every booking's real title, not just its status — see the
+   * "Bokat"/"Upptaget" masking below. */
+  isAdmin: boolean;
   holds: ActiveHold[];
 }) {
   const [mode, setMode] = useState<FormMode>("create");
@@ -229,9 +233,11 @@ export function RoomPlanner({
                   slot.booking
                     ? isOwn
                       ? `Din bokning: ${slot.booking.title}`
-                      : confirmationStatus === "confirmed"
-                        ? "Upptaget"
-                        : "Bokat"
+                      : isAdmin
+                        ? `${confirmationStatus === "confirmed" ? "Upptaget" : "Bokat"}: ${slot.booking.title} · ${slot.booking.user.name}`
+                        : confirmationStatus === "confirmed"
+                          ? "Upptaget"
+                          : "Bokat"
                     : slot.heldByOther
                       ? "Någon bokar den här tiden just nu"
                       : isPastFree
@@ -292,7 +298,13 @@ export function RoomPlanner({
                       title={statusLabel}
                     />
                     {timeLabelFromDate(b.startTime)}–{timeLabelFromDate(b.endTime)}{" "}
-                    {isOwn ? `· ${b.title} (du)` : confirmationStatus === "confirmed" ? "· Upptaget" : "· Bokat"}
+                    {isOwn
+                      ? `· ${b.title} (du)`
+                      : isAdmin
+                        ? `· ${b.title} (${b.user.name})`
+                        : confirmationStatus === "confirmed"
+                          ? "· Upptaget"
+                          : "· Bokat"}
                   </span>
                   {isOwn && (
                     <span className="flex items-center gap-3">

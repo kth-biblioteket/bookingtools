@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isAdminEmail } from "@/lib/auth";
 import {
   generateDaySlots,
   getBookingsForRoomOnDate,
@@ -84,6 +84,7 @@ export default async function RoomPage({
         slots={slots}
         settings={settings}
         currentUserId={user.id}
+        isAdmin={isAdminEmail(user.email)}
         holds={holds}
       />
     </div>

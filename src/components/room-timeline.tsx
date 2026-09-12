@@ -26,6 +26,7 @@ export function RoomTimeline({
   bookings,
   holds,
   currentUserId,
+  isAdmin,
   dateStr,
   dayStartHour,
   dayEndHour,
@@ -38,6 +39,8 @@ export function RoomTimeline({
   /** Other users' active holds on this room, already filtered to this room. */
   holds?: ActiveHold[];
   currentUserId: string;
+  /** Admins see every booking's real title, not just its status. */
+  isAdmin?: boolean;
   dateStr: string;
   dayStartHour: number;
   dayEndHour: number;
@@ -141,12 +144,17 @@ export function RoomTimeline({
       {blocks.map(({ booking, left, width, isOwn }) => {
         const status = getBookingConfirmationStatus(booking, settings);
         // Other users' bookings only ever show their confirmation status,
-        // never the actual title — that's private to the booker. Only the
-        // current user's own bookings show their real title.
-        const label = isOwn ? booking.title : status === "confirmed" ? "Upptaget" : "Bokat";
+        // never the actual title — that's private to the booker. Exceptions:
+        // the current user's own bookings show their real title, and so do
+        // all bookings for admins.
+        const label = isOwn || isAdmin
+          ? booking.title
+          : status === "confirmed"
+            ? "Upptaget"
+            : "Bokat";
         const commonProps = {
           title: `${formatTime(booking.startTime)}–${formatTime(booking.endTime)} · ${
-            isOwn ? `${booking.title} · Din bokning` : label
+            isOwn ? `${booking.title} · Din bokning` : isAdmin ? `${label} · ${booking.user.name}` : label
           }`,
           style: { left: `${left}%`, width: `${width}%` },
         };

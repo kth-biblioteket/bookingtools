@@ -36,6 +36,7 @@ export function ScheduleBoard({
   scheduleLayout,
   settings,
   currentUserId,
+  isAdmin,
   date,
   dayStartHour,
   dayEndHour,
@@ -45,6 +46,8 @@ export function ScheduleBoard({
   scheduleLayout: ScheduleLayout;
   settings: BookingSettings;
   currentUserId: string;
+  /** Admins see every booking's real title, not just its status. */
+  isAdmin: boolean;
   date: string;
   dayStartHour: number;
   dayEndHour: number;
@@ -171,6 +174,7 @@ export function ScheduleBoard({
           <ScheduleVertical
             roomsWithBookings={roomsWithBookings}
             currentUserId={currentUserId}
+            isAdmin={isAdmin}
             dateStr={date}
             dayStartHour={dayStartHour}
             dayEndHour={dayEndHour}
@@ -219,6 +223,7 @@ export function ScheduleBoard({
                     bookings={bookings}
                     holds={holds.filter((h) => h.roomId === room.id)}
                     currentUserId={currentUserId}
+                    isAdmin={isAdmin}
                     dateStr={date}
                     dayStartHour={dayStartHour}
                     dayEndHour={dayEndHour}

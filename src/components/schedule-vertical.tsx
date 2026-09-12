@@ -59,6 +59,7 @@ const statusClassNames: Record<BookingConfirmationStatus, string> = {
 export function ScheduleVertical({
   roomsWithBookings,
   currentUserId,
+  isAdmin,
   dateStr,
   dayStartHour,
   dayEndHour,
@@ -70,6 +71,8 @@ export function ScheduleVertical({
 }: {
   roomsWithBookings: RoomWithBookings[];
   currentUserId: string;
+  /** Admins see every booking's real title, not just its status. */
+  isAdmin?: boolean;
   dateStr: string;
   dayStartHour: number;
   dayEndHour: number;
@@ -286,12 +289,16 @@ export function ScheduleVertical({
                   const status = getBookingConfirmationStatus(booking, settings);
                   // Other users' bookings only ever show their confirmation
                   // status, never the actual title — that's private to the
-                  // booker. Only the current user's own bookings show their
-                  // real title.
-                  const label = isOwn ? booking.title : status === "confirmed" ? "Upptaget" : "Bokat";
+                  // booker. Exceptions: the current user's own bookings show
+                  // their real title, and so do all bookings for admins.
+                  const label = isOwn || isAdmin
+                    ? booking.title
+                    : status === "confirmed"
+                      ? "Upptaget"
+                      : "Bokat";
                   const commonProps = {
                     title: `${formatTime(booking.startTime)}–${formatTime(booking.endTime)} · ${
-                      isOwn ? `${booking.title} · Din bokning` : label
+                      isOwn ? `${booking.title} · Din bokning` : isAdmin ? `${label} · ${booking.user.name}` : label
                     }`,
                     style: { top: `${top}%`, height: `${height}%` },
                   };

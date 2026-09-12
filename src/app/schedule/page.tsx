@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isAdminEmail } from "@/lib/auth";
 import { getAllRoomsBookingsForDate, todayStr, DAY_START_HOUR, DAY_END_HOUR } from "@/lib/booking";
 import { getActiveHoldsForDate } from "@/lib/booking-hold";
 import { getBookingSettings, getScheduleLayout } from "@/lib/settings";
@@ -63,6 +63,7 @@ export default async function SchedulePage({
         scheduleLayout={scheduleLayout}
         settings={settings}
         currentUserId={user.id}
+        isAdmin={isAdminEmail(user.email)}
         date={date}
         dayStartHour={DAY_START_HOUR}
         dayEndHour={DAY_END_HOUR}
