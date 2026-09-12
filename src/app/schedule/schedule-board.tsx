@@ -198,10 +198,12 @@ export function ScheduleBoard({
               style={{ display: "grid", gridTemplateColumns: `5rem repeat(${hourCount}, minmax(50px, 1fr))` }}
             >
               <ScheduleCornerCell roomsAt="bottom-left" className="sticky left-0 z-20 h-10 overflow-hidden" />
-              {hours.map((hour) => (
+              {hours.map((hour, i) => (
                 <div
                   key={hour}
-                  className="flex h-10 items-center justify-center bg-kth-blue text-sm font-medium text-white"
+                  className={`flex h-10 items-center justify-center bg-kth-blue text-sm font-medium text-white ${
+                    i > 0 ? "border-l border-white/10" : ""
+                  }`}
                 >
                   {String(hour).padStart(2, "0")}:00
                 </div>
@@ -212,7 +214,7 @@ export function ScheduleBoard({
                   <Link
                     href={`/rooms/${room.id}?date=${date}`}
                     style={{ gridRow: rowIndex + 2 }}
-                    className="sticky left-0 z-10 flex items-center justify-start gap-1 bg-kth-sky py-1 pl-3 pr-1 hover:bg-kth-blue"
+                    className="sticky left-0 z-10 flex items-center justify-start gap-1 border-t border-black/10 bg-kth-sky py-1 pl-3 pr-1 hover:bg-kth-blue"
                   >
                     <span className="truncate text-sm font-semibold text-white">{room.name}</span>
                     <span

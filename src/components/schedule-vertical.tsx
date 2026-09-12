@@ -97,11 +97,13 @@ export function ScheduleVertical({
       <div className="min-w-max" style={{ display: "grid", gridTemplateColumns }}>
         {/* Header row */}
         <ScheduleCornerCell className="sticky left-0 z-20" />
-        {roomsWithBookings.map(({ room }) => (
+        {roomsWithBookings.map(({ room }, i) => (
           <Link
             key={room.id}
             href={`/rooms/${room.id}?date=${dateStr}`}
-            className="min-w-[40px] border-b border-gray-200 bg-kth-sky px-1 pb-2 text-center hover:bg-kth-blue"
+            className={`min-w-[40px] border-b border-black/10 bg-kth-sky px-1 pb-2 text-center hover:bg-kth-blue ${
+              i > 0 ? "border-l border-l-black/10" : ""
+            }`}
           >
             <p className="break-words text-xl font-medium text-white">{room.name}</p>
             <div className="mt-0.5 flex flex-col items-center gap-0.5 text-[10px] font-medium text-black">
@@ -124,7 +126,10 @@ export function ScheduleVertical({
           style={{ gridColumn: 1, gridRow: 2, height: totalHeightPx }}
         >
           {Array.from({ length: hourCount }, (_, i) => i).map((i) => (
-            <div key={i} className={`h-10 ${i % 2 === 1 ? "bg-white/10" : ""}`} />
+            <div
+              key={i}
+              className={`h-10 ${i % 2 === 1 ? "bg-white/10" : ""} ${i > 0 ? "border-t border-white/10" : ""}`}
+            />
           ))}
           {hours.map((hour, i) => (
             <span
