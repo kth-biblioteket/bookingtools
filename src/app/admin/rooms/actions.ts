@@ -8,6 +8,7 @@ import { notifyBookingsChanged } from "@/lib/booking-events";
 
 const createRoomSchema = z.object({
   name: z.string().trim().min(1, "Namn krävs").max(100, "Namn får vara högst 100 tecken"),
+  roomNumber: z.coerce.number().int("Rumsnummer måste vara ett heltal"),
   building: z.string().trim().min(1, "Byggnad krävs").max(100, "Byggnad får vara högst 100 tecken"),
   campus: z.string().trim().min(1, "Campus krävs").max(100, "Campus får vara högst 100 tecken"),
   capacity: z.coerce.number().int().positive("Kapacitet måste vara ett positivt heltal"),
@@ -27,6 +28,7 @@ export async function createRoom(
 
   const parsed = createRoomSchema.safeParse({
     name: formData.get("name"),
+    roomNumber: formData.get("roomNumber"),
     building: formData.get("building"),
     campus: formData.get("campus"),
     capacity: formData.get("capacity"),
@@ -40,11 +42,12 @@ export async function createRoom(
   const hasScreen = formData.get("hasScreen") === "on";
   const hasWhiteboard = formData.get("hasWhiteboard") === "on";
 
-  const { name, building, campus, capacity, floor } = parsed.data;
+  const { name, roomNumber, building, campus, capacity, floor } = parsed.data;
 
   await db.room.create({
     data: {
       name,
+      roomNumber,
       building,
       campus,
       capacity,
@@ -79,6 +82,7 @@ export async function updateRoom(
 
   const parsed = updateRoomSchema.safeParse({
     name: formData.get("name"),
+    roomNumber: formData.get("roomNumber"),
     building: formData.get("building"),
     campus: formData.get("campus"),
     capacity: formData.get("capacity"),
@@ -97,12 +101,13 @@ export async function updateRoom(
   const hasScreen = formData.get("hasScreen") === "on";
   const hasWhiteboard = formData.get("hasWhiteboard") === "on";
 
-  const { name, building, campus, capacity, floor } = parsed.data;
+  const { name, roomNumber, building, campus, capacity, floor } = parsed.data;
 
   await db.room.update({
     where: { id: roomId },
     data: {
       name,
+      roomNumber,
       building,
       campus,
       capacity,

@@ -5,6 +5,7 @@ const db = new PrismaClient();
 const rooms = [
   {
     name: "E2E Testrum 1",
+    roomNumber: 1,
     building: "Testbyggnaden",
     campus: "KTH Campus",
     capacity: 4,
@@ -14,6 +15,7 @@ const rooms = [
   },
   {
     name: "E2E Testrum 2",
+    roomNumber: 2,
     building: "Testbyggnaden",
     campus: "KTH Campus",
     capacity: 6,
@@ -23,6 +25,7 @@ const rooms = [
   },
   {
     name: "E2E Testrum 3",
+    roomNumber: 3,
     building: "Testbyggnaden",
     campus: "KTH Kista",
     capacity: 8,

@@ -29,6 +29,18 @@ export function NewRoomForm() {
         />
       </div>
       <div>
+        <label htmlFor="roomNumber" className="block text-sm font-medium text-gray-700">
+          Rumsnummer (för sortering)
+        </label>
+        <input
+          id="roomNumber"
+          name="roomNumber"
+          type="number"
+          required
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+        />
+      </div>
+      <div>
         <label htmlFor="building" className="block text-sm font-medium text-gray-700">
           Byggnad
         </label>

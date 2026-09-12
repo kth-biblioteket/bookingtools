@@ -35,6 +35,9 @@ model Session {
 model Room {
   id            String        @id @default(cuid())
   name          String
+  // Numeric sort key, independent of `name` (which is display text and not
+  // guaranteed to sort correctly as a string — "10" sorts before "2").
+  roomNumber    Int           @default(0)
   building      String
   campus        String
   capacity      Int

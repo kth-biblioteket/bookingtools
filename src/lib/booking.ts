@@ -45,7 +45,7 @@ export function todayStr() {
 
 export async function getRoomsWithTodayStatus() {
   await releaseExpiredPreliminaryBookings();
-  const rooms = await db.room.findMany({ orderBy: [{ campus: "asc" }, { building: "asc" }, { name: "asc" }] });
+  const rooms = await db.room.findMany({ orderBy: { roomNumber: "asc" } });
   const now = new Date();
   const { start, end } = dayBounds(todayStr());
 
@@ -113,7 +113,7 @@ export async function getAllRoomsBookingsForDate(dateStr: string) {
   await releaseExpiredPreliminaryBookings();
   const { start, end } = dayBounds(dateStr);
   const rooms = await db.room.findMany({
-    orderBy: [{ campus: "asc" }, { building: "asc" }, { name: "asc" }],
+    orderBy: { roomNumber: "asc" },
     include: {
       bookings: {
         where: { startTime: { lte: end }, endTime: { gte: start } },

@@ -12,7 +12,7 @@ export default async function AdminRoomsPage() {
   if (!isAdminEmail(user.email)) redirect("/rooms");
 
   const rooms = await db.room.findMany({
-    orderBy: [{ campus: "asc" }, { building: "asc" }, { name: "asc" }],
+    orderBy: { roomNumber: "asc" },
     include: {
       _count: {
         select: { bookings: { where: { endTime: { gte: new Date() } } } },
