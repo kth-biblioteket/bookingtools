@@ -2,6 +2,12 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+Copy `.env.example` to `.env` and `bookingtools.env.example` to
+`bookingtools.env`, and fill both in (`.env` is read automatically by
+Docker Compose for `${VAR}` substitution — DB credentials, etc. —
+`bookingtools.env` is injected straight into the app container via
+`env_file`).
+
 Everything — the app and its database — runs in Docker, so local dev uses
 the same Node/Alpine platform as the production image instead of whatever's
 on your host (see the `bookingtools` service in docker-compose-dev.yml for
@@ -20,9 +26,9 @@ mount. First start is slower (installing deps in the container);
 `docker compose -f docker-compose-dev.yml logs -f bookingtools` to watch it.
 
 Run one-off Prisma commands (migrations, seeding, `prisma studio`) inside
-the app container, not on the host — `DATABASE_URL` in `.env` points at the
-`bookingtools-db` service name, which only resolves inside the Docker
-network:
+the app container, not on the host — `DATABASE_URL` inside the container
+points at the `bookingtools-db` service name, which only resolves inside
+the Docker network:
 
 ```bash
 docker exec bookingtools npx prisma migrate deploy

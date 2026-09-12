@@ -5,7 +5,10 @@
 #
 # Deploy prerequisites on the server:
 #   - the external "apps-net" network already exists (docker network create apps-net)
-#   - a bookingtools.env file next to this one (copy bookingtools.env.example and fill it in)
+#   - a .env file next to this one (copy .env.example and fill it in) — Compose
+#     reads this automatically for the ${VAR} substitution below
+#   - a bookingtools.env file next to this one too (copy bookingtools.env.example
+#     and fill it in) — injected into the container itself, see env_file below
 #
 # First deploy / after pulling a new image:
 #   docker compose up -d

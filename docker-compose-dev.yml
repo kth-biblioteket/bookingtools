@@ -1,10 +1,20 @@
 # Local dev. Not used in production — see docker-compose.yml for that
-# (Traefik, ghcr.io image, external apps-net network). Structured to match
+# (ghcr.io image, Dockerfile's full production build). Structured to match
 # it as closely as it can while still supporting hot reload: same service
-# names, same DATABASE_URL shape, same Postgres version. The real
-# differences are Traefik (none here — ports are published directly
-# instead) and how the app image is built (Dockerfile-dev, a plain `npm
-# ci`, vs. Dockerfile's full multi-stage production build).
+# names, same apps-net network, same DATABASE_URL shape (composed from
+# DB_USER/DB_PASSWORD/DB_DATABASE, not hand-written), same Postgres
+# version, same two-env-file split (.env for Compose's own ${VAR}
+# substitution, bookingtools.env for what's injected into the container).
+# The real differences are Traefik (none here — ports are published
+# directly too, alongside apps-net) and how the app image is built
+# (Dockerfile-dev, a plain `npm ci`, vs. Dockerfile's full multi-stage
+# production build and docker-entrypoint.sh).
+#
+# Deliberately not using almatools' `platform: "linux/arm64"` pin — our
+# base images (node, postgres) already publish proper multi-arch manifests
+# and have been building/running natively on Apple Silicon without it;
+# hardcoding arm64 would instead force emulation for anyone on an Intel
+# machine. Add it back if a future dependency actually needs it.
 #
 # Usage: docker compose -f docker-compose-dev.yml up -d
 
@@ -22,9 +32,10 @@ services:
     image: postgres:16.14-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: bookingtools
-      POSTGRES_PASSWORD: bookingtools
-      POSTGRES_DB: bookingtools
+      TZ: ${TZ}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
     ports:
       - "5434:5432"
     volumes:
@@ -34,10 +45,12 @@ services:
       # shares data with the dev database above.
       - ./docker/init-test-db.sql:/docker-entrypoint-initdb.d/init-test-db.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bookingtools"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
       interval: 2s
       timeout: 2s
       retries: 15
+    networks:
+      - "apps-net"
 
   # Runs the app itself in dev mode, on the exact same Node/Alpine base —
   # and the exact same `npm ci`, run at image build time via Dockerfile-dev,
@@ -67,20 +80,23 @@ services:
       dockerfile: Dockerfile-dev
     working_dir: /app
     command: sh -c "npx prisma generate && npm run dev"
+    restart: always
     environment:
+      TZ: ${TZ}
+      # Composed from the same DB_* vars the db service above uses to
+      # initialize itself — not a separately hand-written value — so
+      # there's exactly one place (.env) that owns the credentials.
+      # "bookingtools-db" only resolves inside the Docker network; run any
+      # one-off Prisma command (migrate, seed, studio) via `docker exec
+      # bookingtools npx prisma ...`, not directly on the host.
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@bookingtools-db:5432/${DB_DATABASE}
       # Next.js's file watcher doesn't always pick up changes made from
       # outside the container (bind mounts on Docker Desktop for Mac don't
       # reliably deliver inotify events) — polling is slightly less
       # efficient but reliable.
       WATCHPACK_POLLING: "true"
-    # DATABASE_URL comes from .env itself (pointed at the bookingtools-db
-    # service name, not localhost:5434) — since everything runs in Docker
-    # here, there's no separate host-side value to override it with. Run
-    # any one-off Prisma command (migrate, seed, studio) via
-    # `docker exec bookingtools npx prisma ...`, not directly on the host —
-    # "bookingtools-db" only resolves inside the Docker network.
     env_file:
-      - .env
+      - bookingtools.env
     ports:
       - "3000:3000"
     volumes:
@@ -89,7 +105,13 @@ services:
     depends_on:
       bookingtools-db:
         condition: service_healthy
+    networks:
+      - "apps-net"
 
 volumes:
   persistent-bookingtools-db:
   bookingtools-node-modules:
+
+networks:
+  apps-net:
+    external: true
