@@ -2,27 +2,39 @@ import { PrismaClient } from "../src/generated/prisma/client";
 
 const db = new PrismaClient();
 
-const rooms = [
-  { name: "Grupprum 1", roomNumber: 1, building: "Biblioteket", campus: "KTH Campus", capacity: 4, floor: "2", hasScreen: false, hasWhiteboard: true },
-  { name: "Grupprum 2", roomNumber: 2, building: "Biblioteket", campus: "KTH Campus", capacity: 4, floor: "2", hasScreen: false, hasWhiteboard: true },
-  { name: "Grupprum 3", roomNumber: 3, building: "Biblioteket", campus: "KTH Campus", capacity: 6, floor: "3", hasScreen: true, hasWhiteboard: true },
-  { name: "Grupprum 4", roomNumber: 4, building: "Biblioteket", campus: "KTH Campus", capacity: 6, floor: "3", hasScreen: true, hasWhiteboard: false },
-  { name: "Rum 101", roomNumber: 101, building: "Kistahuset", campus: "KTH Kista", capacity: 8, floor: "1", hasScreen: true, hasWhiteboard: true },
-  { name: "Rum 102", roomNumber: 102, building: "Kistahuset", campus: "KTH Kista", capacity: 4, floor: "1", hasScreen: false, hasWhiteboard: true },
-  { name: "Studierum A", roomNumber: 5, building: "Nymble", campus: "KTH Campus", capacity: 5, floor: "1", hasScreen: false, hasWhiteboard: false },
-  { name: "Studierum B", roomNumber: 6, building: "Nymble", campus: "KTH Campus", capacity: 5, floor: "1", hasScreen: true, hasWhiteboard: true },
-  { name: "Grupprum Elarken", roomNumber: 7, building: "Elektro", campus: "KTH Campus", capacity: 6, floor: "0", hasScreen: true, hasWhiteboard: true },
-  { name: "Grupprum Sing Sing", roomNumber: 8, building: "Sing Sing", campus: "KTH Campus", capacity: 10, floor: "1", hasScreen: true, hasWhiteboard: true },
-];
+const ROOM_COUNT = 21;
+const MIN_CAPACITY = 2;
+const MAX_CAPACITY = 12;
+
+function randomCapacity() {
+  return MIN_CAPACITY + Math.floor(Math.random() * (MAX_CAPACITY - MIN_CAPACITY + 1));
+}
+
+function randomBool() {
+  return Math.random() < 0.5;
+}
+
+const rooms = Array.from({ length: ROOM_COUNT }, (_, i) => {
+  const number = i + 1;
+  return {
+    name: String(number),
+    roomNumber: number,
+    building: "Biblioteket",
+    campus: "KTH Campus",
+    capacity: randomCapacity(),
+    hasScreen: false,
+    hasWhiteboard: randomBool(),
+  };
+});
 
 async function main() {
+  // Replaces whatever example rooms existed before — this is seed/demo
+  // data only, never real bookings (nothing here cascades onto real user
+  // data since there are none to begin with in a freshly seeded database).
+  await db.room.deleteMany({});
+
   for (const room of rooms) {
-    const existing = await db.room.findFirst({
-      where: { name: room.name, building: room.building },
-    });
-    if (!existing) {
-      await db.room.create({ data: room });
-    }
+    await db.room.create({ data: room });
   }
   console.log(`Seedade ${rooms.length} rum.`);
 }
