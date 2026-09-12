@@ -24,11 +24,14 @@ services:
     restart: always
     environment:
       TZ: ${TZ}
-      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@bookingtools-db:5432/${DB_DATABASE}
       # Must match both the Traefik PathPrefix below AND the BASE_PATH the
       # image was built with (see Dockerfile) — Next.js needs it at runtime
       # too, not just at build time, to route requests correctly.
       BASE_PATH: ${PATHPREFIX}
+    # DATABASE_URL lives in bookingtools.env, not here — it's app config,
+    # same category as ADMIN_EMAILS, not something Compose itself needs.
+    # It must point at "bookingtools-db" (only resolves inside the Docker
+    # network), with the same credentials .env gives the db service below.
     env_file:
       - bookingtools.env
     labels:

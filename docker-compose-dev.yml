@@ -1,10 +1,11 @@
 # Local dev. Not used in production — see docker-compose.yml for that
 # (ghcr.io image, Dockerfile's full production build). Structured to match
 # it as closely as it can while still supporting hot reload: same service
-# names, same apps-net network, same DATABASE_URL shape (composed from
-# DB_USER/DB_PASSWORD/DB_DATABASE, not hand-written), same Postgres
-# version, same two-env-file split (.env for Compose's own ${VAR}
-# substitution, bookingtools.env for what's injected into the container).
+# names, same apps-net network, same Postgres version, same two-env-file
+# split — .env is what Compose itself needs for ${VAR} substitution (DB
+# credentials for the db service to initialize itself, TZ, ...);
+# bookingtools.env is everything the app consumes as its own config
+# (DATABASE_URL, ADMIN_EMAILS, ...), injected via env_file.
 # The real differences are Traefik (none here — ports are published
 # directly too, alongside apps-net) and how the app image is built
 # (Dockerfile-dev, a plain `npm ci`, vs. Dockerfile's full multi-stage
@@ -83,18 +84,17 @@ services:
     restart: always
     environment:
       TZ: ${TZ}
-      # Composed from the same DB_* vars the db service above uses to
-      # initialize itself — not a separately hand-written value — so
-      # there's exactly one place (.env) that owns the credentials.
-      # "bookingtools-db" only resolves inside the Docker network; run any
-      # one-off Prisma command (migrate, seed, studio) via `docker exec
-      # bookingtools npx prisma ...`, not directly on the host.
-      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@bookingtools-db:5432/${DB_DATABASE}
       # Next.js's file watcher doesn't always pick up changes made from
       # outside the container (bind mounts on Docker Desktop for Mac don't
       # reliably deliver inotify events) — polling is slightly less
       # efficient but reliable.
       WATCHPACK_POLLING: "true"
+    # DATABASE_URL lives in bookingtools.env, not here — it's app config,
+    # same category as ADMIN_EMAILS, not something Compose itself needs.
+    # It must point at "bookingtools-db" (only resolves inside the Docker
+    # network), with the same credentials .env gives the db service above.
+    # Run one-off Prisma commands (migrate, seed, studio) via `docker exec
+    # bookingtools npx prisma ...`, not directly on the host.
     env_file:
       - bookingtools.env
     ports:
