@@ -4,6 +4,12 @@ services:
   # versions can never be the reason something works locally but not in
   # production (or vice versa). Bump both together, deliberately.
   postgres:
+    # Explicit container/volume names below — this machine runs Postgres
+    # containers for several other apps too, so "postgres"/"postgres_data"
+    # alone (which is all Compose's own auto-naming would produce if this
+    # directory ever gets renamed or run under a different project name)
+    # isn't distinctive enough in `docker ps`/`docker volume ls`.
+    container_name: bookingtools-postgres
     image: postgres:16.14-alpine
     restart: unless-stopped
     environment:
@@ -13,7 +19,7 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - bookingtools_postgres_data:/var/lib/postgresql/data
       # Creates the separate database the Playwright test suite uses
       # (test:e2e points DATABASE_URL at it via .env.test), so it never
       # shares data with the dev database above.
@@ -38,6 +44,7 @@ services:
   # volume (not the bind mount) specifically so the Linux-built packages in
   # it are never shadowed by whatever's in the host's own node_modules.
   app:
+    container_name: bookingtools-app
     image: node:22.23.2-alpine
     working_dir: /app
     # Re-installs on every start rather than only when node_modules is
@@ -60,11 +67,17 @@ services:
       - "3000:3000"
     volumes:
       - .:/app
-      - app_node_modules:/app/node_modules
+      - bookingtools_app_node_modules:/app/node_modules
     depends_on:
       postgres:
         condition: service_healthy
 
 volumes:
-  postgres_data:
-  app_node_modules:
+  # `name:` pins the literal Docker volume name so it's always
+  # "bookingtools_*" regardless of Compose's own project-prefixing (which
+  # depends on this directory's name) — see the comment on the postgres
+  # service above.
+  bookingtools_postgres_data:
+    name: bookingtools_postgres_data
+  bookingtools_app_node_modules:
+    name: bookingtools_app_node_modules
