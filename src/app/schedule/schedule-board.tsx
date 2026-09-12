@@ -212,7 +212,7 @@ export function ScheduleBoard({
                   <Link
                     href={`/rooms/${room.id}?date=${date}`}
                     style={{ gridRow: rowIndex + 2 }}
-                    className="sticky left-0 z-10 flex items-center justify-start gap-1 border-t border-gray-200 bg-kth-sky px-1 hover:bg-kth-blue"
+                    className="sticky left-0 z-10 flex items-center justify-start gap-1 bg-kth-sky py-1 pl-3 pr-1 hover:bg-kth-blue"
                   >
                     <span className="truncate text-sm font-semibold text-white">{room.name}</span>
                     <span
