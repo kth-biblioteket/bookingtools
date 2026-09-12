@@ -80,6 +80,7 @@ const sv: Dictionary = {
     occupiedLabel: "Upptaget",
     editTime: "Ändra tid",
     viewDayForAllRooms: "Se schema för alla rum den här dagen",
+    closedDay: "Stängt",
   },
   dateNav: {
     showToday: "Visa idag",
@@ -137,6 +138,7 @@ const sv: Dictionary = {
     cornerRoom: "Rum",
     cornerTime: "Tid",
     cornerDay: "Dag",
+    closedToday: "Stängt den här dagen.",
   },
   bookings: {
     heading: "Mina bokningar",
@@ -153,6 +155,11 @@ const sv: Dictionary = {
     scheduleLayout: "Schemavy",
     layoutHorizontal: "Rum som rader, tid horisontellt",
     layoutVertical: "Rum som kolumner, tid vertikalt",
+    openingHours: "Öppettider",
+    openingHoursHint: "Styr vilka tider som visas i scheman och kan bokas.",
+    dayStartHour: "Öppnar (timme)",
+    dayEndHour: "Stänger (timme)",
+    closedAllDay: "Stängt hela dagen",
     requireConfirmation: "Bokningar är preliminära och måste bekräftas",
     requireConfirmationHint:
       "Om aktiverat: en ny bokning är preliminär (gul) tills den bekräftas av den som bokade, inom fönstret nedan (orange). Bekräftas den inte i tid frigörs tiden automatiskt. Bekräftade bokningar visas röda.",
@@ -171,6 +178,8 @@ const sv: Dictionary = {
       mustBeZeroOrMore: "Måste vara 0 eller mer",
       minMaxOrder: "Minsta längd kan inte vara större än längsta längd",
       mustBeMultipleOfStep: "Minsta och längsta längd måste vara jämna multiplar av bokningsintervallet",
+      hourRange: "Måste vara en timme mellan 0 och 24",
+      openingHoursOrder: "Öppningstiden måste vara tidigare än stängningstiden",
       saved: "Inställningarna är sparade!",
     },
   },

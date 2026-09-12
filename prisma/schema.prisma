@@ -60,6 +60,19 @@ model Settings {
   updatedAt                   DateTime @updatedAt
 }
 
+/**
+ * One row per weekday (0 = Monday ... 6 = Sunday, matching getWeekDates in
+ * src/lib/date.ts) so opening hours can differ by day — e.g. shorter hours
+ * on weekends, or closed entirely. Always exactly 7 rows, seeded by the
+ * add_opening_hours_per_weekday migration.
+ */
+model OpeningHours {
+  weekday   Int     @id
+  startHour Int     @default(8)
+  endHour   Int     @default(20)
+  closed    Boolean @default(false)
+}
+
 model Booking {
   id          String    @id @default(cuid())
   roomId      String

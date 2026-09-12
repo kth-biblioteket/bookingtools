@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { getBookingConfirmationStatus, type BookingConfirmationStatus } from "@/lib/booking-status";
 import type { ActiveHold } from "@/lib/booking-hold";
-import type { BookingSettings } from "@/lib/settings";
+import type { BookingSettings, OpeningHoursDay } from "@/lib/settings";
 import { weekdayLabel, dayMonthLabel } from "@/lib/date";
 import { ScheduleCornerCell } from "@/components/schedule-corner-cell";
 import { useI18n } from "@/components/i18n-provider";
@@ -37,6 +37,7 @@ export function RoomWeekVertical<B extends TimelineBooking>({
   weekDates,
   bookingsByDate,
   holdsByDate,
+  hoursByDate,
   currentUserId,
   isAdmin,
   todayStr,
@@ -50,6 +51,9 @@ export function RoomWeekVertical<B extends TimelineBooking>({
   weekDates: string[];
   bookingsByDate: Record<string, B[]>;
   holdsByDate?: Record<string, ActiveHold[]>;
+  /** Each date's own opening hours — can be narrower than [dayStartHour, dayEndHour]
+   * (the shared grid bounds) or fully closed. Defaults to the grid bounds, open, when omitted. */
+  hoursByDate?: Record<string, OpeningHoursDay>;
   currentUserId: string;
   /** Admins see every booking's real title, not just its status. */
   isAdmin?: boolean;
@@ -92,6 +96,11 @@ export function RoomWeekVertical<B extends TimelineBooking>({
           >
             <p className="text-xl font-medium capitalize text-white">{weekdayLabel(date, locale)}</p>
             <p className="text-sm font-medium text-white">{dayMonthLabel(date, locale)}</p>
+            {hoursByDate?.[date]?.closed && (
+              <p className="text-xs font-medium uppercase tracking-wide text-white/70">
+                {t("roomDetail.closedDay")}
+              </p>
+            )}
           </Link>
         ))}
 
@@ -124,6 +133,16 @@ export function RoomWeekVertical<B extends TimelineBooking>({
           const dayEnd = new Date(`${date}T00:00:00`);
           dayEnd.setHours(dayEndHour, 0, 0, 0);
           const totalMs = dayEnd.getTime() - dayStart.getTime();
+
+          // This day's own opening hours, which can be narrower than the
+          // shared grid — anything outside them (or the whole day, if
+          // closed) is shown but isn't bookable.
+          const ownHours = hoursByDate?.[date];
+          const ownStart = new Date(`${date}T00:00:00`);
+          ownStart.setHours(ownHours?.startHour ?? dayStartHour, 0, 0, 0);
+          const ownEnd = new Date(`${date}T00:00:00`);
+          ownEnd.setHours(ownHours?.endHour ?? dayEndHour, 0, 0, 0);
+          const isOpenAt = (t: Date) => !ownHours?.closed && t >= ownStart && t < ownEnd;
 
           const bookings = bookingsByDate[date] ?? [];
           const holds = holdsByDate?.[date] ?? [];
@@ -176,11 +195,11 @@ export function RoomWeekVertical<B extends TimelineBooking>({
                     const height = 100 / stepCount;
                     const stepStart = new Date(dayStart.getTime() + i * stepMinutes * 60000);
                     const isPast = stepStart < new Date();
-                    if (isPast) {
+                    if (isPast || !isOpenAt(stepStart)) {
                       return (
                         <div
                           key={i}
-                          title={t("bookingStatus.pastTooltip")}
+                          title={isPast ? t("bookingStatus.pastTooltip") : t("roomDetail.closedDay")}
                           style={{ top: `${top}%`, height: `${height}%` }}
                           className="absolute inset-x-0 bg-gray-200/70"
                         />

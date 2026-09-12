@@ -80,6 +80,7 @@ const en: Dictionary = {
     occupiedLabel: "Occupied",
     editTime: "Change time",
     viewDayForAllRooms: "View this day's schedule for all rooms",
+    closedDay: "Closed",
   },
   dateNav: {
     showToday: "Show today",
@@ -137,6 +138,7 @@ const en: Dictionary = {
     cornerRoom: "Room",
     cornerTime: "Time",
     cornerDay: "Day",
+    closedToday: "Closed this day.",
   },
   bookings: {
     heading: "My bookings",
@@ -153,6 +155,11 @@ const en: Dictionary = {
     scheduleLayout: "Schedule view",
     layoutHorizontal: "Rooms as rows, time horizontal",
     layoutVertical: "Rooms as columns, time vertical",
+    openingHours: "Opening hours",
+    openingHoursHint: "Controls which times are shown in schedules and can be booked.",
+    dayStartHour: "Opens (hour)",
+    dayEndHour: "Closes (hour)",
+    closedAllDay: "Closed all day",
     requireConfirmation: "Bookings are preliminary and must be confirmed",
     requireConfirmationHint:
       "If enabled: a new booking is preliminary (yellow) until confirmed by the person who booked it, within the window below (orange). If not confirmed in time, the slot is freed automatically. Confirmed bookings are shown in red.",
@@ -171,6 +178,8 @@ const en: Dictionary = {
       mustBeZeroOrMore: "Must be 0 or more",
       minMaxOrder: "Minimum length can't be greater than maximum length",
       mustBeMultipleOfStep: "Minimum and maximum length must be even multiples of the booking interval",
+      hourRange: "Must be an hour between 0 and 24",
+      openingHoursOrder: "Opening time must be earlier than closing time",
       saved: "Settings saved!",
     },
   },

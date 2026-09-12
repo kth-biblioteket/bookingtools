@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser, isAdminEmail } from "@/lib/auth";
-import { updateSettings as persistSettings } from "@/lib/settings";
+import { updateSettings as persistSettings, updateOpeningHours } from "@/lib/settings";
 import { notifyBookingsChanged } from "@/lib/booking-events";
 import { getT } from "@/lib/i18n/get-dictionary";
 
@@ -52,7 +52,44 @@ export async function updateSettings(
     return { error: parsed.error.issues[0]?.message ?? t("common.invalidData") };
   }
 
+  const openingHoursSchema = z
+    .array(
+      z
+        .object({
+          weekday: z.number().int().min(0).max(6),
+          startHour: z.coerce
+            .number()
+            .int()
+            .min(0, t("admin.errors.hourRange"))
+            .max(23, t("admin.errors.hourRange")),
+          endHour: z.coerce
+            .number()
+            .int()
+            .min(1, t("admin.errors.hourRange"))
+            .max(24, t("admin.errors.hourRange")),
+          closed: z.coerce.boolean(),
+        })
+        .refine((day) => day.closed || day.startHour < day.endHour, {
+          message: t("admin.errors.openingHoursOrder"),
+        })
+    )
+    .length(7);
+
+  const openingHoursParsed = openingHoursSchema.safeParse(
+    Array.from({ length: 7 }, (_, weekday) => ({
+      weekday,
+      startHour: formData.get(`startHour-${weekday}`),
+      endHour: formData.get(`endHour-${weekday}`),
+      closed: formData.get(`closed-${weekday}`),
+    }))
+  );
+
+  if (!openingHoursParsed.success) {
+    return { error: openingHoursParsed.error.issues[0]?.message ?? t("common.invalidData") };
+  }
+
   await persistSettings(parsed.data);
+  await updateOpeningHours(openingHoursParsed.data);
 
   revalidatePath("/admin");
   notifyBookingsChanged();

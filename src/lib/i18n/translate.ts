@@ -82,6 +82,8 @@ export interface Dictionary {
     bookedLabel: string;
     occupiedLabel: string;
     editTime: string;
+    viewDayForAllRooms: string;
+    closedDay: string;
   };
   dateNav: {
     showToday: string;
@@ -139,6 +141,7 @@ export interface Dictionary {
     cornerRoom: string;
     cornerTime: string;
     cornerDay: string;
+    closedToday: string;
   };
   bookings: {
     heading: string;
@@ -154,6 +157,11 @@ export interface Dictionary {
     scheduleLayout: string;
     layoutHorizontal: string;
     layoutVertical: string;
+    openingHours: string;
+    openingHoursHint: string;
+    dayStartHour: string;
+    dayEndHour: string;
+    closedAllDay: string;
     requireConfirmation: string;
     requireConfirmationHint: string;
     minutesBefore: string;
@@ -171,6 +179,8 @@ export interface Dictionary {
       mustBeZeroOrMore: string;
       minMaxOrder: string;
       mustBeMultipleOfStep: string;
+      hourRange: string;
+      openingHoursOrder: string;
       saved: string;
     };
   };

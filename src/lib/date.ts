@@ -10,12 +10,17 @@ export function addDays(dateStr: string, days: number) {
   return `${y}-${m}-${day}`;
 }
 
+/** 0 = Monday ... 6 = Sunday, for the given ISO date string. Matches the
+ * weekday indexing used by the OpeningHours table (see prisma/schema.prisma). */
+export function isoWeekday(dateStr: string): number {
+  const d = new Date(`${dateStr}T00:00:00`);
+  // getDay(): 0 = Sunday ... 6 = Saturday. Shift so Monday is 0.
+  return (d.getDay() + 6) % 7;
+}
+
 /** The Mon–Sun week (as ISO date strings) containing the given date. */
 export function getWeekDates(dateStr: string): string[] {
-  const d = new Date(`${dateStr}T00:00:00`);
-  // getDay(): 0 = Sunday ... 6 = Saturday. Shift so Monday is the start.
-  const isoDayOfWeek = (d.getDay() + 6) % 7;
-  const monday = addDays(dateStr, -isoDayOfWeek);
+  const monday = addDays(dateStr, -isoWeekday(dateStr));
   return Array.from({ length: 7 }, (_, i) => addDays(monday, i));
 }
 

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser, isAdminEmail } from "@/lib/auth";
-import { getAllRoomsBookingsForDate, todayStr, DAY_START_HOUR, DAY_END_HOUR } from "@/lib/booking";
+import { getAllRoomsBookingsForDate, todayStr } from "@/lib/booking";
 import { getActiveHoldsForDate } from "@/lib/booking-hold";
-import { getBookingSettings, getScheduleLayout } from "@/lib/settings";
+import { getBookingSettings, getScheduleLayout, getOpeningHoursForDate } from "@/lib/settings";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { DateNav } from "@/components/date-nav";
 import { addDays } from "@/lib/date";
@@ -21,10 +21,11 @@ export default async function SchedulePage({
   const { date: dateParam } = await searchParams;
   const date = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : todayStr();
 
-  const [roomsWithBookings, scheduleLayout, settings, holds, { t }] = await Promise.all([
+  const [roomsWithBookings, scheduleLayout, settings, openingHours, holds, { t }] = await Promise.all([
     getAllRoomsBookingsForDate(date),
     getScheduleLayout(),
     getBookingSettings(),
+    getOpeningHoursForDate(date),
     getActiveHoldsForDate(date),
     getT(),
   ]);
@@ -55,17 +56,21 @@ export default async function SchedulePage({
         </Link>
       </div>
 
-      <ScheduleBoard
-        roomsWithBookings={roomsWithBookings}
-        scheduleLayout={scheduleLayout}
-        settings={settings}
-        currentUserId={user.id}
-        isAdmin={isAdminEmail(user.email)}
-        date={date}
-        dayStartHour={DAY_START_HOUR}
-        dayEndHour={DAY_END_HOUR}
-        holds={holds}
-      />
+      {openingHours.closed ? (
+        <p className="mt-8 text-sm text-gray-500">{t("schedule.closedToday")}</p>
+      ) : (
+        <ScheduleBoard
+          roomsWithBookings={roomsWithBookings}
+          scheduleLayout={scheduleLayout}
+          settings={settings}
+          currentUserId={user.id}
+          isAdmin={isAdminEmail(user.email)}
+          date={date}
+          dayStartHour={openingHours.startHour}
+          dayEndHour={openingHours.endHour}
+          holds={holds}
+        />
+      )}
     </div>
   );
 }

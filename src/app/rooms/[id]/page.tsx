@@ -1,19 +1,13 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser, isAdminEmail } from "@/lib/auth";
-import {
-  generateDaySlots,
-  getBookingsForRoomInRange,
-  getRoom,
-  todayStr,
-  DAY_START_HOUR,
-  DAY_END_HOUR,
-} from "@/lib/booking";
+import { getBookingsForRoomInRange, getRoom, todayStr } from "@/lib/booking";
 import { getActiveHoldsForRoomInRange } from "@/lib/booking-hold";
-import { getBookingSettings } from "@/lib/settings";
+import { getBookingSettings, getOpeningHours } from "@/lib/settings";
+import { openingHoursGridBounds } from "@/lib/slots";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { DateNav } from "@/components/date-nav";
-import { addDays, getWeekDates } from "@/lib/date";
+import { addDays, getWeekDates, isoWeekday } from "@/lib/date";
 import { getT } from "@/lib/i18n/get-dictionary";
 import { RoomPlanner } from "./room-planner";
 
@@ -38,13 +32,19 @@ export default async function RoomPage({
   const weekStart = weekDates[0];
   const weekEnd = weekDates[weekDates.length - 1];
 
-  const [bookings, holds, slots, settings, { t }] = await Promise.all([
+  const [bookings, holds, settings, openingHours, { t }] = await Promise.all([
     getBookingsForRoomInRange(id, weekStart, weekEnd),
     getActiveHoldsForRoomInRange(id, weekStart, weekEnd),
-    Promise.resolve(generateDaySlots(date)),
     getBookingSettings(),
+    getOpeningHours(),
     getT(),
   ]);
+
+  const hoursByDate: Record<string, (typeof openingHours)[number]> = {};
+  for (const d of weekDates) hoursByDate[d] = openingHours[isoWeekday(d)];
+  const { startHour: gridStartHour, endHour: gridEndHour } = openingHoursGridBounds(
+    weekDates.map((d) => hoursByDate[d])
+  );
 
   function dateStrFromDate(d: Date) {
     const y = d.getFullYear();
@@ -109,12 +109,12 @@ export default async function RoomPage({
         todayStr={todayStr()}
         bookingsByDate={bookingsByDate}
         holdsByDate={holdsByDate}
-        slots={slots}
+        hoursByDate={hoursByDate}
         settings={settings}
         currentUserId={user.id}
         isAdmin={isAdminEmail(user.email)}
-        dayStartHour={DAY_START_HOUR}
-        dayEndHour={DAY_END_HOUR}
+        dayStartHour={gridStartHour}
+        dayEndHour={gridEndHour}
       />
     </div>
   );

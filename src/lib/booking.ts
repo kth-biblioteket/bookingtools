@@ -3,16 +3,14 @@ import { db } from "@/lib/db";
 import { Prisma } from "@/generated/prisma/client";
 import { getBookingSettings } from "@/lib/settings";
 
-export const DAY_START_HOUR = 8;
-export const DAY_END_HOUR = 20;
-export const SLOT_MINUTES = 30;
-
 // Re-exported for convenience so existing server-side importers of
 // "@/lib/booking" keep working. Client components must import this pure
-// logic directly from "@/lib/booking-status" instead — this file pulls in
-// "server-only" and cannot be imported from a Client Component module.
+// logic directly from "@/lib/booking-status" / "@/lib/slots" instead — this
+// file pulls in "server-only" and cannot be imported from a Client Component
+// module.
 export type { BookingConfirmationStatus } from "@/lib/booking-status";
 export { getBookingConfirmationStatus } from "@/lib/booking-status";
+export { SLOT_MINUTES, generateDaySlots } from "@/lib/slots";
 
 /**
  * Deletes preliminary bookings whose confirmation window has closed without
@@ -80,21 +78,6 @@ export async function getBookingsForRoomOnDate(roomId: string, dateStr: string) 
     include: { user: { select: { name: true } } },
     orderBy: { startTime: "asc" },
   });
-}
-
-export function generateDaySlots(dateStr: string) {
-  const slots: { start: Date; end: Date; label: string }[] = [];
-  const totalSlots = ((DAY_END_HOUR - DAY_START_HOUR) * 60) / SLOT_MINUTES;
-  for (let i = 0; i < totalSlots; i++) {
-    const minutesFromStart = DAY_START_HOUR * 60 + i * SLOT_MINUTES;
-    const start = new Date(`${dateStr}T00:00:00`);
-    start.setMinutes(minutesFromStart);
-    const end = new Date(start);
-    end.setMinutes(start.getMinutes() + SLOT_MINUTES);
-    const label = start.toTimeString().slice(0, 5);
-    slots.push({ start, end, label });
-  }
-  return slots;
 }
 
 /** Anything with the `booking.findFirst` shape — the plain db client, or a `tx` inside db.$transaction(). */

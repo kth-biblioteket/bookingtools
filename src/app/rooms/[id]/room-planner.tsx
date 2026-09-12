@@ -7,8 +7,9 @@ import { ConfirmButton } from "@/components/confirm-button";
 import { cancelBooking, confirmBooking, releaseMyHold, requestHold } from "./actions";
 import { getBookingConfirmationStatus } from "@/lib/booking-status";
 import { RoomWeekVertical } from "@/components/room-week-vertical";
-import type { getBookingsForRoomInRange, generateDaySlots } from "@/lib/booking";
-import type { BookingSettings } from "@/lib/settings";
+import type { getBookingsForRoomInRange } from "@/lib/booking";
+import { generateDaySlots } from "@/lib/slots";
+import type { BookingSettings, OpeningHoursDay } from "@/lib/settings";
 import type { ActiveHold } from "@/lib/booking-hold";
 import { useI18n } from "@/components/i18n-provider";
 
@@ -18,7 +19,6 @@ const HOLD_HEARTBEAT_MS = 20_000;
 const HOLD_RENEW_DEBOUNCE_MS = 500;
 
 type Booking = Awaited<ReturnType<typeof getBookingsForRoomInRange>>[number];
-type Slot = ReturnType<typeof generateDaySlots>[number];
 
 function toTimeLabel(totalMinutes: number) {
   const hh = String(Math.floor(totalMinutes / 60)).padStart(2, "0");
@@ -43,7 +43,7 @@ export function RoomPlanner({
   todayStr,
   bookingsByDate,
   holdsByDate,
-  slots,
+  hoursByDate,
   settings,
   currentUserId,
   isAdmin,
@@ -56,12 +56,14 @@ export function RoomPlanner({
   todayStr: string;
   bookingsByDate: Record<string, Booking[]>;
   holdsByDate: Record<string, ActiveHold[]>;
-  slots: Slot[];
+  /** Each date's own opening hours — can differ by weekday. */
+  hoursByDate: Record<string, OpeningHoursDay>;
   settings: BookingSettings;
   currentUserId: string;
   /** Admins see every booking's real title, not just its status — see the
    * "Bokat"/"Upptaget" masking below. */
   isAdmin: boolean;
+  /** The shared grid's hour bounds — the widest range spanning every open day this week. */
   dayStartHour: number;
   dayEndHour: number;
 }) {
@@ -192,6 +194,12 @@ export function RoomPlanner({
     .flatMap((date) => bookingsByDate[date] ?? [])
     .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
+  // The booking form's start-time options depend on whichever day's column
+  // was clicked, not the week's shared grid bounds — a day with shorter
+  // opening hours than the rest of the week must only offer its own hours.
+  const formDayHours = hoursByDate[formDate];
+  const slots = formDayHours ? generateDaySlots(formDate, formDayHours.startHour, formDayHours.endHour) : [];
+
   return (
     <div className="mt-6">
       <h2 className="mb-2 text-sm font-medium text-gray-700">{t("roomDetail.scheduleHeading")}</h2>
@@ -199,6 +207,7 @@ export function RoomPlanner({
         weekDates={weekDates}
         bookingsByDate={bookingsByDate}
         holdsByDate={holdsByDate}
+        hoursByDate={hoursByDate}
         currentUserId={currentUserId}
         isAdmin={isAdmin}
         todayStr={todayStr}
