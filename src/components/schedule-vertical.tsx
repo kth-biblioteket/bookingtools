@@ -85,7 +85,6 @@ export function ScheduleVertical({
             className="min-w-[140px] border-b border-gray-200 px-2 pb-2 text-center hover:bg-gray-50"
           >
             <p className="truncate text-sm font-medium text-gray-900">{room.name}</p>
-            <p className="truncate text-xs text-gray-500">{room.building}</p>
           </Link>
         ))}
 
