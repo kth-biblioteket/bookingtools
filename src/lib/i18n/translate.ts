@@ -175,6 +175,7 @@ export interface Dictionary {
   };
   adminRooms: {
     backToSettings: string;
+    backToRooms: string;
     heading: string;
     subtitle: string;
     addHeading: string;

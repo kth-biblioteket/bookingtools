@@ -5,15 +5,27 @@ import { revalidatePath } from "next/cache";
 import { getCurrentUser, isAdminEmail } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { notifyBookingsChanged } from "@/lib/booking-events";
+import { getT } from "@/lib/i18n/get-dictionary";
+import type { T } from "@/lib/i18n/translate";
 
-const createRoomSchema = z.object({
-  name: z.string().trim().min(1, "Namn krävs").max(100, "Namn får vara högst 100 tecken"),
-  roomNumber: z.coerce.number().int("Rumsnummer måste vara ett heltal"),
-  building: z.string().trim().min(1, "Byggnad krävs").max(100, "Byggnad får vara högst 100 tecken"),
-  campus: z.string().trim().min(1, "Campus krävs").max(100, "Campus får vara högst 100 tecken"),
-  capacity: z.coerce.number().int().positive("Kapacitet måste vara ett positivt heltal"),
-  floor: z.string().trim().max(100, "Våning får vara högst 100 tecken").optional(),
-});
+function roomSchema(t: T) {
+  return z.object({
+    name: z.string().trim().min(1, t("adminRooms.errors.nameRequired")).max(100, t("adminRooms.errors.nameTooLong")),
+    roomNumber: z.coerce.number().int(t("adminRooms.errors.roomNumberInt")),
+    building: z
+      .string()
+      .trim()
+      .min(1, t("adminRooms.errors.buildingRequired"))
+      .max(100, t("adminRooms.errors.buildingTooLong")),
+    campus: z
+      .string()
+      .trim()
+      .min(1, t("adminRooms.errors.campusRequired"))
+      .max(100, t("adminRooms.errors.campusTooLong")),
+    capacity: z.coerce.number().int().positive(t("adminRooms.errors.capacityPositive")),
+    floor: z.string().trim().max(100, t("adminRooms.errors.floorTooLong")).optional(),
+  });
+}
 
 export type CreateRoomState = { error?: string; success?: string } | undefined;
 
@@ -21,12 +33,13 @@ export async function createRoom(
   prevState: CreateRoomState,
   formData: FormData
 ): Promise<CreateRoomState> {
+  const { t } = await getT();
   const user = await getCurrentUser();
   if (!user || !isAdminEmail(user.email)) {
-    return { error: "Du har inte behörighet att göra detta" };
+    return { error: t("common.noPermission") };
   }
 
-  const parsed = createRoomSchema.safeParse({
+  const parsed = roomSchema(t).safeParse({
     name: formData.get("name"),
     roomNumber: formData.get("roomNumber"),
     building: formData.get("building"),
@@ -36,7 +49,7 @@ export async function createRoom(
   });
 
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Ogiltiga uppgifter" };
+    return { error: parsed.error.issues[0]?.message ?? t("common.invalidData") };
   }
 
   const hasScreen = formData.get("hasScreen") === "on";
@@ -59,10 +72,8 @@ export async function createRoom(
 
   revalidatePath("/admin/rooms");
   notifyBookingsChanged();
-  return { success: "Rummet är tillagt!" };
+  return { success: t("adminRooms.errors.created") };
 }
-
-const updateRoomSchema = createRoomSchema;
 
 export type UpdateRoomState = { error?: string; success?: string } | undefined;
 
@@ -70,17 +81,18 @@ export async function updateRoom(
   prevState: UpdateRoomState,
   formData: FormData
 ): Promise<UpdateRoomState> {
+  const { t } = await getT();
   const user = await getCurrentUser();
   if (!user || !isAdminEmail(user.email)) {
-    return { error: "Du har inte behörighet att göra detta" };
+    return { error: t("common.noPermission") };
   }
 
   const roomId = formData.get("roomId");
   if (typeof roomId !== "string" || !roomId) {
-    return { error: "Ogiltigt rum" };
+    return { error: t("adminRooms.errors.invalidRoom") };
   }
 
-  const parsed = updateRoomSchema.safeParse({
+  const parsed = roomSchema(t).safeParse({
     name: formData.get("name"),
     roomNumber: formData.get("roomNumber"),
     building: formData.get("building"),
@@ -90,12 +102,12 @@ export async function updateRoom(
   });
 
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Ogiltiga uppgifter" };
+    return { error: parsed.error.issues[0]?.message ?? t("common.invalidData") };
   }
 
   const existingRoom = await db.room.findUnique({ where: { id: roomId } });
   if (!existingRoom) {
-    return { error: "Rummet finns inte längre" };
+    return { error: t("adminRooms.errors.roomGone") };
   }
 
   const hasScreen = formData.get("hasScreen") === "on";
@@ -120,5 +132,5 @@ export async function updateRoom(
   revalidatePath("/admin/rooms");
   revalidatePath(`/admin/rooms/${roomId}/edit`);
   notifyBookingsChanged();
-  return { success: "Ändringarna är sparade!" };
+  return { success: t("adminRooms.errors.updated") };
 }

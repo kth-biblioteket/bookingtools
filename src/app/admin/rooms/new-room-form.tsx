@@ -2,8 +2,10 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { createRoom } from "./actions";
+import { useI18n } from "@/components/i18n-provider";
 
 export function NewRoomForm() {
+  const { t } = useI18n();
   const [state, formAction, pending] = useActionState(createRoom, undefined);
   const [successCount, setSuccessCount] = useState(0);
 
@@ -17,7 +19,7 @@ export function NewRoomForm() {
     <form key={successCount} action={formAction} className="mt-6 flex flex-col gap-4">
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-          Namn
+          {t("adminRooms.name")}
         </label>
         <input
           id="name"
@@ -30,7 +32,7 @@ export function NewRoomForm() {
       </div>
       <div>
         <label htmlFor="roomNumber" className="block text-sm font-medium text-gray-700">
-          Rumsnummer (för sortering)
+          {t("adminRooms.roomNumber")}
         </label>
         <input
           id="roomNumber"
@@ -42,7 +44,7 @@ export function NewRoomForm() {
       </div>
       <div>
         <label htmlFor="building" className="block text-sm font-medium text-gray-700">
-          Byggnad
+          {t("adminRooms.building")}
         </label>
         <input
           id="building"
@@ -55,7 +57,7 @@ export function NewRoomForm() {
       </div>
       <div>
         <label htmlFor="campus" className="block text-sm font-medium text-gray-700">
-          Campus
+          {t("adminRooms.campus")}
         </label>
         <input
           id="campus"
@@ -68,7 +70,7 @@ export function NewRoomForm() {
       </div>
       <div>
         <label htmlFor="capacity" className="block text-sm font-medium text-gray-700">
-          Kapacitet
+          {t("adminRooms.capacity")}
         </label>
         <input
           id="capacity"
@@ -81,7 +83,7 @@ export function NewRoomForm() {
       </div>
       <div>
         <label htmlFor="floor" className="block text-sm font-medium text-gray-700">
-          Våning (valfritt)
+          {t("adminRooms.floorOptional")}
         </label>
         <input
           id="floor"
@@ -97,7 +99,7 @@ export function NewRoomForm() {
           name="hasScreen"
           className="h-4 w-4 rounded border-gray-300 text-kth-blue focus:ring-kth-blue"
         />
-        Har skärm
+        {t("adminRooms.hasScreen")}
       </label>
       <label className="flex items-center gap-2 text-sm text-gray-700">
         <input
@@ -105,7 +107,7 @@ export function NewRoomForm() {
           name="hasWhiteboard"
           className="h-4 w-4 rounded border-gray-300 text-kth-blue focus:ring-kth-blue"
         />
-        Har whiteboard
+        {t("adminRooms.hasWhiteboard")}
       </label>
       {state?.error && <p className="text-sm text-red-600">{state.error}</p>}
       {state?.success && <p className="text-sm text-green-700">{state.success}</p>}
@@ -114,7 +116,7 @@ export function NewRoomForm() {
         disabled={pending}
         className="mt-2 w-fit rounded-md bg-kth-blue px-4 py-2 text-sm font-medium text-white hover:bg-kth-navy disabled:opacity-60"
       >
-        {pending ? "Lägger till…" : "Lägg till rum"}
+        {pending ? t("adminRooms.addSubmitPending") : t("adminRooms.addSubmit")}
       </button>
     </form>
   );

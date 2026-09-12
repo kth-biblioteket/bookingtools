@@ -174,6 +174,7 @@ const sv: Dictionary = {
   },
   adminRooms: {
     backToSettings: "← Admininställningar",
+    backToRooms: "← Hantera rum",
     heading: "Hantera rum",
     subtitle: "Lägg till nya grupprum eller ta bort befintliga. Att ta bort ett rum tar även bort alla dess bokningar.",
     addHeading: "Lägg till rum",

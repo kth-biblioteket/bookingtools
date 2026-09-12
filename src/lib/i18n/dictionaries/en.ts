@@ -174,6 +174,7 @@ const en: Dictionary = {
   },
   adminRooms: {
     backToSettings: "← Admin settings",
+    backToRooms: "← Manage rooms",
     heading: "Manage rooms",
     subtitle: "Add new group rooms or remove existing ones. Removing a room also removes all its bookings.",
     addHeading: "Add room",

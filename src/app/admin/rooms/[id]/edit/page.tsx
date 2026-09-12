@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser, isAdminEmail } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getT } from "@/lib/i18n/get-dictionary";
 import { EditRoomForm } from "./edit-room-form";
 
 export default async function EditRoomPage({
@@ -17,15 +18,16 @@ export default async function EditRoomPage({
 
   const room = await db.room.findUnique({ where: { id } });
   if (!room) notFound();
+  const { t } = await getT();
 
   return (
     <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
       <Link href="/admin/rooms" className="text-sm text-kth-blue hover:underline">
-        ← Hantera rum
+        {t("adminRooms.backToRooms")}
       </Link>
 
       <h1 className="mt-2 text-2xl font-semibold text-gray-900">
-        Redigera {room.name}
+        {t("adminRooms.editHeading", { name: room.name })}
       </h1>
 
       <div className="mt-6">

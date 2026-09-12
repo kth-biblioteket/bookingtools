@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser, isAdminEmail } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getT } from "@/lib/i18n/get-dictionary";
 import { NewRoomForm } from "./new-room-form";
 import { DeleteRoomButton } from "./delete-room-button";
 import { deleteRoom } from "./delete-actions";
@@ -19,26 +20,24 @@ export default async function AdminRoomsPage() {
       },
     },
   });
+  const { t } = await getT();
 
   return (
     <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
       <Link href="/admin" className="text-sm text-kth-blue hover:underline">
-        ← Admininställningar
+        {t("adminRooms.backToSettings")}
       </Link>
 
-      <h1 className="mt-2 text-2xl font-semibold text-gray-900">Hantera rum</h1>
-      <p className="mt-1 text-sm text-gray-500">
-        Lägg till nya grupprum eller ta bort befintliga. Att ta bort ett rum
-        tar även bort alla dess bokningar.
-      </p>
+      <h1 className="mt-2 text-2xl font-semibold text-gray-900">{t("adminRooms.heading")}</h1>
+      <p className="mt-1 text-sm text-gray-500">{t("adminRooms.subtitle")}</p>
 
       <div className="mt-6">
-        <h2 className="mb-2 text-sm font-medium text-gray-700">Lägg till rum</h2>
+        <h2 className="mb-2 text-sm font-medium text-gray-700">{t("adminRooms.addHeading")}</h2>
         <NewRoomForm />
       </div>
 
       <div className="mt-8">
-        <h2 className="mb-2 text-sm font-medium text-gray-700">Befintliga rum</h2>
+        <h2 className="mb-2 text-sm font-medium text-gray-700">{t("adminRooms.existingHeading")}</h2>
         <div className="space-y-2">
           {rooms.map((room) => (
             <div
@@ -51,13 +50,13 @@ export default async function AdminRoomsPage() {
                   {room.building} · {room.campus}
                 </p>
                 <p className="mt-1 text-xs text-gray-400">
-                  Plats för {room.capacity} personer
-                  {room.hasScreen ? " · Skärm" : ""}
-                  {room.hasWhiteboard ? " · Whiteboard" : ""}
+                  {t("rooms.capacity", { n: room.capacity })}
+                  {room.hasScreen ? ` · ${t("rooms.screen")}` : ""}
+                  {room.hasWhiteboard ? ` · ${t("rooms.whiteboard")}` : ""}
                   {" · "}
                   {room._count.bookings > 0
-                    ? `${room._count.bookings} kommande bokningar`
-                    : "Inga kommande bokningar"}
+                    ? t("adminRooms.upcomingBookingsCount", { n: room._count.bookings })
+                    : t("adminRooms.noUpcomingBookings")}
                 </p>
               </div>
               <div className="flex items-center gap-3">
@@ -65,7 +64,7 @@ export default async function AdminRoomsPage() {
                   href={`/admin/rooms/${room.id}/edit`}
                   className="text-sm font-medium text-kth-blue hover:underline"
                 >
-                  Redigera
+                  {t("adminRooms.edit")}
                 </Link>
                 <DeleteRoomButton roomId={room.id} action={deleteRoom} />
               </div>
