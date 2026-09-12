@@ -9,9 +9,19 @@ export function SettingsForm({ settings }: { settings: AppSettings }) {
   const [requireConfirmation, setRequireConfirmation] = useState(
     settings.requirePreliminaryConfirmation
   );
+  // The form's inputs use defaultValue (uncontrolled), which only applies on
+  // mount — it doesn't pick up a later change to the `settings` prop. After
+  // a successful save, revalidatePath causes the server to re-fetch settings
+  // and pass a new `settings` prop down, but without a remount the form just
+  // keeps showing whatever it displayed before — the save "wins" in the
+  // database but visually looks undone. Keying the form directly on the
+  // settings values (rather than on the action's success flag, which can
+  // resolve a render tick before the fresh prop actually arrives) guarantees
+  // it remounts exactly when — and only when — the underlying data changes.
+  const settingsKey = JSON.stringify(settings);
 
   return (
-    <form action={formAction} className="mt-6 flex flex-col gap-4">
+    <form key={settingsKey} action={formAction} className="mt-6 flex flex-col gap-4">
       <div>
         <label htmlFor="minMinutes" className="block text-sm font-medium text-gray-700">
           Minsta bokningslängd (minuter)
