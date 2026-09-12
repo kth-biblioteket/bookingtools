@@ -127,8 +127,21 @@ export function ScheduleVertical({
             className="absolute inset-0 bg-kth-blue"
             style={{ clipPath: "polygon(0 0, 0 100%, 100% 100%)" }}
           />
-          <span className="absolute right-1 top-0.5 text-[9px] font-medium text-white">Rum</span>
-          <span className="absolute bottom-0.5 left-1 text-[9px] font-medium text-white">Tid</span>
+          {/* Positioned at each triangle's centroid — the average of its three
+              corners — so the label sits centered within its own half rather
+              than the cell as a whole. */}
+          <span
+            className="absolute -translate-x-1/2 -translate-y-1/2 text-xs font-medium text-white"
+            style={{ left: "66.7%", top: "33.3%" }}
+          >
+            Rum
+          </span>
+          <span
+            className="absolute -translate-x-1/2 -translate-y-1/2 text-xs font-medium text-white"
+            style={{ left: "33.3%", top: "66.7%" }}
+          >
+            Tid
+          </span>
         </div>
         {roomsWithBookings.map(({ room }) => (
           <Link
