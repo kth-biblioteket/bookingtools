@@ -216,7 +216,7 @@ export function ScheduleBoard({
                   className="flex w-48 shrink-0 flex-col items-center rounded-md bg-kth-sky py-1.5 text-center hover:bg-kth-blue"
                 >
                   <p className="break-words text-xl font-medium text-white">{room.name}</p>
-                  <div className="mt-0.5 flex flex-col items-center gap-0.5 text-[10px] font-medium text-black">
+                  <div className="mt-0.5 flex items-center justify-center gap-1 text-[10px] font-medium text-black">
                     <span className="flex items-center gap-0.5" title={`Plats för ${room.capacity} personer`}>
                       <UsersIcon />
                       {room.capacity}
