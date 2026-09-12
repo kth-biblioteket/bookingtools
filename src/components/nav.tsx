@@ -49,7 +49,7 @@ export async function Nav() {
   );
 
   return (
-    <header className="relative bg-kth-blue">
+    <header className="relative bg-kth-navy">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <Link href="/rooms" className="text-lg font-semibold text-white">
           {t("nav.brand")}

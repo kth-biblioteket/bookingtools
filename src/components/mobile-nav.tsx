@@ -43,7 +43,7 @@ export function MobileNav({ menuLabel, children }: { menuLabel: string; children
           {/* Closes the menu on any tap outside it, without needing a JS click-outside listener. */}
           <div className="fixed inset-0 z-20" onClick={() => setOpen(false)} />
           <div
-            className="absolute inset-x-0 top-full z-30 border-t border-white/10 bg-kth-blue px-4 py-3 shadow-lg"
+            className="absolute inset-x-0 top-full z-30 border-t border-white/10 bg-kth-navy px-4 py-3 shadow-lg"
             onClick={() => setOpen(false)}
           >
             <nav className="flex flex-col gap-3 text-sm">{children}</nav>
