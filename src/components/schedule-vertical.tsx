@@ -88,14 +88,14 @@ export function ScheduleVertical({
     <div className="overflow-x-auto pb-3">
       <div className="min-w-max" style={{ display: "grid", gridTemplateColumns }}>
         {/* Header row */}
-        <div className="sticky left-0 z-20 bg-gray-50" />
+        <div className="sticky left-0 z-20 bg-kth-sky" />
         {roomsWithBookings.map(({ room }) => (
           <Link
             key={room.id}
             href={`/rooms/${room.id}?date=${dateStr}`}
-            className="min-w-[40px] border-b border-gray-200 px-1 pb-2 text-center hover:bg-gray-50"
+            className="min-w-[40px] border-b border-gray-200 bg-kth-sky px-1 pb-2 text-center hover:bg-kth-blue"
           >
-            <p className="break-words text-sm font-medium text-gray-900">{room.name}</p>
+            <p className="break-words text-sm font-medium text-white">{room.name}</p>
           </Link>
         ))}
 
