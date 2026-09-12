@@ -35,19 +35,23 @@ export default async function SchedulePage({
       <h1 className="text-2xl font-semibold text-gray-900">{t("schedule.heading")}</h1>
       <p className="mt-1 text-sm text-gray-500">{t("schedule.subtitle")}</p>
 
-      <div className="mt-6 flex items-center justify-between">
+      <div className="mt-6 flex items-center justify-between gap-2">
         <Link
           href={`/schedule?date=${addDays(date, -1)}`}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
+          aria-label={t("schedule.prevDay")}
+          className="shrink-0 rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
         >
-          {t("schedule.prevDay")}
+          <span className="sm:hidden" aria-hidden="true">←</span>
+          <span className="hidden sm:inline">{t("schedule.prevDay")}</span>
         </Link>
         <DateNav date={date} today={todayStr()} basePath="/schedule" />
         <Link
           href={`/schedule?date=${addDays(date, 1)}`}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
+          aria-label={t("schedule.nextDay")}
+          className="shrink-0 rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
         >
-          {t("schedule.nextDay")}
+          <span className="sm:hidden" aria-hidden="true">→</span>
+          <span className="hidden sm:inline">{t("schedule.nextDay")}</span>
         </Link>
       </div>
 

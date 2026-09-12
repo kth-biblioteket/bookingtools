@@ -83,19 +83,23 @@ export default async function RoomPage({
         </div>
       </div>
 
-      <div className="mt-6 flex items-center justify-between">
+      <div className="mt-6 flex items-center justify-between gap-2">
         <Link
           href={`/rooms/${id}?date=${addDays(date, -7)}`}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
+          aria-label={t("roomDetail.prevWeek")}
+          className="shrink-0 rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
         >
-          {t("roomDetail.prevWeek")}
+          <span className="sm:hidden" aria-hidden="true">←</span>
+          <span className="hidden sm:inline">{t("roomDetail.prevWeek")}</span>
         </Link>
         <DateNav date={date} today={todayStr()} basePath={`/rooms/${id}`} />
         <Link
           href={`/rooms/${id}?date=${addDays(date, 7)}`}
-          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
+          aria-label={t("roomDetail.nextWeek")}
+          className="shrink-0 rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
         >
-          {t("roomDetail.nextWeek")}
+          <span className="sm:hidden" aria-hidden="true">→</span>
+          <span className="hidden sm:inline">{t("roomDetail.nextWeek")}</span>
         </Link>
       </div>
 
