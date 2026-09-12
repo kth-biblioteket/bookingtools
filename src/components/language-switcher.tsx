@@ -5,33 +5,42 @@ import { setLocale } from "@/lib/i18n/actions";
 import { locales, localeLabels, type Locale } from "@/lib/i18n/config";
 import { useI18n } from "@/components/i18n-provider";
 
+function GlobeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="h-4 w-4">
+      <circle cx="12" cy="12" r="9" />
+      <path strokeLinecap="round" d="M3 12h18M12 3c2.5 2.5 3.75 5.5 3.75 9s-1.25 6.5-3.75 9c-2.5-2.5-3.75-5.5-3.75-9S9.5 5.5 12 3Z" />
+    </svg>
+  );
+}
+
 export function LanguageSwitcher() {
   const { locale, t } = useI18n();
   const [pending, startTransition] = useTransition();
 
+  // Only two locales for now, so the switcher is a single pill that flips
+  // straight to the other one rather than a row of options to pick from.
+  const other = locales.find((l) => l !== locale) ?? locale;
+
   return (
-    <select
-      aria-label={t("nav.language")}
-      value={locale}
+    <button
+      type="button"
       disabled={pending}
-      onChange={(e) => {
-        const next = e.target.value as Locale;
+      title={localeLabels[other]}
+      aria-label={t("nav.language")}
+      onClick={(e) => {
+        // Inside the mobile nav dropdown (MobileNav), any click closes the
+        // menu — desired for the links, but this button's own click
+        // shouldn't also close the menu before the switch takes effect.
+        e.stopPropagation();
         startTransition(() => {
-          setLocale(next);
+          setLocale(other);
         });
       }}
-      // Inside the mobile nav dropdown (MobileNav), any click closes the
-      // menu — desired for the links, but tapping this select to open its
-      // native picker is itself a click, so without this it closed the
-      // whole menu before you could ever pick a language.
-      onClick={(e) => e.stopPropagation()}
-      className="rounded-md border border-transparent bg-kth-blue px-1.5 py-1 text-base text-kth-light-blue hover:border-kth-light-blue focus:outline-none focus:ring-1 focus:ring-kth-light-blue disabled:opacity-60 sm:text-sm"
+      className="flex items-center gap-1.5 self-start text-sm text-kth-light-blue transition-colors hover:text-white disabled:cursor-default disabled:opacity-60"
     >
-      {locales.map((l) => (
-        <option key={l} value={l} className="text-gray-900">
-          {localeLabels[l]}
-        </option>
-      ))}
-    </select>
+      <GlobeIcon />
+      {localeLabels[other]}
+    </button>
   );
 }

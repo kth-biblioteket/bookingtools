@@ -7,7 +7,7 @@ const sv: Dictionary = {
     invalidData: "Ogiltiga uppgifter",
   },
   nav: {
-    brand: "KTH Grupprum",
+    brand: "Boka",
     rooms: "Rum",
     schedule: "Schema",
     myBookings: "Mina bokningar",
@@ -19,7 +19,7 @@ const sv: Dictionary = {
     menu: "Meny",
   },
   layout: {
-    title: "KTH Grupprum",
+    title: "Boka",
     description: "Boka lediga grupprum på KTH",
   },
   auth: {

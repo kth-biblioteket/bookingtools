@@ -7,7 +7,7 @@ const en: Dictionary = {
     invalidData: "Invalid data",
   },
   nav: {
-    brand: "KTH Study Rooms",
+    brand: "Book",
     rooms: "Rooms",
     schedule: "Schedule",
     myBookings: "My bookings",
@@ -19,7 +19,7 @@ const en: Dictionary = {
     menu: "Menu",
   },
   layout: {
-    title: "KTH Study Rooms",
+    title: "Book",
     description: "Book available group study rooms at KTH",
   },
   auth: {
