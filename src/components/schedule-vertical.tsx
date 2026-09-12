@@ -119,7 +119,7 @@ export function ScheduleVertical({
             href={`/rooms/${room.id}?date=${dateStr}`}
             className="min-w-[40px] border-b border-gray-200 bg-kth-sky px-1 pb-2 text-center hover:bg-kth-blue"
           >
-            <p className="break-words text-base font-medium text-white">{room.name}</p>
+            <p className="break-words text-lg font-medium text-white">{room.name}</p>
             <div className="mt-0.5 flex flex-col items-center gap-0.5 text-[10px] font-medium text-black">
               <span className="flex items-center gap-0.5" title={`Plats för ${room.capacity} personer`}>
                 <UsersIcon />
