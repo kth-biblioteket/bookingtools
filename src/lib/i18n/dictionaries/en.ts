@@ -140,6 +140,14 @@ const en: Dictionary = {
     cornerDay: "Day",
     closedToday: "Closed this day.",
   },
+  legend: {
+    confirmedBooking: "Confirmed booking",
+    preliminaryBooking: "Preliminary booking",
+    needsConfirmationBooking: "Awaiting confirmation",
+    ownBooking: "Your booking",
+    beingBooked: "Someone is booking this right now",
+    unavailable: "Not bookable (closed/past)",
+  },
   bookings: {
     heading: "My bookings",
     none: "You have no upcoming bookings.",

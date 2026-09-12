@@ -143,6 +143,14 @@ export interface Dictionary {
     cornerDay: string;
     closedToday: string;
   };
+  legend: {
+    confirmedBooking: string;
+    preliminaryBooking: string;
+    needsConfirmationBooking: string;
+    ownBooking: string;
+    beingBooked: string;
+    unavailable: string;
+  };
   bookings: {
     heading: string;
     none: string;

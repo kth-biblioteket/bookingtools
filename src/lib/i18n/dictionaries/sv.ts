@@ -140,6 +140,14 @@ const sv: Dictionary = {
     cornerDay: "Dag",
     closedToday: "Stängt den här dagen.",
   },
+  legend: {
+    confirmedBooking: "Bekräftad bokning",
+    preliminaryBooking: "Preliminär bokning",
+    needsConfirmationBooking: "Väntar på bekräftelse",
+    ownBooking: "Din bokning",
+    beingBooked: "Bokas av någon just nu",
+    unavailable: "Ej bokningsbart (stängt/passerat)",
+  },
   bookings: {
     heading: "Mina bokningar",
     none: "Du har inga kommande bokningar.",

@@ -6,6 +6,7 @@ import { RoomTimeline, type TimelineBooking } from "@/components/room-timeline";
 import { ScheduleVertical } from "@/components/schedule-vertical";
 import { UsersIcon, ScreenIcon } from "@/components/room-icons";
 import { ScheduleCornerCell } from "@/components/schedule-corner-cell";
+import { ScheduleLegend } from "@/components/schedule-legend";
 import { ScheduleBookingPanel, type ScheduleFormMode } from "./schedule-booking-panel";
 import { requestHold, releaseMyHold } from "@/app/rooms/[id]/actions";
 import type { getAllRoomsBookingsForDate } from "@/lib/booking";
@@ -258,6 +259,8 @@ export function ScheduleBoard({
           </div>
         )}
       </div>
+
+      <ScheduleLegend requirePreliminaryConfirmation={settings.requirePreliminaryConfirmation} />
 
       {selectedRoom && (
         <div

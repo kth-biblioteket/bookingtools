@@ -7,6 +7,7 @@ import { ConfirmButton } from "@/components/confirm-button";
 import { cancelBooking, confirmBooking, releaseMyHold, requestHold } from "./actions";
 import { getBookingConfirmationStatus } from "@/lib/booking-status";
 import { RoomWeekVertical } from "@/components/room-week-vertical";
+import { ScheduleLegend } from "@/components/schedule-legend";
 import type { getBookingsForRoomInRange } from "@/lib/booking";
 import { generateDaySlots } from "@/lib/slots";
 import type { BookingSettings, OpeningHoursDay } from "@/lib/settings";
@@ -218,6 +219,8 @@ export function RoomPlanner({
         onFreeClick={handleFreeSlotClick}
         onOwnBookingClick={(_date, booking) => handleEditClick(booking)}
       />
+
+      <ScheduleLegend requirePreliminaryConfirmation={settings.requirePreliminaryConfirmation} />
 
       {weekBookings.length > 0 && (
         <div className="mt-4 space-y-2">
