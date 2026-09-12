@@ -64,7 +64,8 @@ export function ScheduleVertical({
   const totalMs = dayEnd.getTime() - dayStart.getTime();
 
   const hourCount = dayEndHour - dayStartHour;
-  const hours = Array.from({ length: hourCount + 1 }, (_, i) => dayStartHour + i);
+  // One label per hour row, centered inside that row (not one per gridline).
+  const hours = Array.from({ length: hourCount }, (_, i) => dayStartHour + i);
   const rowHeightPx = 40;
   const totalHeightPx = hourCount * rowHeightPx;
 
@@ -101,17 +102,17 @@ export function ScheduleVertical({
 
         {/* Hour label column — stays put when scrolling horizontally through many rooms */}
         <div
-          className="sticky left-0 z-20 bg-gray-50"
+          className="sticky left-0 z-20 bg-kth-blue"
           style={{ gridColumn: 1, gridRow: 2, height: totalHeightPx }}
         >
           {Array.from({ length: hourCount }, (_, i) => i).map((i) => (
-            <div key={i} className={`h-10 ${i % 2 === 1 ? "bg-gray-50/70" : ""}`} />
+            <div key={i} className={`h-10 ${i % 2 === 1 ? "bg-white/10" : ""}`} />
           ))}
           {hours.map((hour, i) => (
             <span
               key={hour}
-              className="absolute right-2 -translate-y-1/2 text-xs font-medium text-gray-500"
-              style={{ top: `${(i / hourCount) * 100}%` }}
+              className="absolute right-2 -translate-y-1/2 text-xs font-medium text-white"
+              style={{ top: `${((i + 0.5) / hourCount) * 100}%` }}
             >
               {String(hour).padStart(2, "0")}
             </span>
