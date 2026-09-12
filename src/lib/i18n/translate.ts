@@ -19,6 +19,7 @@ export interface Dictionary {
     login: string;
     signup: string;
     language: string;
+    menu: string;
   };
   layout: {
     title: string;

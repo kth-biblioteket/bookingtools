@@ -16,6 +16,7 @@ const sv: Dictionary = {
     login: "Logga in",
     signup: "Skapa konto",
     language: "Språk",
+    menu: "Meny",
   },
   layout: {
     title: "KTH Grupprum",

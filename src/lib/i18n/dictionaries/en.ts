@@ -16,6 +16,7 @@ const en: Dictionary = {
     login: "Log in",
     signup: "Create account",
     language: "Language",
+    menu: "Menu",
   },
   layout: {
     title: "KTH Study Rooms",
