@@ -111,10 +111,10 @@ export function ScheduleVertical({
           {hours.map((hour, i) => (
             <span
               key={hour}
-              className="absolute right-2 -translate-y-1/2 text-xs font-medium text-white"
+              className="absolute inset-x-0 -translate-y-1/2 text-center text-xs font-medium text-white"
               style={{ top: `${((i + 0.5) / hourCount) * 100}%` }}
             >
-              {String(hour).padStart(2, "0")}
+              {String(hour).padStart(2, "0")}:00
             </span>
           ))}
         </div>
