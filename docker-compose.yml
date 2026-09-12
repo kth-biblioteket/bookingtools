@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: kth_grupprum
+      POSTGRES_PASSWORD: kth_grupprum
+      POSTGRES_DB: kth_grupprum
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Creates the separate database the Playwright test suite uses
+      # (test:e2e points DATABASE_URL at it via .env.test), so it never
+      # shares data with the dev database above.
+      - ./docker/init-test-db.sql:/docker-entrypoint-initdb.d/init-test-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kth_grupprum"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+
+volumes:
+  postgres_data:

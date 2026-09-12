@@ -1,7 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
-import path from "node:path";
 
-const TEST_DATABASE_URL = `file:${path.resolve(__dirname, "prisma/test.db")}`;
+const TEST_DATABASE_URL = "postgresql://kth_grupprum:kth_grupprum@localhost:5434/kth_grupprum_test";
 const PORT = 3100;
 const BASE_URL = `http://localhost:${PORT}`;
 

@@ -1,30 +1,19 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, unlinkSync } from "node:fs";
 import path from "node:path";
 
-const TEST_DB_PATH = path.resolve(__dirname, "../prisma/test.db");
-const TEST_DATABASE_URL = `file:${TEST_DB_PATH}`;
-
-function removeIfExists(filePath: string) {
-  if (existsSync(filePath)) {
-    unlinkSync(filePath);
-  }
-}
+const TEST_DATABASE_URL = "postgresql://kth_grupprum:kth_grupprum@localhost:5434/kth_grupprum_test";
 
 export default async function globalSetup() {
-  // Start from a clean slate: remove any leftover test database files.
-  removeIfExists(TEST_DB_PATH);
-  removeIfExists(`${TEST_DB_PATH}-journal`);
-  removeIfExists(`${TEST_DB_PATH}-wal`);
-  removeIfExists(`${TEST_DB_PATH}-shm`);
-
   const env = {
     ...process.env,
     DATABASE_URL: TEST_DATABASE_URL,
   };
 
-  // Apply migrations to the isolated test database only.
-  execFileSync("npx", ["prisma", "migrate", "deploy"], {
+  // Start from a clean slate and apply every migration to the isolated
+  // test database only (never the dev database on the same Postgres
+  // instance — see docker-compose.yml for how the two databases are kept
+  // separate).
+  execFileSync("npx", ["prisma", "migrate", "reset", "--force", "--skip-seed"], {
     cwd: path.resolve(__dirname, ".."),
     env,
     stdio: "inherit",

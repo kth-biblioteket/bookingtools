@@ -2,7 +2,15 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+Start the local Postgres database (used by both the dev server and the Playwright test suite, in separate databases on the same instance):
+
+```bash
+docker compose up -d postgres
+npx prisma migrate deploy
+npx prisma db seed
+```
+
+Then run the development server:
 
 ```bash
 npm run dev
