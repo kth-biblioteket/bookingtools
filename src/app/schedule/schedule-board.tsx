@@ -194,12 +194,11 @@ export function ScheduleBoard({
                   roomsAt="bottom-left"
                   className="sticky left-0 z-10 h-6 w-15 shrink-0 overflow-hidden rounded-md"
                 />
-                {/* Each hour gets a 40px floor, same as the vertical layout's
-                    room columns — the ruler and every room's timeline below
-                    share this same min-width so their hour marks line up,
-                    and the outer overflow-x-auto only scrolls once even
-                    that floor no longer fits. */}
-                <div className="relative h-5 flex-1" style={{ minWidth: hourCount * 40 }}>
+                {/* Each hour gets a 50px floor — the ruler and every room's
+                    timeline below share this same min-width so their hour
+                    marks line up, and the outer overflow-x-auto only
+                    scrolls once even that floor no longer fits. */}
+                <div className="relative h-5 flex-1" style={{ minWidth: hourCount * 50 }}>
                   {hours.map((hour, i) => (
                     <span
                       key={hour}
@@ -234,7 +233,7 @@ export function ScheduleBoard({
                       )}
                     </div>
                   </Link>
-                  <div className="flex-1" style={{ minWidth: hourCount * 40 }}>
+                  <div className="flex-1" style={{ minWidth: hourCount * 50 }}>
                     <RoomTimeline
                       bookings={bookings}
                       holds={holds.filter((h) => h.roomId === room.id)}
