@@ -35,7 +35,7 @@ export default async function SchedulePage({
   ]);
 
   return (
-    <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-8">
+    <div className="mx-auto w-full max-w-[1228px] flex-1 px-4 py-8">
       <AutoRefresh />
       <h1 className="text-2xl font-semibold text-gray-900">Alla rum – schema för dagen</h1>
       <p className="mt-1 text-sm text-gray-500">
