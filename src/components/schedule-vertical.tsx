@@ -74,7 +74,7 @@ export function ScheduleVertical({
   // Each room column shrinks to fit the available width (so all rooms stay
   // visible without scrolling) down to a minimum readable width; only below
   // that minimum does the wrapper's overflow-x-auto kick in and scroll.
-  const gridTemplateColumns = `4rem repeat(${roomsWithBookings.length}, minmax(90px, 1fr))`;
+  const gridTemplateColumns = `4rem repeat(${roomsWithBookings.length}, minmax(35px, 1fr))`;
 
   return (
     <div className="overflow-x-auto">
@@ -85,9 +85,9 @@ export function ScheduleVertical({
           <Link
             key={room.id}
             href={`/rooms/${room.id}?date=${dateStr}`}
-            className="min-w-[90px] border-b border-gray-200 px-2 pb-2 text-center hover:bg-gray-50"
+            className="min-w-[35px] border-b border-gray-200 px-1 pb-2 text-center hover:bg-gray-50"
           >
-            <p className="truncate text-sm font-medium text-gray-900">{room.name}</p>
+            <p className="break-words text-sm font-medium text-gray-900">{room.name}</p>
           </Link>
         ))}
 
@@ -139,7 +139,7 @@ export function ScheduleVertical({
           return (
             <div
               key={room.id}
-              className="relative min-w-[90px] border-l border-gray-200"
+              className="relative min-w-[35px] border-l border-gray-200"
               style={{ gridRow: 2, height: totalHeightPx }}
             >
               {/* hour gridlines, with zebra striping to make each hour row easy to trace */}
@@ -230,20 +230,20 @@ export function ScheduleVertical({
                         onClick={() => onOwnBookingClick(room.id, booking)}
                         className={`${commonClassName} cursor-pointer hover:brightness-95`}
                       >
-                        <span className="block truncate">
+                        <span className="block break-words">
                           {formatTime(booking.startTime)}–{formatTime(booking.endTime)}
                         </span>
-                        <span className="block truncate">{booking.title}</span>
+                        <span className="block break-words">{booking.title}</span>
                       </button>
                     );
                   }
 
                   return (
                     <div key={booking.id} {...commonProps} className={commonClassName}>
-                      <span className="block truncate">
+                      <span className="block break-words">
                         {formatTime(booking.startTime)}–{formatTime(booking.endTime)}
                       </span>
-                      <span className="block truncate">{booking.title}</span>
+                      <span className="block break-words">{booking.title}</span>
                     </div>
                   );
                 })}
