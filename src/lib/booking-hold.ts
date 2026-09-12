@@ -82,6 +82,16 @@ export async function getActiveHoldsForRoomOnDate(roomId: string, dateStr: strin
   });
 }
 
+/** Active (non-expired) holds for a room over a [startStr, endStr] range of days, inclusive. */
+export async function getActiveHoldsForRoomInRange(roomId: string, startStr: string, endStr: string) {
+  await releaseExpiredHolds();
+  const { start } = dayBoundsFor(startStr);
+  const { end } = dayBoundsFor(endStr);
+  return db.bookingHold.findMany({
+    where: { roomId, startTime: { lte: end }, endTime: { gte: start } },
+  });
+}
+
 /** Active (non-expired) holds across all rooms on a given day. */
 export async function getActiveHoldsForDate(dateStr: string) {
   await releaseExpiredHolds();

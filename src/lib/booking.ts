@@ -109,6 +109,18 @@ export async function hasOverlap(roomId: string, start: Date, end: Date, exclude
   return Boolean(overlapping);
 }
 
+/** All of a room's bookings overlapping the [startStr, endStr] range of days, inclusive. */
+export async function getBookingsForRoomInRange(roomId: string, startStr: string, endStr: string) {
+  await releaseExpiredPreliminaryBookings();
+  const { start } = dayBounds(startStr);
+  const { end } = dayBounds(endStr);
+  return db.booking.findMany({
+    where: { roomId, startTime: { lte: end }, endTime: { gte: start } },
+    include: { user: { select: { name: true } } },
+    orderBy: { startTime: "asc" },
+  });
+}
+
 export async function getAllRoomsBookingsForDate(dateStr: string) {
   await releaseExpiredPreliminaryBookings();
   const { start, end } = dayBounds(dateStr);

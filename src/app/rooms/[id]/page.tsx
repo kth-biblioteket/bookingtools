@@ -3,24 +3,18 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentUser, isAdminEmail } from "@/lib/auth";
 import {
   generateDaySlots,
-  getBookingsForRoomOnDate,
+  getBookingsForRoomInRange,
   getRoom,
   todayStr,
+  DAY_START_HOUR,
+  DAY_END_HOUR,
 } from "@/lib/booking";
-import { getActiveHoldsForRoomOnDate } from "@/lib/booking-hold";
+import { getActiveHoldsForRoomInRange } from "@/lib/booking-hold";
 import { getBookingSettings } from "@/lib/settings";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { DateNav } from "@/components/date-nav";
+import { addDays, getWeekDates } from "@/lib/date";
 import { RoomPlanner } from "./room-planner";
-
-function addDays(dateStr: string, days: number) {
-  const d = new Date(`${dateStr}T00:00:00`);
-  d.setDate(d.getDate() + days);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
 
 export default async function RoomPage({
   params,
@@ -39,12 +33,37 @@ export default async function RoomPage({
   const room = await getRoom(id);
   if (!room) notFound();
 
-  const [bookings, slots, settings, holds] = await Promise.all([
-    getBookingsForRoomOnDate(id, date),
+  const weekDates = getWeekDates(date);
+  const weekStart = weekDates[0];
+  const weekEnd = weekDates[weekDates.length - 1];
+
+  const [bookings, holds, slots, settings] = await Promise.all([
+    getBookingsForRoomInRange(id, weekStart, weekEnd),
+    getActiveHoldsForRoomInRange(id, weekStart, weekEnd),
     Promise.resolve(generateDaySlots(date)),
     getBookingSettings(),
-    getActiveHoldsForRoomOnDate(id, date),
   ]);
+
+  function dateStrFromDate(d: Date) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+
+  const bookingsByDate: Record<string, typeof bookings> = {};
+  for (const d of weekDates) bookingsByDate[d] = [];
+  for (const booking of bookings) {
+    const key = dateStrFromDate(booking.startTime);
+    if (bookingsByDate[key]) bookingsByDate[key].push(booking);
+  }
+
+  const holdsByDate: Record<string, typeof holds> = {};
+  for (const d of weekDates) holdsByDate[d] = [];
+  for (const hold of holds) {
+    const key = dateStrFromDate(hold.startTime);
+    if (holdsByDate[key]) holdsByDate[key].push(hold);
+  }
 
   return (
     <div className="mx-auto w-full max-w-4xl flex-1 px-4 py-8">
@@ -64,29 +83,32 @@ export default async function RoomPage({
 
       <div className="mt-6 flex items-center justify-between">
         <Link
-          href={`/rooms/${id}?date=${addDays(date, -1)}`}
+          href={`/rooms/${id}?date=${addDays(date, -7)}`}
           className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
         >
-          ← Föregående dag
+          ← Föregående vecka
         </Link>
         <DateNav date={date} today={todayStr()} basePath={`/rooms/${id}`} />
         <Link
-          href={`/rooms/${id}?date=${addDays(date, 1)}`}
+          href={`/rooms/${id}?date=${addDays(date, 7)}`}
           className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
         >
-          Nästa dag →
+          Nästa vecka →
         </Link>
       </div>
 
       <RoomPlanner
         roomId={id}
-        date={date}
-        bookings={bookings}
+        weekDates={weekDates}
+        todayStr={todayStr()}
+        bookingsByDate={bookingsByDate}
+        holdsByDate={holdsByDate}
         slots={slots}
         settings={settings}
         currentUserId={user.id}
         isAdmin={isAdminEmail(user.email)}
-        holds={holds}
+        dayStartHour={DAY_START_HOUR}
+        dayEndHour={DAY_END_HOUR}
       />
     </div>
   );

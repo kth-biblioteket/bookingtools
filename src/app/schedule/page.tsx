@@ -6,16 +6,8 @@ import { getActiveHoldsForDate } from "@/lib/booking-hold";
 import { getBookingSettings, getScheduleLayout } from "@/lib/settings";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { DateNav } from "@/components/date-nav";
+import { addDays } from "@/lib/date";
 import { ScheduleBoard } from "./schedule-board";
-
-function addDays(dateStr: string, days: number) {
-  const d = new Date(`${dateStr}T00:00:00`);
-  d.setDate(d.getDate() + days);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
 
 export default async function SchedulePage({
   searchParams,

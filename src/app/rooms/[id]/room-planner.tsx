@@ -6,7 +6,8 @@ import { CancelButton } from "@/components/cancel-button";
 import { ConfirmButton } from "@/components/confirm-button";
 import { cancelBooking, confirmBooking, releaseMyHold, requestHold } from "./actions";
 import { getBookingConfirmationStatus } from "@/lib/booking-status";
-import type { getBookingsForRoomOnDate, generateDaySlots } from "@/lib/booking";
+import { RoomWeekVertical } from "@/components/room-week-vertical";
+import type { getBookingsForRoomInRange, generateDaySlots } from "@/lib/booking";
 import type { BookingSettings } from "@/lib/settings";
 import type { ActiveHold } from "@/lib/booking-hold";
 
@@ -15,13 +16,8 @@ const HOLD_HEARTBEAT_MS = 20_000;
 /** Debounce before renewing the hold after the user changes the start/end time. */
 const HOLD_RENEW_DEBOUNCE_MS = 500;
 
-type Booking = Awaited<ReturnType<typeof getBookingsForRoomOnDate>>[number];
+type Booking = Awaited<ReturnType<typeof getBookingsForRoomInRange>>[number];
 type Slot = ReturnType<typeof generateDaySlots>[number];
-
-function toMinutes(time: string) {
-  const [h, m] = time.split(":").map(Number);
-  return h * 60 + m;
-}
 
 function toTimeLabel(totalMinutes: number) {
   const hh = String(Math.floor(totalMinutes / 60)).padStart(2, "0");
@@ -33,28 +29,43 @@ function timeLabelFromDate(d: Date) {
   return d.toTimeString().slice(0, 5);
 }
 
+function dateStrFromDate(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 export function RoomPlanner({
   roomId,
-  date,
-  bookings,
+  weekDates,
+  todayStr,
+  bookingsByDate,
+  holdsByDate,
   slots,
   settings,
   currentUserId,
   isAdmin,
-  holds,
+  dayStartHour,
+  dayEndHour,
 }: {
   roomId: string;
-  date: string;
-  bookings: Booking[];
+  /** The current Mon–Sun week, as ISO date strings. */
+  weekDates: string[];
+  todayStr: string;
+  bookingsByDate: Record<string, Booking[]>;
+  holdsByDate: Record<string, ActiveHold[]>;
   slots: Slot[];
   settings: BookingSettings;
   currentUserId: string;
   /** Admins see every booking's real title, not just its status — see the
    * "Bokat"/"Upptaget" masking below. */
   isAdmin: boolean;
-  holds: ActiveHold[];
+  dayStartHour: number;
+  dayEndHour: number;
 }) {
   const [mode, setMode] = useState<FormMode>("create");
+  const [formDate, setFormDate] = useState(todayStr);
   const [editingBookingId, setEditingBookingId] = useState<string | undefined>();
   const [title, setTitle] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -69,8 +80,8 @@ export function RoomPlanner({
   // Whether we currently need a hold: only while the create form has a real,
   // free slot picked out (editing an own existing booking doesn't need one).
   const holdActiveRef = useRef(false);
-  const latestHoldRequestRef = useRef({ roomId, date, startTime, endTime });
-  latestHoldRequestRef.current = { roomId, date, startTime, endTime };
+  const latestHoldRequestRef = useRef({ roomId, date: formDate, startTime, endTime });
+  latestHoldRequestRef.current = { roomId, date: formDate, startTime, endTime };
 
   // Request/renew the hold whenever the picked slot changes, and release it
   // once the user is no longer trying to book a new free slot.
@@ -91,14 +102,14 @@ export function RoomPlanner({
 
     const timeout = setTimeout(() => {
       startHoldTransition(async () => {
-        const result = await requestHold(roomId, date, startTime, endTime);
+        const result = await requestHold(roomId, formDate, startTime, endTime);
         setHoldError(result?.error);
       });
     }, HOLD_RENEW_DEBOUNCE_MS);
 
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, startTime, endTime, roomId, date]);
+  }, [mode, startTime, endTime, roomId, formDate]);
 
   // Heartbeat: renew the hold periodically using the latest form values, well
   // under the server-side TTL, so a long-open form doesn't silently expire.
@@ -139,10 +150,11 @@ export function RoomPlanner({
     bookingRefs.current.get(id)?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
-  function handleFreeSlotClick(slot: Slot) {
-    const clickedMinutes = toMinutes(slot.label);
+  function handleFreeSlotClick(dateStr: string, start: Date) {
+    const clickedMinutes = start.getHours() * 60 + start.getMinutes();
     const alignedStart = Math.floor(clickedMinutes / settings.stepMinutes) * settings.stepMinutes;
     setMode("create");
+    setFormDate(dateStr);
     setEditingBookingId(undefined);
     setTitle("");
     setStartTime(toTimeLabel(alignedStart));
@@ -158,6 +170,7 @@ export function RoomPlanner({
 
   function handleEditClick(booking: Booking) {
     setMode("edit");
+    setFormDate(dateStrFromDate(booking.startTime));
     setEditingBookingId(booking.id);
     setTitle(booking.title);
     setStartTime(timeLabelFromDate(booking.startTime));
@@ -167,6 +180,7 @@ export function RoomPlanner({
 
   function handleCancelEdit() {
     setMode("create");
+    setFormDate(todayStr);
     setEditingBookingId(undefined);
     setTitle("");
     setStartTime("");
@@ -175,6 +189,7 @@ export function RoomPlanner({
 
   function handleUpdateSuccess() {
     setMode("create");
+    setFormDate(todayStr);
     setEditingBookingId(undefined);
     setTitle("");
     setStartTime("");
@@ -187,84 +202,32 @@ export function RoomPlanner({
     setEndTime("");
   }
 
-  const slotStatus = slots.map((slot) => {
-    const booking = bookings.find((b) => b.startTime < slot.end && b.endTime > slot.start);
-    const heldByOther =
-      !booking &&
-      holds.some(
-        (hold) =>
-          hold.userId !== currentUserId && hold.startTime < slot.end && hold.endTime > slot.start
-      );
-    return { ...slot, booking, heldByOther };
-  });
+  const weekBookings = weekDates
+    .flatMap((date) => bookingsByDate[date] ?? [])
+    .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 
   return (
     <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-2">
       <div>
-        <h2 className="mb-2 text-sm font-medium text-gray-700">Schema för dagen</h2>
-        <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-6">
-          {slotStatus.map((slot) => {
-            const isOwn = slot.booking?.userId === currentUserId;
-            const isPast = slot.start < new Date();
-            const isPastFree = !slot.booking && isPast;
-            const clickable = (!slot.booking || isOwn) && !isPastFree && !slot.heldByOther;
-            const isHighlighted = slot.booking && slot.booking.id === highlightedBookingId;
-            const confirmationStatus = slot.booking
-              ? getBookingConfirmationStatus(slot.booking, settings)
-              : undefined;
-            const statusColor =
-              confirmationStatus === "preliminary"
-                ? "bg-yellow-100 text-yellow-900 hover:bg-yellow-200"
-                : confirmationStatus === "needs_confirmation"
-                  ? "bg-orange-100 text-orange-900 hover:bg-orange-200"
-                  : confirmationStatus === "confirmed"
-                    ? "bg-red-100 text-red-800 hover:bg-red-100"
-                    : "";
-            return (
-              <button
-                type="button"
-                key={slot.label}
-                disabled={!clickable}
-                onClick={() => {
-                  if (!slot.booking && !slot.heldByOther) handleFreeSlotClick(slot);
-                  else if (isOwn && slot.booking) handleOwnSlotClick(slot.booking);
-                }}
-                title={
-                  slot.booking
-                    ? isOwn
-                      ? `Din bokning: ${slot.booking.title}`
-                      : isAdmin
-                        ? `${confirmationStatus === "confirmed" ? "Upptaget" : "Bokat"}: ${slot.booking.title} · ${slot.booking.user.name}`
-                        : confirmationStatus === "confirmed"
-                          ? "Upptaget"
-                          : "Bokat"
-                    : slot.heldByOther
-                      ? "Någon bokar den här tiden just nu"
-                      : isPastFree
-                        ? "Har passerat"
-                        : "Ledigt – klicka för att boka"
-                }
-                className={`touch-manipulation rounded px-1 py-1.5 text-center text-xs transition ${
-                  slot.booking
-                    ? `${isOwn ? "cursor-pointer" : "cursor-default"} ${statusColor} ${
-                        isOwn ? `ring-2 ${isHighlighted ? "ring-kth-sky" : "ring-kth-sky"}` : ""
-                      }`
-                    : slot.heldByOther
-                      ? "cursor-not-allowed border border-dashed border-gray-400 bg-[repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb_4px,#dbeafe_4px,#dbeafe_8px)] text-gray-500"
-                      : isPastFree
-                        ? "cursor-not-allowed bg-gray-100 text-gray-400"
-                        : "cursor-pointer bg-green-50 text-green-700 hover:bg-green-100"
-                }`}
-              >
-                {slot.label}
-              </button>
-            );
-          })}
-        </div>
+        <h2 className="mb-2 text-sm font-medium text-gray-700">Schema för veckan</h2>
+        <RoomWeekVertical
+          weekDates={weekDates}
+          bookingsByDate={bookingsByDate}
+          holdsByDate={holdsByDate}
+          currentUserId={currentUserId}
+          isAdmin={isAdmin}
+          todayStr={todayStr}
+          dayStartHour={dayStartHour}
+          dayEndHour={dayEndHour}
+          stepMinutes={settings.stepMinutes}
+          settings={settings}
+          onFreeClick={handleFreeSlotClick}
+          onOwnBookingClick={(_date, booking) => handleOwnSlotClick(booking)}
+        />
 
-        {bookings.length > 0 && (
+        {weekBookings.length > 0 && (
           <div className="mt-4 space-y-2">
-            {bookings.map((b) => {
+            {weekBookings.map((b) => {
               const isOwn = b.userId === currentUserId;
               const confirmationStatus = getBookingConfirmationStatus(b, settings);
               const needsConfirm =
@@ -297,7 +260,7 @@ export function RoomPlanner({
                       className={`inline-block h-2 w-2 shrink-0 rounded-full ${statusDotColor}`}
                       title={statusLabel}
                     />
-                    {timeLabelFromDate(b.startTime)}–{timeLabelFromDate(b.endTime)}{" "}
+                    {dateStrFromDate(b.startTime)} {timeLabelFromDate(b.startTime)}–{timeLabelFromDate(b.endTime)}{" "}
                     {isOwn
                       ? `· ${b.title} (du)`
                       : isAdmin
@@ -332,7 +295,7 @@ export function RoomPlanner({
         </h2>
         <BookingForm
           roomId={roomId}
-          date={date}
+          date={formDate}
           slots={slots.map((s) => s.label)}
           settings={settings}
           mode={mode}
