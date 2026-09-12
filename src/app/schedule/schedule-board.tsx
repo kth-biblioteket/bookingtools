@@ -5,6 +5,7 @@ import Link from "next/link";
 import { RoomTimeline, type TimelineBooking } from "@/components/room-timeline";
 import { ScheduleVertical } from "@/components/schedule-vertical";
 import { UsersIcon, ScreenIcon } from "@/components/room-icons";
+import { ScheduleCornerCell } from "@/components/schedule-corner-cell";
 import { ScheduleBookingPanel, type ScheduleFormMode } from "./schedule-booking-panel";
 import { requestHold, releaseMyHold } from "@/app/rooms/[id]/actions";
 import type { getAllRoomsBookingsForDate } from "@/lib/booking";
@@ -188,13 +189,7 @@ export function ScheduleBoard({
         ) : (
           <div className="space-y-2">
             <div className="flex items-center gap-4">
-              {/* "Tid" spacer — the same role as the vertical layout's
-                  diagonal corner cell's kth-blue half, just without the
-                  diagonal split since there's no room-name axis to share
-                  this cell with here. */}
-              <div className="flex w-48 shrink-0 items-center justify-center rounded-md bg-kth-blue py-1 text-xs font-medium text-white">
-                Tid
-              </div>
+              <ScheduleCornerCell className="h-6 w-48 shrink-0 overflow-hidden rounded-md" />
               <div className="relative h-5 flex-1">
                 {hours.map((hour, i) => (
                   <span

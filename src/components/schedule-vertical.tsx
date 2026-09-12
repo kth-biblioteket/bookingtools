@@ -3,6 +3,7 @@ import { getBookingConfirmationStatus, type BookingConfirmationStatus } from "@/
 import type { ActiveHold } from "@/lib/booking-hold";
 import type { BookingSettings } from "@/lib/settings";
 import { UsersIcon, ScreenIcon } from "@/components/room-icons";
+import { ScheduleCornerCell } from "@/components/schedule-corner-cell";
 
 type TimelineBooking = {
   id: string;
@@ -95,37 +96,7 @@ export function ScheduleVertical({
     <div className="overflow-x-auto pb-3">
       <div className="min-w-max" style={{ display: "grid", gridTemplateColumns }}>
         {/* Header row */}
-        {/* Corner cell: split diagonally — the half facing the room-name row
-            (top-right) matches its kth-sky background and says "Rum"; the
-            half facing the hour column (bottom-left) matches its kth-blue
-            background and says "Tid". clip-path (not a gradient) guarantees
-            the split runs exactly corner-to-corner regardless of this cell's
-            actual width/height. */}
-        <div className="sticky left-0 z-20 relative">
-          <div
-            className="absolute inset-0 bg-kth-sky"
-            style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%)" }}
-          />
-          <div
-            className="absolute inset-0 bg-kth-blue"
-            style={{ clipPath: "polygon(0 0, 0 100%, 100% 100%)" }}
-          />
-          {/* Positioned at each triangle's centroid — the average of its three
-              corners — so the label sits centered within its own half rather
-              than the cell as a whole. */}
-          <span
-            className="absolute -translate-x-1/2 -translate-y-1/2 text-xs font-medium text-white"
-            style={{ left: "66.7%", top: "33.3%" }}
-          >
-            Rum
-          </span>
-          <span
-            className="absolute -translate-x-1/2 -translate-y-1/2 text-xs font-medium text-white"
-            style={{ left: "33.3%", top: "66.7%" }}
-          >
-            Tid
-          </span>
-        </div>
+        <ScheduleCornerCell className="sticky left-0 z-20" />
         {roomsWithBookings.map(({ room }) => (
           <Link
             key={room.id}
