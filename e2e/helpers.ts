@@ -56,7 +56,8 @@ export function dateOffset(days: number) {
 /**
  * Finds the room detail page URL for a seeded room by name, starting from /rooms,
  * and navigates there with the given date query param so booking times are always
- * comfortably in the future.
+ * comfortably in the future. The room page shows the whole Mon–Sun week containing
+ * that date, not just the date itself.
  */
 export async function gotoRoomOnDate(page: Page, roomName: string, dateStr: string) {
   await page.goto("/rooms");
@@ -66,10 +67,19 @@ export async function gotoRoomOnDate(page: Page, roomName: string, dateStr: stri
   await page.goto(`${href}?date=${dateStr}`);
 }
 
+/**
+ * Opens the booking modal for `dateStr`'s column by clicking a free slot far
+ * enough in the day (19:00, the last slot rendered) that it's never already
+ * booked by an earlier step in the same test. Fills in the given title, then
+ * overrides the start/end time via the modal's own selects — those aren't
+ * limited to the slot that was clicked, so this works for any time within
+ * the day, including times that intentionally overlap an earlier booking.
+ */
 export async function fillBookingForm(
   page: Page,
-  { title, startTime, endTime }: { title: string; startTime: string; endTime: string }
+  { dateStr, title, startTime, endTime }: { dateStr: string; title: string; startTime: string; endTime: string }
 ) {
+  await page.getByTestId(`free-slot-${dateStr}-19:00`).click();
   await page.getByLabel("Ärende").fill(title);
   await page.getByLabel("Från").selectOption(startTime);
   await page.getByLabel("Till").selectOption(endTime);

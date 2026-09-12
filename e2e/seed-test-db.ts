@@ -39,7 +39,7 @@ async function main() {
   for (const room of rooms) {
     await db.room.create({ data: room });
   }
-  console.log(`Seedade ${rooms.length} testrum i test.db.`);
+  console.log(`Seedade ${rooms.length} testrum i test-databasen.`);
 }
 
 main()

@@ -40,9 +40,9 @@ test.describe("Booking", () => {
     const date = dateOffset(1);
     await gotoRoomOnDate(page, ROOM_NAME, date);
 
-    await fillBookingForm(page, { title: "Projektmöte", startTime: "10:00", endTime: "11:00" });
+    await fillBookingForm(page, { dateStr: date, title: "Projektmöte", startTime: "10:00", endTime: "11:00" });
 
-    await expect(page.getByText("Bokningen är klar!")).toBeVisible();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
     await expect(page.getByText("10:00–11:00 · Projektmöte (du)")).toBeVisible();
 
     await page.goto("/bookings");
@@ -59,11 +59,11 @@ test.describe("Booking", () => {
     const date = dateOffset(2);
     await gotoRoomOnDate(page, ROOM_NAME, date);
 
-    await fillBookingForm(page, { title: "Första mötet", startTime: "09:00", endTime: "10:00" });
-    await expect(page.getByText("Bokningen är klar!")).toBeVisible();
+    await fillBookingForm(page, { dateStr: date, title: "Första mötet", startTime: "09:00", endTime: "10:00" });
+    await expect(page.getByRole("dialog")).toHaveCount(0);
 
     // Attempt an overlapping booking on the same room/date (fully containing the first).
-    await fillBookingForm(page, { title: "Andra mötet", startTime: "09:00", endTime: "11:00" });
+    await fillBookingForm(page, { dateStr: date, title: "Andra mötet", startTime: "09:00", endTime: "11:00" });
 
     await expect(
       page.getByText("Rummet är redan bokat under en del av den valda tiden")
@@ -82,8 +82,8 @@ test.describe("Booking", () => {
     const date = dateOffset(3);
     await gotoRoomOnDate(page, ROOM_NAME, date);
 
-    await fillBookingForm(page, { title: "Avboka mig", startTime: "11:00", endTime: "12:00" });
-    await expect(page.getByText("Bokningen är klar!")).toBeVisible();
+    await fillBookingForm(page, { dateStr: date, title: "Avboka mig", startTime: "11:00", endTime: "12:00" });
+    await expect(page.getByRole("dialog")).toHaveCount(0);
 
     await page.goto("/bookings");
     await expect(page.getByText("Avboka mig")).toBeVisible();
@@ -102,8 +102,8 @@ test.describe("Booking", () => {
     const date = dateOffset(4);
     await gotoRoomOnDate(page, ROOM_NAME, date);
 
-    await fillBookingForm(page, { title: "Schemamöte", startTime: "13:00", endTime: "14:00" });
-    await expect(page.getByText("Bokningen är klar!")).toBeVisible();
+    await fillBookingForm(page, { dateStr: date, title: "Schemamöte", startTime: "13:00", endTime: "14:00" });
+    await expect(page.getByRole("dialog")).toHaveCount(0);
 
     await page.goto(`/schedule?date=${date}`);
     await expect(page.getByRole("heading", { name: "Alla rum – schema för dagen" })).toBeVisible();

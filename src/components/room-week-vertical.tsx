@@ -189,6 +189,7 @@ export function RoomWeekVertical<B extends TimelineBooking>({
                         type="button"
                         onClick={() => onFreeClick(date, stepStart)}
                         title={t("bookingStatus.clickToBookTooltip", { time: formatTime(stepStart) })}
+                        data-testid={`free-slot-${date}-${formatTime(stepStart)}`}
                         style={{ top: `${top}%`, height: `${height}%` }}
                         className="absolute inset-x-0 cursor-pointer touch-manipulation"
                       />
