@@ -20,6 +20,11 @@ export function LanguageSwitcher() {
           setLocale(next);
         });
       }}
+      // Inside the mobile nav dropdown (MobileNav), any click closes the
+      // menu — desired for the links, but tapping this select to open its
+      // native picker is itself a click, so without this it closed the
+      // whole menu before you could ever pick a language.
+      onClick={(e) => e.stopPropagation()}
       className="rounded-md border border-transparent bg-kth-blue px-1.5 py-1 text-sm text-kth-light-blue hover:border-kth-light-blue focus:outline-none focus:ring-1 focus:ring-kth-light-blue disabled:opacity-60"
     >
       {locales.map((l) => (
