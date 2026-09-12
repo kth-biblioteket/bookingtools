@@ -1,8 +1,9 @@
 # Local dev image — used by docker-compose-dev.yml, not by production
-# (see Dockerfile for that). Just installs dependencies; source is
-# bind-mounted at runtime and the actual dev command (prisma generate +
-# next dev) is set in docker-compose-dev.yml, not here, so editing the
-# command doesn't require a rebuild.
+# (see Dockerfile for that). Installs dependencies, then generates the
+# Prisma client and starts the dev server — the same shape as Dockerfile's
+# own runner stage (WORKDIR, EXPOSE, a self-contained start command), just
+# single-stage and dev-oriented. Source is bind-mounted at runtime by
+# docker-compose-dev.yml, so edits take effect without a rebuild.
 #
 # Pinned to the exact same Node patch as Dockerfile/.nvmrc/package.json's
 # "engines" — see the comment in Dockerfile for why.
@@ -10,3 +11,5 @@ FROM node:22.23.2-alpine
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
+EXPOSE 3000
+CMD ["sh", "-c", "npx prisma generate && npm run dev"]
