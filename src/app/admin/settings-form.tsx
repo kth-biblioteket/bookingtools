@@ -36,7 +36,7 @@ export function SettingsForm({ settings }: { settings: AppSettings }) {
           min={15}
           step={15}
           defaultValue={settings.minMinutes}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -51,7 +51,7 @@ export function SettingsForm({ settings }: { settings: AppSettings }) {
           min={15}
           step={15}
           defaultValue={settings.maxMinutes}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -66,7 +66,7 @@ export function SettingsForm({ settings }: { settings: AppSettings }) {
           min={15}
           step={15}
           defaultValue={settings.stepMinutes}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -78,7 +78,7 @@ export function SettingsForm({ settings }: { settings: AppSettings }) {
           name="scheduleLayout"
           required
           defaultValue={settings.scheduleLayout}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         >
           <option value="horizontal">{t("admin.layoutHorizontal")}</option>
           <option value="vertical">{t("admin.layoutVertical")}</option>
@@ -114,7 +114,7 @@ export function SettingsForm({ settings }: { settings: AppSettings }) {
                 required
                 min={0}
                 defaultValue={settings.confirmMinutesBefore}
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
               />
             </div>
             <div>
@@ -131,7 +131,7 @@ export function SettingsForm({ settings }: { settings: AppSettings }) {
                 required
                 min={0}
                 defaultValue={settings.confirmMinutesAfter}
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
               />
             </div>
           </div>

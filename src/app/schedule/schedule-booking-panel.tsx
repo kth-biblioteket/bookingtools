@@ -134,7 +134,7 @@ export function ScheduleBookingPanel({
             value={title}
             onChange={(e) => onTitleChange(e.target.value)}
             placeholder={t("bookingForm.purposePlaceholder")}
-            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
+            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
           />
         </div>
 
@@ -149,7 +149,7 @@ export function ScheduleBookingPanel({
               required
               value={startTime}
               onChange={(e) => onStartTimeChange(e.target.value)}
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
+              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
             >
               <option value="" disabled>
                 {t("bookingForm.pickTime")}
@@ -173,7 +173,7 @@ export function ScheduleBookingPanel({
               value={endTime}
               onChange={(e) => onEndTimeChange(e.target.value)}
               disabled={!startTime}
-              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue disabled:bg-gray-50"
+              className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue disabled:bg-gray-50"
             >
               <option value="" disabled>
                 {t("bookingForm.pickTime")}

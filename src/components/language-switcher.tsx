@@ -25,7 +25,7 @@ export function LanguageSwitcher() {
       // native picker is itself a click, so without this it closed the
       // whole menu before you could ever pick a language.
       onClick={(e) => e.stopPropagation()}
-      className="rounded-md border border-transparent bg-kth-blue px-1.5 py-1 text-sm text-kth-light-blue hover:border-kth-light-blue focus:outline-none focus:ring-1 focus:ring-kth-light-blue disabled:opacity-60"
+      className="rounded-md border border-transparent bg-kth-blue px-1.5 py-1 text-base text-kth-light-blue hover:border-kth-light-blue focus:outline-none focus:ring-1 focus:ring-kth-light-blue disabled:opacity-60 sm:text-sm"
     >
       {locales.map((l) => (
         <option key={l} value={l} className="text-gray-900">

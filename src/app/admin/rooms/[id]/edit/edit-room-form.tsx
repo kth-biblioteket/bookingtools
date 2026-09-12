@@ -23,7 +23,7 @@ export function EditRoomForm({ room }: { room: Room }) {
           required
           maxLength={100}
           defaultValue={room.name}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -36,7 +36,7 @@ export function EditRoomForm({ room }: { room: Room }) {
           type="number"
           required
           defaultValue={room.roomNumber}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -50,7 +50,7 @@ export function EditRoomForm({ room }: { room: Room }) {
           required
           maxLength={100}
           defaultValue={room.building}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -64,7 +64,7 @@ export function EditRoomForm({ room }: { room: Room }) {
           required
           maxLength={100}
           defaultValue={room.campus}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -78,7 +78,7 @@ export function EditRoomForm({ room }: { room: Room }) {
           required
           min={1}
           defaultValue={room.capacity}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -91,7 +91,7 @@ export function EditRoomForm({ room }: { room: Room }) {
           type="text"
           maxLength={100}
           defaultValue={room.floor ?? ""}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <label className="flex items-center gap-2 text-sm text-gray-700">

@@ -40,7 +40,7 @@ export function DateNav({
           if (e.target.value) router.push(`${basePath}?date=${e.target.value}`);
         }}
         aria-label={t("dateNav.pickDate")}
-        className="rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
+        className="rounded-md border border-gray-300 px-2 py-1 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
       />
     </div>
   );
