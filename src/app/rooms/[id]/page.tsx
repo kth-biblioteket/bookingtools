@@ -10,6 +10,7 @@ import {
 import { getActiveHoldsForRoomOnDate } from "@/lib/booking-hold";
 import { getBookingSettings } from "@/lib/settings";
 import { AutoRefresh } from "@/components/auto-refresh";
+import { DateNav } from "@/components/date-nav";
 import { RoomPlanner } from "./room-planner";
 
 function addDays(dateStr: string, days: number) {
@@ -68,7 +69,7 @@ export default async function RoomPage({
         >
           ← Föregående dag
         </Link>
-        <span className="font-medium text-gray-900">{date}</span>
+        <DateNav date={date} today={todayStr()} basePath={`/rooms/${id}`} />
         <Link
           href={`/rooms/${id}?date=${addDays(date, 1)}`}
           className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"

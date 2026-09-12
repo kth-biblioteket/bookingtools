@@ -5,6 +5,7 @@ import { getAllRoomsBookingsForDate, todayStr, DAY_START_HOUR, DAY_END_HOUR } fr
 import { getActiveHoldsForDate } from "@/lib/booking-hold";
 import { getBookingSettings, getScheduleLayout } from "@/lib/settings";
 import { AutoRefresh } from "@/components/auto-refresh";
+import { DateNav } from "@/components/date-nav";
 import { ScheduleBoard } from "./schedule-board";
 
 function addDays(dateStr: string, days: number) {
@@ -49,7 +50,7 @@ export default async function SchedulePage({
         >
           ← Föregående dag
         </Link>
-        <span className="font-medium text-gray-900">{date}</span>
+        <DateNav date={date} today={todayStr()} basePath="/schedule" />
         <Link
           href={`/schedule?date=${addDays(date, 1)}`}
           className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
