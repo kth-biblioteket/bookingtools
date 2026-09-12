@@ -1,6 +1,6 @@
 import "server-only";
 import { db } from "@/lib/db";
-import { hasOverlap } from "@/lib/booking";
+import { hasOverlap, releaseExpiredPreliminaryBookings } from "@/lib/booking";
 
 /** How long a hold stays valid without being renewed by the client heartbeat. */
 export const HOLD_TTL_MS = 60_000;
@@ -42,8 +42,9 @@ export async function createOrRenewHold(
   end: Date
 ): Promise<{ error: "room_booked" | "slot_held" } | { hold: ActiveHold }> {
   await releaseExpiredHolds();
+  await releaseExpiredPreliminaryBookings();
 
-  if (await hasOverlap(roomId, start, end)) {
+  if (await hasOverlap(db, roomId, start, end)) {
     return { error: "room_booked" };
   }
 

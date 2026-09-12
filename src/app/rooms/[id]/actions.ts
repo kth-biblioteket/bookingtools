@@ -4,7 +4,13 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { hasOverlap } from "@/lib/booking";
+import { Prisma } from "@/generated/prisma/client";
+import {
+  hasOverlap,
+  releaseExpiredPreliminaryBookings,
+  withSerializableRetry,
+  BookingOverlapError,
+} from "@/lib/booking";
 import { getBookingSettings } from "@/lib/settings";
 import { createOrRenewHold, releaseHold } from "@/lib/booking-hold";
 import { getT } from "@/lib/i18n/get-dictionary";
@@ -73,21 +79,35 @@ export async function createBooking(
     return { error: t("bookingActions.invalidStartTime") };
   }
 
-  const overlap = await hasOverlap(roomId, start, end);
-  if (overlap) {
-    return { error: t("bookingActions.overlap") };
-  }
+  await releaseExpiredPreliminaryBookings();
 
-  await db.booking.create({
-    data: {
-      roomId,
-      userId: user.id,
-      title,
-      startTime: start,
-      endTime: end,
-      confirmedAt: requirePreliminaryConfirmation ? null : new Date(),
-    },
-  });
+  try {
+    await withSerializableRetry(() =>
+      db.$transaction(
+        async (tx) => {
+          if (await hasOverlap(tx, roomId, start, end)) {
+            throw new BookingOverlapError();
+          }
+          await tx.booking.create({
+            data: {
+              roomId,
+              userId: user.id,
+              title,
+              startTime: start,
+              endTime: end,
+              confirmedAt: requirePreliminaryConfirmation ? null : new Date(),
+            },
+          });
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+      )
+    );
+  } catch (error) {
+    if (error instanceof BookingOverlapError) {
+      return { error: t("bookingActions.overlap") };
+    }
+    throw error;
+  }
   await releaseHold(user.id);
 
   revalidatePath(`/rooms/${roomId}`);
@@ -160,15 +180,27 @@ export async function updateBooking(
     return { error: t("bookingActions.invalidStartTime") };
   }
 
-  const overlap = await hasOverlap(booking.roomId, start, end, bookingId);
-  if (overlap) {
-    return { error: t("bookingActions.overlap") };
+  try {
+    await withSerializableRetry(() =>
+      db.$transaction(
+        async (tx) => {
+          if (await hasOverlap(tx, booking.roomId, start, end, bookingId)) {
+            throw new BookingOverlapError();
+          }
+          await tx.booking.update({
+            where: { id: bookingId },
+            data: { title, startTime: start, endTime: end },
+          });
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+      )
+    );
+  } catch (error) {
+    if (error instanceof BookingOverlapError) {
+      return { error: t("bookingActions.overlap") };
+    }
+    throw error;
   }
-
-  await db.booking.update({
-    where: { id: bookingId },
-    data: { title, startTime: start, endTime: end },
-  });
   await releaseHold(user.id);
 
   revalidatePath(`/rooms/${booking.roomId}`);

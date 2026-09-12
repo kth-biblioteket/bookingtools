@@ -1,5 +1,6 @@
 import "server-only";
 import { db } from "@/lib/db";
+import { Prisma } from "@/generated/prisma/client";
 import { getBookingSettings } from "@/lib/settings";
 
 export const DAY_START_HOUR = 8;
@@ -96,9 +97,25 @@ export function generateDaySlots(dateStr: string) {
   return slots;
 }
 
-export async function hasOverlap(roomId: string, start: Date, end: Date, excludeBookingId?: string) {
-  await releaseExpiredPreliminaryBookings();
-  const overlapping = await db.booking.findFirst({
+/** Anything with the `booking.findFirst` shape — the plain db client, or a `tx` inside db.$transaction(). */
+type BookingReader = { booking: Pick<typeof db.booking, "findFirst"> };
+
+/**
+ * Checks for an existing booking overlapping [start, end) in the given
+ * room. Pass a transaction client (not the plain `db`) when this check must
+ * be atomic with the write that follows it — see createBooking/updateBooking
+ * in src/app/rooms/[id]/actions.ts, which run this inside a Serializable
+ * transaction so two concurrent requests can't both see "no overlap" and
+ * both insert.
+ */
+export async function hasOverlap(
+  client: BookingReader,
+  roomId: string,
+  start: Date,
+  end: Date,
+  excludeBookingId?: string
+) {
+  const overlapping = await client.booking.findFirst({
     where: {
       roomId,
       id: excludeBookingId ? { not: excludeBookingId } : undefined,
@@ -107,6 +124,35 @@ export async function hasOverlap(roomId: string, start: Date, end: Date, exclude
     },
   });
   return Boolean(overlapping);
+}
+
+/** Thrown inside a withSerializableRetry-wrapped transaction to abort it when hasOverlap finds a conflict; callers catch this and translate it for the UI. */
+export class BookingOverlapError extends Error {}
+
+const MAX_SERIALIZATION_RETRIES = 3;
+
+/**
+ * Runs `run` — expected to call db.$transaction with Serializable isolation
+ * — and retries it from scratch if Postgres aborts the transaction due to a
+ * conflict with another concurrent transaction (Prisma surfaces this as
+ * error code P2034). Under Serializable isolation Postgres can abort a
+ * transaction even when it doesn't truly conflict with what committed, so
+ * retrying is the standard, Prisma-recommended way to handle it rather than
+ * treating it as a real failure. This is what actually prevents two
+ * concurrent booking requests for the same overlapping slot from both
+ * succeeding — the createOrRenewHold advisory hold in booking-hold.ts only
+ * makes that outcome rare in the UI, it doesn't guarantee it.
+ */
+export async function withSerializableRetry<T>(run: () => Promise<T>): Promise<T> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await run();
+    } catch (error) {
+      const isSerializationFailure =
+        error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034";
+      if (!isSerializationFailure || attempt >= MAX_SERIALIZATION_RETRIES) throw error;
+    }
+  }
 }
 
 /** All of a room's bookings overlapping the [startStr, endStr] range of days, inclusive. */
