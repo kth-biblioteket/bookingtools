@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { RoomTimeline, type TimelineBooking } from "@/components/room-timeline";
 import { ScheduleVertical } from "@/components/schedule-vertical";
+import { UsersIcon, ScreenIcon } from "@/components/room-icons";
 import { ScheduleBookingPanel, type ScheduleFormMode } from "./schedule-booking-panel";
 import { requestHold, releaseMyHold } from "@/app/rooms/[id]/actions";
 import type { getAllRoomsBookingsForDate } from "@/lib/booking";
@@ -162,10 +163,10 @@ export function ScheduleBoard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRoom]);
 
-  const hours = Array.from(
-    { length: dayEndHour - dayStartHour + 1 },
-    (_, i) => dayStartHour + i
-  );
+  // One label per hour, centered within that hour's segment — matches the
+  // vertical layout's per-row hour labels.
+  const hourCount = dayEndHour - dayStartHour;
+  const hours = Array.from({ length: hourCount }, (_, i) => dayStartHour + i);
 
   return (
     <div>
@@ -187,20 +188,23 @@ export function ScheduleBoard({
         ) : (
           <div className="space-y-2">
             <div className="flex items-center gap-4">
-              <div className="w-48 shrink-0" />
+              {/* "Tid" spacer — the same role as the vertical layout's
+                  diagonal corner cell's kth-blue half, just without the
+                  diagonal split since there's no room-name axis to share
+                  this cell with here. */}
+              <div className="flex w-48 shrink-0 items-center justify-center rounded-md bg-kth-blue py-1 text-xs font-medium text-white">
+                Tid
+              </div>
               <div className="relative h-5 flex-1">
-                {hours.map((hour) => {
-                  const left = ((hour - dayStartHour) / (dayEndHour - dayStartHour)) * 100;
-                  return (
-                    <span
-                      key={hour}
-                      style={{ left: `${left}%` }}
-                      className="absolute -translate-x-1/2 text-xs text-gray-500"
-                    >
-                      {String(hour).padStart(2, "0")}
-                    </span>
-                  );
-                })}
+                {hours.map((hour, i) => (
+                  <span
+                    key={hour}
+                    style={{ left: `${((i + 0.5) / hourCount) * 100}%` }}
+                    className="absolute -translate-x-1/2 text-sm font-medium text-gray-700"
+                  >
+                    {String(hour).padStart(2, "0")}:00
+                  </span>
+                ))}
               </div>
             </div>
 
@@ -211,12 +215,20 @@ export function ScheduleBoard({
               >
                 <Link
                   href={`/rooms/${room.id}?date=${date}`}
-                  className="w-48 shrink-0 hover:underline"
+                  className="flex w-48 shrink-0 flex-col items-center rounded-md bg-kth-sky py-1.5 text-center hover:bg-kth-blue"
                 >
-                  <p className="text-sm font-medium text-gray-900">{room.name}</p>
-                  <p className="text-xs text-gray-500">
-                    {room.building} · {room.campus}
-                  </p>
+                  <p className="break-words text-xl font-medium text-white">{room.name}</p>
+                  <div className="mt-0.5 flex flex-col items-center gap-0.5 text-[10px] font-medium text-black">
+                    <span className="flex items-center gap-0.5" title={`Plats för ${room.capacity} personer`}>
+                      <UsersIcon />
+                      {room.capacity}
+                    </span>
+                    {room.hasScreen && (
+                      <span title="Har skärm">
+                        <ScreenIcon />
+                      </span>
+                    )}
+                  </div>
                 </Link>
                 <div className="flex-1">
                   <RoomTimeline

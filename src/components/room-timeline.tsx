@@ -86,18 +86,17 @@ export function RoomTimeline({
     .filter((h): h is NonNullable<typeof h> => h !== null);
 
   return (
-    <div className="relative h-10 w-full overflow-hidden rounded-md border border-gray-200 bg-green-50">
-      {Array.from({ length: hourCount + 1 }, (_, i) => i).map((i) => {
-        const left = (i / hourCount) * 100;
-        const isHourMark = (dayStartHour + i) % 2 === 0;
-        return (
-          <div
-            key={i}
-            className={`absolute inset-y-0 w-px ${isHourMark ? "bg-gray-300" : "bg-gray-200"}`}
-            style={{ left: `${left}%` }}
-          />
-        );
-      })}
+    <div className="relative h-10 w-full overflow-hidden rounded-md border border-gray-200">
+      {/* Hourly zebra striping, matching the vertical layout's row shading. */}
+      {Array.from({ length: hourCount }, (_, i) => i).map((i) => (
+        <div
+          key={i}
+          className={`absolute inset-y-0 border-l first:border-l-0 ${
+            i % 2 === 1 ? "border-gray-200 bg-gray-50/70" : "border-gray-200"
+          }`}
+          style={{ left: `${(i / hourCount) * 100}%`, width: `${(1 / hourCount) * 100}%` }}
+        />
+      ))}
 
       {onFreeClick && stepMinutes && stepCount > 0 &&
         Array.from({ length: stepCount }, (_, i) => i).map((i) => {
