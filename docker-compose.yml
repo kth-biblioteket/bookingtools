@@ -1,15 +1,14 @@
 services:
-  # Pinned to the exact same patch version as docker-compose.prod.yml's
-  # postgres service, so a schema/behavior difference between Postgres
-  # versions can never be the reason something works locally but not in
-  # production (or vice versa). Bump both together, deliberately.
-  postgres:
-    # Explicit container/volume names below — this machine runs Postgres
-    # containers for several other apps too, so "postgres"/"postgres_data"
-    # alone (which is all Compose's own auto-naming would produce if this
-    # directory ever gets renamed or run under a different project name)
-    # isn't distinctive enough in `docker ps`/`docker volume ls`.
-    container_name: bookingtools-postgres
+  # Named to match docker-compose.prod.yml (bookingtools-db, bookingtools)
+  # rather than generic "postgres"/"app" — this machine runs containers for
+  # several other apps side by side, and the deploy server already
+  # establishes this <app>/<app>-db naming as its convention.
+  bookingtools-db:
+    container_name: bookingtools-db
+    # Pinned to the exact same patch version as docker-compose.prod.yml's
+    # db service, so a schema/behavior difference between Postgres versions
+    # can never be the reason something works locally but not in
+    # production (or vice versa). Bump both together, deliberately.
     image: postgres:16.14-alpine
     restart: unless-stopped
     environment:
@@ -19,7 +18,7 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      - bookingtools_postgres_data:/var/lib/postgresql/data
+      - persistent-bookingtools-db:/var/lib/postgresql/data
       # Creates the separate database the Playwright test suite uses
       # (test:e2e points DATABASE_URL at it via .env.test), so it never
       # shares data with the dev database above.
@@ -43,8 +42,8 @@ services:
   # Source is bind-mounted for hot reload; node_modules is a separate named
   # volume (not the bind mount) specifically so the Linux-built packages in
   # it are never shadowed by whatever's in the host's own node_modules.
-  app:
-    container_name: bookingtools-app
+  bookingtools:
+    container_name: bookingtools
     image: node:22.23.2-alpine
     working_dir: /app
     # Re-installs on every start rather than only when node_modules is
@@ -54,8 +53,9 @@ services:
     command: sh -c "npm ci && npx prisma generate && npm run dev"
     environment:
       # The container reaches Postgres by service name, not localhost:5434
-      # (that port mapping is only for access from the host).
-      DATABASE_URL: postgresql://bookingtools:bookingtools@postgres:5432/bookingtools
+      # (that port mapping is only for access from the host) — same
+      # service-name-as-hostname pattern docker-compose.prod.yml uses.
+      DATABASE_URL: postgresql://bookingtools:bookingtools@bookingtools-db:5432/bookingtools
       # Next.js's file watcher doesn't always pick up changes made from
       # outside the container (bind mounts on Docker Desktop for Mac don't
       # reliably deliver inotify events) — polling is slightly less
@@ -67,17 +67,11 @@ services:
       - "3000:3000"
     volumes:
       - .:/app
-      - bookingtools_app_node_modules:/app/node_modules
+      - bookingtools-node-modules:/app/node_modules
     depends_on:
-      postgres:
+      bookingtools-db:
         condition: service_healthy
 
 volumes:
-  # `name:` pins the literal Docker volume name so it's always
-  # "bookingtools_*" regardless of Compose's own project-prefixing (which
-  # depends on this directory's name) — see the comment on the postgres
-  # service above.
-  bookingtools_postgres_data:
-    name: bookingtools_postgres_data
-  bookingtools_app_node_modules:
-    name: bookingtools_app_node_modules
+  persistent-bookingtools-db:
+  bookingtools-node-modules:
