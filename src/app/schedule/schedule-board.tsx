@@ -192,7 +192,7 @@ export function ScheduleBoard({
               <div className="flex items-center gap-4">
                 <ScheduleCornerCell
                   roomsAt="bottom-left"
-                  className="sticky left-0 z-10 h-6 w-48 shrink-0 overflow-hidden rounded-md"
+                  className="sticky left-0 z-10 h-6 w-15 shrink-0 overflow-hidden rounded-md"
                 />
                 {/* Each hour gets a 40px floor, same as the vertical layout's
                     room columns — the ruler and every room's timeline below
@@ -219,7 +219,7 @@ export function ScheduleBoard({
                 >
                   <Link
                     href={`/rooms/${room.id}?date=${date}`}
-                    className="sticky left-0 z-10 flex w-48 shrink-0 flex-col items-center rounded-md bg-kth-sky py-1.5 text-center hover:bg-kth-blue"
+                    className="sticky left-0 z-10 flex w-15 shrink-0 flex-col items-center rounded-md bg-kth-sky py-1.5 text-center hover:bg-kth-blue"
                   >
                     <p className="break-words text-xl font-medium text-white">{room.name}</p>
                     <div className="mt-0.5 flex items-center justify-center gap-1 text-[10px] font-medium text-black">
