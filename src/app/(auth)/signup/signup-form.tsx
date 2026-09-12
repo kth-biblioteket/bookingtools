@@ -18,7 +18,7 @@ export function SignupForm() {
           type="text"
           required
           autoComplete="name"
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -31,7 +31,7 @@ export function SignupForm() {
           type="email"
           required
           autoComplete="email"
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -45,7 +45,7 @@ export function SignupForm() {
           required
           minLength={8}
           autoComplete="new-password"
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
         <p className="mt-1 text-xs text-gray-500">Minst 8 tecken.</p>
       </div>
@@ -53,7 +53,7 @@ export function SignupForm() {
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-60"
+        className="mt-2 rounded-md bg-kth-blue px-4 py-2 text-sm font-medium text-white hover:bg-kth-navy disabled:opacity-60"
       >
         {pending ? "Skapar konto…" : "Skapa konto"}
       </button>

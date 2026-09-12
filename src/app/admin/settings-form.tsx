@@ -24,7 +24,7 @@ export function SettingsForm({ settings }: { settings: AppSettings }) {
           min={15}
           step={15}
           defaultValue={settings.minMinutes}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -39,7 +39,7 @@ export function SettingsForm({ settings }: { settings: AppSettings }) {
           min={15}
           step={15}
           defaultValue={settings.maxMinutes}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -54,7 +54,7 @@ export function SettingsForm({ settings }: { settings: AppSettings }) {
           min={15}
           step={15}
           defaultValue={settings.stepMinutes}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -66,7 +66,7 @@ export function SettingsForm({ settings }: { settings: AppSettings }) {
           name="scheduleLayout"
           required
           defaultValue={settings.scheduleLayout}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         >
           <option value="horizontal">Rum som rader, tid horisontellt</option>
           <option value="vertical">Rum som kolumner, tid vertikalt</option>
@@ -80,7 +80,7 @@ export function SettingsForm({ settings }: { settings: AppSettings }) {
             name="requirePreliminaryConfirmation"
             checked={requireConfirmation}
             onChange={(e) => setRequireConfirmation(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-blue-700 focus:ring-blue-600"
+            className="h-4 w-4 rounded border-gray-300 text-kth-blue focus:ring-kth-blue"
           />
           Bokningar är preliminära och måste bekräftas
         </label>
@@ -106,7 +106,7 @@ export function SettingsForm({ settings }: { settings: AppSettings }) {
                 required
                 min={0}
                 defaultValue={settings.confirmMinutesBefore}
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
               />
             </div>
             <div>
@@ -123,7 +123,7 @@ export function SettingsForm({ settings }: { settings: AppSettings }) {
                 required
                 min={0}
                 defaultValue={settings.confirmMinutesAfter}
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
               />
             </div>
           </div>
@@ -141,7 +141,7 @@ export function SettingsForm({ settings }: { settings: AppSettings }) {
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 w-fit rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-60"
+        className="mt-2 w-fit rounded-md bg-kth-blue px-4 py-2 text-sm font-medium text-white hover:bg-kth-navy disabled:opacity-60"
       >
         {pending ? "Sparar…" : "Spara"}
       </button>

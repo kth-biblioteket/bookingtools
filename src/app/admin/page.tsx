@@ -27,7 +27,7 @@ export default async function AdminPage() {
         <p className="mt-1 text-sm text-gray-500">Lägg till eller ta bort grupprum.</p>
         <Link
           href="/admin/rooms"
-          className="mt-2 inline-block text-sm font-medium text-blue-700 hover:underline"
+          className="mt-2 inline-block text-sm font-medium text-kth-blue hover:underline"
         >
           Hantera rum →
         </Link>

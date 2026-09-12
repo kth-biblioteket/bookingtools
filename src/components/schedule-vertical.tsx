@@ -227,7 +227,7 @@ export function ScheduleVertical({
                   };
                   const commonClassName = `pointer-events-auto absolute left-0.5 right-0.5 overflow-hidden rounded-sm px-1 py-0.5 text-left text-[11px] font-medium leading-tight ${
                     statusClassNames[status]
-                  } ${isOwn ? "ring-2 ring-inset ring-blue-500" : ""}`;
+                  } ${isOwn ? "ring-2 ring-inset ring-kth-sky" : ""}`;
 
                   if (isOwn && onOwnBookingClick) {
                     return (

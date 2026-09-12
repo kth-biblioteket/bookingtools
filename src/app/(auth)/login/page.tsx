@@ -16,7 +16,7 @@ export default async function LoginPage() {
       <LoginForm />
       <p className="mt-6 text-sm text-gray-500">
         Inget konto?{" "}
-        <Link href="/signup" className="font-medium text-blue-700 hover:underline">
+        <Link href="/signup" className="font-medium text-kth-blue hover:underline">
           Skapa ett här
         </Link>
       </p>

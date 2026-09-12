@@ -148,7 +148,7 @@ export function RoomTimeline({
         };
         const commonClassName = `absolute top-0 z-10 flex h-full items-center overflow-hidden text-ellipsis whitespace-nowrap px-2 text-xs font-medium ${
           statusClassNames[status]
-        } ${isOwn ? "ring-2 ring-inset ring-blue-500" : ""}`;
+        } ${isOwn ? "ring-2 ring-inset ring-kth-sky" : ""}`;
 
         if (isOwn && onOwnBookingClick) {
           return (

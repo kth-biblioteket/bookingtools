@@ -20,7 +20,7 @@ export default async function EditRoomPage({
 
   return (
     <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
-      <Link href="/admin/rooms" className="text-sm text-blue-700 hover:underline">
+      <Link href="/admin/rooms" className="text-sm text-kth-blue hover:underline">
         ← Hantera rum
       </Link>
 

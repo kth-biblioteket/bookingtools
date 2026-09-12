@@ -21,7 +21,7 @@ export function EditRoomForm({ room }: { room: Room }) {
           required
           maxLength={100}
           defaultValue={room.name}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -34,7 +34,7 @@ export function EditRoomForm({ room }: { room: Room }) {
           type="number"
           required
           defaultValue={room.roomNumber}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -48,7 +48,7 @@ export function EditRoomForm({ room }: { room: Room }) {
           required
           maxLength={100}
           defaultValue={room.building}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -62,7 +62,7 @@ export function EditRoomForm({ room }: { room: Room }) {
           required
           maxLength={100}
           defaultValue={room.campus}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -76,7 +76,7 @@ export function EditRoomForm({ room }: { room: Room }) {
           required
           min={1}
           defaultValue={room.capacity}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -89,7 +89,7 @@ export function EditRoomForm({ room }: { room: Room }) {
           type="text"
           maxLength={100}
           defaultValue={room.floor ?? ""}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <label className="flex items-center gap-2 text-sm text-gray-700">
@@ -97,7 +97,7 @@ export function EditRoomForm({ room }: { room: Room }) {
           type="checkbox"
           name="hasScreen"
           defaultChecked={room.hasScreen}
-          className="h-4 w-4 rounded border-gray-300 text-blue-700 focus:ring-blue-600"
+          className="h-4 w-4 rounded border-gray-300 text-kth-blue focus:ring-kth-blue"
         />
         Har skärm
       </label>
@@ -106,7 +106,7 @@ export function EditRoomForm({ room }: { room: Room }) {
           type="checkbox"
           name="hasWhiteboard"
           defaultChecked={room.hasWhiteboard}
-          className="h-4 w-4 rounded border-gray-300 text-blue-700 focus:ring-blue-600"
+          className="h-4 w-4 rounded border-gray-300 text-kth-blue focus:ring-kth-blue"
         />
         Har whiteboard
       </label>
@@ -115,7 +115,7 @@ export function EditRoomForm({ room }: { room: Room }) {
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 w-fit rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-60"
+        className="mt-2 w-fit rounded-md bg-kth-blue px-4 py-2 text-sm font-medium text-white hover:bg-kth-navy disabled:opacity-60"
       >
         {pending ? "Sparar…" : "Spara ändringar"}
       </button>

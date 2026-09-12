@@ -26,7 +26,7 @@ export default async function BookingsPage() {
       {bookings.length === 0 ? (
         <p className="mt-4 text-sm text-gray-500">
           Du har inga kommande bokningar.{" "}
-          <Link href="/rooms" className="font-medium text-blue-700 hover:underline">
+          <Link href="/rooms" className="font-medium text-kth-blue hover:underline">
             Boka ett rum
           </Link>
           .

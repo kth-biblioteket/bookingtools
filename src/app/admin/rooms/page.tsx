@@ -22,7 +22,7 @@ export default async function AdminRoomsPage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
-      <Link href="/admin" className="text-sm text-blue-700 hover:underline">
+      <Link href="/admin" className="text-sm text-kth-blue hover:underline">
         ← Admininställningar
       </Link>
 
@@ -63,7 +63,7 @@ export default async function AdminRoomsPage() {
               <div className="flex items-center gap-3">
                 <Link
                   href={`/admin/rooms/${room.id}/edit`}
-                  className="text-sm font-medium text-blue-700 hover:underline"
+                  className="text-sm font-medium text-kth-blue hover:underline"
                 >
                   Redigera
                 </Link>

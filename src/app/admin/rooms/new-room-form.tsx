@@ -25,7 +25,7 @@ export function NewRoomForm() {
           type="text"
           required
           maxLength={100}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -37,7 +37,7 @@ export function NewRoomForm() {
           name="roomNumber"
           type="number"
           required
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -50,7 +50,7 @@ export function NewRoomForm() {
           type="text"
           required
           maxLength={100}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -63,7 +63,7 @@ export function NewRoomForm() {
           type="text"
           required
           maxLength={100}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -76,7 +76,7 @@ export function NewRoomForm() {
           type="number"
           required
           min={1}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <div>
@@ -88,14 +88,14 @@ export function NewRoomForm() {
           name="floor"
           type="text"
           maxLength={100}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
       <label className="flex items-center gap-2 text-sm text-gray-700">
         <input
           type="checkbox"
           name="hasScreen"
-          className="h-4 w-4 rounded border-gray-300 text-blue-700 focus:ring-blue-600"
+          className="h-4 w-4 rounded border-gray-300 text-kth-blue focus:ring-kth-blue"
         />
         Har skärm
       </label>
@@ -103,7 +103,7 @@ export function NewRoomForm() {
         <input
           type="checkbox"
           name="hasWhiteboard"
-          className="h-4 w-4 rounded border-gray-300 text-blue-700 focus:ring-blue-600"
+          className="h-4 w-4 rounded border-gray-300 text-kth-blue focus:ring-kth-blue"
         />
         Har whiteboard
       </label>
@@ -112,7 +112,7 @@ export function NewRoomForm() {
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 w-fit rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-60"
+        className="mt-2 w-fit rounded-md bg-kth-blue px-4 py-2 text-sm font-medium text-white hover:bg-kth-navy disabled:opacity-60"
       >
         {pending ? "Lägger till…" : "Lägg till rum"}
       </button>

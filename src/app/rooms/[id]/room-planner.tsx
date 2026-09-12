@@ -239,7 +239,7 @@ export function RoomPlanner({
                 className={`rounded px-1 py-1.5 text-center text-xs transition ${
                   slot.booking
                     ? `${isOwn ? "cursor-pointer" : "cursor-default"} ${statusColor} ${
-                        isOwn ? `ring-2 ${isHighlighted ? "ring-blue-500" : "ring-blue-400"}` : ""
+                        isOwn ? `ring-2 ${isHighlighted ? "ring-kth-sky" : "ring-kth-sky"}` : ""
                       }`
                     : slot.heldByOther
                       ? "cursor-not-allowed border border-dashed border-gray-400 bg-[repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb_4px,#dbeafe_4px,#dbeafe_8px)] text-gray-500"
@@ -281,7 +281,7 @@ export function RoomPlanner({
                     else bookingRefs.current.delete(b.id);
                   }}
                   className={`flex items-center justify-between rounded-md border bg-white px-3 py-2 text-sm transition ${
-                    highlightedBookingId === b.id ? "border-blue-500 ring-2 ring-blue-200" : "border-gray-200"
+                    highlightedBookingId === b.id ? "border-kth-sky ring-2 ring-kth-light-blue" : "border-gray-200"
                   }`}
                 >
                   <span className="flex items-center gap-2">
@@ -297,7 +297,7 @@ export function RoomPlanner({
                       <button
                         type="button"
                         onClick={() => handleEditClick(b)}
-                        className="text-xs font-medium text-blue-700 hover:underline"
+                        className="text-xs font-medium text-kth-blue hover:underline"
                       >
                         Ändra tid
                       </button>

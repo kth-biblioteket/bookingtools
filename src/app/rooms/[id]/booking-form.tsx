@@ -106,7 +106,7 @@ export function BookingForm({
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
           placeholder="T.ex. gruppmöte projekt X"
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
 
@@ -121,7 +121,7 @@ export function BookingForm({
             required
             value={startTime}
             onChange={(e) => onStartTimeChange(e.target.value)}
-            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
           >
             <option value="" disabled>
               Välj tid
@@ -145,7 +145,7 @@ export function BookingForm({
             value={endTime}
             onChange={(e) => onEndTimeChange(e.target.value)}
             disabled={!startTime}
-            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 disabled:bg-gray-50"
+            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue disabled:bg-gray-50"
           >
             <option value="" disabled>
               Välj tid
@@ -167,7 +167,7 @@ export function BookingForm({
         <button
           type="submit"
           disabled={pending || !!holdError}
-          className="rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-60"
+          className="rounded-md bg-kth-blue px-4 py-2 text-sm font-medium text-white hover:bg-kth-navy disabled:opacity-60"
         >
           {mode === "edit" ? (pending ? "Sparar…" : "Spara ändring") : pending ? "Bokar…" : "Boka rum"}
         </button>

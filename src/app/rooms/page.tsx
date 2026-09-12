@@ -23,7 +23,7 @@ export default async function RoomsPage() {
       </p>
       <Link
         href="/schedule"
-        className="mt-2 inline-block text-sm font-medium text-blue-700 hover:underline"
+        className="mt-2 inline-block text-sm font-medium text-kth-blue hover:underline"
       >
         Se schema för alla rum idag →
       </Link>
@@ -33,7 +33,7 @@ export default async function RoomsPage() {
           <Link
             key={room.id}
             href={`/rooms/${room.id}`}
-            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition hover:border-blue-300 hover:shadow"
+            className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition hover:border-kth-sky hover:shadow"
           >
             <div className="flex items-start justify-between">
               <div>
