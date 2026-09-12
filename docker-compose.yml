@@ -1,87 +1,61 @@
+# Production deployment, matching the almatools example: images built and
+# pushed to ghcr.io by CI, run on the shared apps-net network behind
+# Traefik. Not used for local dev — see docker-compose-dev.yml for that
+# (builds from Dockerfile-dev, no Traefik, ports published directly).
+#
+# Deploy prerequisites on the server:
+#   - the external "apps-net" network already exists (docker network create apps-net)
+#   - a bookingtools.env file next to this one (copy bookingtools.env.example and fill it in)
+#
+# First deploy / after pulling a new image:
+#   docker compose up -d
+# (prisma migrate deploy runs automatically on container start — see docker-entrypoint.sh)
+
 services:
-  # Named to match docker-compose.prod.yml (bookingtools-db, bookingtools)
-  # rather than generic "postgres"/"app" — this machine runs containers for
-  # several other apps side by side, and the deploy server already
-  # establishes this <app>/<app>-db naming as its convention.
+  bookingtools:
+    container_name: bookingtools
+    # Adjust the ghcr.io org below if this repo doesn't live under kth-biblioteket.
+    image: ghcr.io/kth-biblioteket/bookingtools:${REPO_TYPE}
+    depends_on:
+      - bookingtools-db
+    restart: always
+    environment:
+      TZ: ${TZ}
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@bookingtools-db:5432/${DB_DATABASE}
+      # Must match both the Traefik PathPrefix below AND the BASE_PATH the
+      # image was built with (see Dockerfile) — Next.js needs it at runtime
+      # too, not just at build time, to route requests correctly.
+      BASE_PATH: ${PATHPREFIX}
+    env_file:
+      - bookingtools.env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bookingtools.rule=Host(`${DOMAIN_NAME}`) && PathPrefix(`${PATHPREFIX}`)"
+      - "traefik.http.routers.bookingtools.entrypoints=websecure"
+      - "traefik.http.routers.bookingtools.tls=true"
+      - "traefik.http.routers.bookingtools.tls.certresolver=myresolver"
+    networks:
+      - "apps-net"
+
   bookingtools-db:
     container_name: bookingtools-db
-    # Pinned to the exact same patch version as docker-compose.prod.yml's
-    # db service, so a schema/behavior difference between Postgres versions
-    # can never be the reason something works locally but not in
-    # production (or vice versa). Bump both together, deliberately.
+    # Pinned to the exact same patch version as docker-compose-dev.yml's
+    # db service (local dev) — see the comment there.
     image: postgres:16.14-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: bookingtools
-      POSTGRES_PASSWORD: bookingtools
-      POSTGRES_DB: bookingtools
-    ports:
-      - "5434:5432"
+      TZ: ${TZ}
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - persistent-bookingtools-db:/var/lib/postgresql/data
-      # Creates the separate database the Playwright test suite uses
-      # (test:e2e points DATABASE_URL at it via .env.test), so it never
-      # shares data with the dev database above.
-      - ./docker/init-test-db.sql:/docker-entrypoint-initdb.d/init-test-db.sql:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bookingtools"]
-      interval: 2s
-      timeout: 2s
-      retries: 15
-
-  # Runs the app itself in dev mode, on the exact same Node/Alpine base —
-  # and the exact same `npm ci`, run at image build time, not at container
-  # start — as the production image. That matters because native/
-  # platform-specific pieces (the Prisma query engine binary, in
-  # particular) get built for whatever platform `npm ci` actually runs on;
-  # a plain node:alpine image with `npm ci` in the start command would
-  # still build them fresh each time, just inside the container instead of
-  # on the host — reusing the Dockerfile's own `deps` stage means dev and
-  # production get node_modules from the exact same build step, not merely
-  # "the same base image".
-  #
-  # Source is bind-mounted for hot reload; node_modules is a separate named
-  # volume (not the bind mount), which Docker seeds from this image's own
-  # /app/node_modules the first time the volume is created — so it starts
-  # out as exactly what the image build produced, not overwritten by
-  # whatever's in the host's own node_modules, and isn't rebuilt on every
-  # container start either.
-  #
-  # Trade-off: since node_modules no longer gets reinstalled on every
-  # start, changing package.json/package-lock.json needs an explicit
-  # `docker compose build bookingtools` (or `up -d --build`) to take
-  # effect — it won't happen automatically on the next `up`.
-  bookingtools:
-    container_name: bookingtools
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: deps
-    working_dir: /app
-    command: sh -c "npx prisma generate && npm run dev"
-    environment:
-      # Next.js's file watcher doesn't always pick up changes made from
-      # outside the container (bind mounts on Docker Desktop for Mac don't
-      # reliably deliver inotify events) — polling is slightly less
-      # efficient but reliable.
-      WATCHPACK_POLLING: "true"
-    # DATABASE_URL comes from .env itself now (pointed at the bookingtools-db
-    # service name, not localhost:5434) — since everything runs in Docker
-    # here, there's no separate host-side value to override it with. Run
-    # any one-off Prisma command (migrate, seed, studio) via
-    # `docker exec bookingtools npx prisma ...`, not directly on the host —
-    # "bookingtools-db" only resolves inside the Docker network.
-    env_file:
-      - .env
-    ports:
-      - "3000:3000"
-    volumes:
-      - .:/app
-      - bookingtools-node-modules:/app/node_modules
-    depends_on:
-      bookingtools-db:
-        condition: service_healthy
+    networks:
+      - "apps-net"
 
 volumes:
   persistent-bookingtools-db:
-  bookingtools-node-modules:
+
+networks:
+  apps-net:
+    external: true

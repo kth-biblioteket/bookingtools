@@ -4,17 +4,20 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 Everything — the app and its database — runs in Docker, so local dev uses
 the same Node/Alpine platform as the production image instead of whatever's
-on your host (see the `bookingtools` service in docker-compose.yml for why
-that matters — a past issue with Prisma's native query engine specifically):
+on your host (see the `bookingtools` service in docker-compose-dev.yml for
+why that matters — a past issue with Prisma's native query engine
+specifically). `docker-compose.yml` (no suffix) is the production
+deployment (Traefik, pulls the image from ghcr.io) — local dev always uses
+`docker-compose-dev.yml` explicitly:
 
 ```bash
-docker compose up -d
+docker compose -f docker-compose-dev.yml up -d
 ```
 
 That starts Postgres, then installs dependencies and runs the dev server
 inside a container on http://localhost:3000, with hot reload via a bind
 mount. First start is slower (installing deps in the container);
-`docker compose logs -f bookingtools` to watch it.
+`docker compose -f docker-compose-dev.yml logs -f bookingtools` to watch it.
 
 Run one-off Prisma commands (migrations, seeding, `prisma studio`) inside
 the app container, not on the host — `DATABASE_URL` in `.env` points at the

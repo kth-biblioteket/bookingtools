@@ -1,0 +1,95 @@
+# Local dev. Not used in production — see docker-compose.yml for that
+# (Traefik, ghcr.io image, external apps-net network). Structured to match
+# it as closely as it can while still supporting hot reload: same service
+# names, same DATABASE_URL shape, same Postgres version. The real
+# differences are Traefik (none here — ports are published directly
+# instead) and how the app image is built (Dockerfile-dev, a plain `npm
+# ci`, vs. Dockerfile's full multi-stage production build).
+#
+# Usage: docker compose -f docker-compose-dev.yml up -d
+
+services:
+  # Named to match docker-compose.yml (bookingtools-db, bookingtools) rather
+  # than generic "postgres"/"app" — this machine runs containers for
+  # several other apps side by side, and the deploy server already
+  # establishes this <app>/<app>-db naming as its convention.
+  bookingtools-db:
+    container_name: bookingtools-db
+    # Pinned to the exact same patch version as docker-compose.yml's db
+    # service, so a schema/behavior difference between Postgres versions
+    # can never be the reason something works locally but not in
+    # production (or vice versa). Bump both together, deliberately.
+    image: postgres:16.14-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: bookingtools
+      POSTGRES_PASSWORD: bookingtools
+      POSTGRES_DB: bookingtools
+    ports:
+      - "5434:5432"
+    volumes:
+      - persistent-bookingtools-db:/var/lib/postgresql/data
+      # Creates the separate database the Playwright test suite uses
+      # (test:e2e points DATABASE_URL at it via .env.test), so it never
+      # shares data with the dev database above.
+      - ./docker/init-test-db.sql:/docker-entrypoint-initdb.d/init-test-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bookingtools"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+
+  # Runs the app itself in dev mode, on the exact same Node/Alpine base —
+  # and the exact same `npm ci`, run at image build time via Dockerfile-dev,
+  # not at container start — as the production image gets from its own
+  # `npm ci` in Dockerfile. That matters because native/platform-specific
+  # pieces (the Prisma query engine binary, in particular) get built for
+  # whatever platform `npm ci` actually runs on; a plain node:alpine image
+  # with `npm ci` in the start command would still build them fresh each
+  # time, just inside the container instead of on the host.
+  #
+  # Source is bind-mounted for hot reload; node_modules is a separate named
+  # volume (not the bind mount), which Docker seeds from this image's own
+  # /app/node_modules the first time the volume is created — so it starts
+  # out as exactly what the image build produced, not overwritten by
+  # whatever's in the host's own node_modules, and isn't rebuilt on every
+  # container start either.
+  #
+  # Trade-off: since node_modules no longer gets reinstalled on every
+  # start, changing package.json/package-lock.json needs an explicit
+  # `docker compose -f docker-compose-dev.yml build bookingtools` (or
+  # `up -d --build`) to take effect — it won't happen automatically on the
+  # next `up`.
+  bookingtools:
+    container_name: bookingtools
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
+    working_dir: /app
+    command: sh -c "npx prisma generate && npm run dev"
+    environment:
+      # Next.js's file watcher doesn't always pick up changes made from
+      # outside the container (bind mounts on Docker Desktop for Mac don't
+      # reliably deliver inotify events) — polling is slightly less
+      # efficient but reliable.
+      WATCHPACK_POLLING: "true"
+    # DATABASE_URL comes from .env itself (pointed at the bookingtools-db
+    # service name, not localhost:5434) — since everything runs in Docker
+    # here, there's no separate host-side value to override it with. Run
+    # any one-off Prisma command (migrate, seed, studio) via
+    # `docker exec bookingtools npx prisma ...`, not directly on the host —
+    # "bookingtools-db" only resolves inside the Docker network.
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - bookingtools-node-modules:/app/node_modules
+    depends_on:
+      bookingtools-db:
+        condition: service_healthy
+
+volumes:
+  persistent-bookingtools-db:
+  bookingtools-node-modules:

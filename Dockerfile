@@ -1,10 +1,10 @@
-# Production image for bookingtools. Not used for local dev — see
-# docker-compose.yml (Postgres only) and `npm run dev` for that.
+# Production image for bookingtools, used by docker-compose.yml. Not used
+# for local dev — see Dockerfile-dev and docker-compose-dev.yml for that.
 #
 # The Node version below is pinned to an exact patch (not just "22-alpine")
-# and matches .nvmrc/package.json's "engines", so local dev and this image
-# never silently drift onto different Node patch releases. Bump all three
-# together when upgrading Node.
+# and matches .nvmrc/package.json's "engines"/Dockerfile-dev, so local dev
+# and this image never silently drift onto different Node patch releases.
+# Bump all of them together when upgrading Node.
 
 # ---- deps: install once, reused by the builder stage ----
 FROM node:22.23.2-alpine AS deps
@@ -17,12 +17,12 @@ FROM node:22.23.2-alpine AS builder
 WORKDIR /app
 # Baked into the build — see the matching comment in next.config.ts. Must
 # match the Traefik PathPrefix this image is deployed behind (PATHPREFIX in
-# docker-compose.prod.yml); leave unset for a root-domain deployment.
+# docker-compose.yml); leave unset for a root-domain deployment.
 ARG BASE_PATH=""
 ENV BASE_PATH=${BASE_PATH}
 # Only needed so prisma.config.ts's env("DATABASE_URL") validation passes —
 # `prisma generate` and `next build` never actually connect to a database.
-# The real DATABASE_URL is supplied at container runtime (docker-compose.prod.yml).
+# The real DATABASE_URL is supplied at container runtime (docker-compose.yml).
 ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
