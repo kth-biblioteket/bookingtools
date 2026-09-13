@@ -54,7 +54,8 @@ export function ScheduleVertical({
   onOwnBookingClick,
 }: {
   roomsWithBookings: RoomWithBookings[];
-  currentUserId: string;
+  /** Null for an anonymous (logged-out) visitor. */
+  currentUserId: string | null;
   /** Admins see every booking's real title, not just its status. */
   isAdmin?: boolean;
   dateStr: string;

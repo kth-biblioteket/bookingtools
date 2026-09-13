@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getCurrentUser, isAdminEmail } from "@/lib/auth";
+import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { getSettings, getOpeningHours } from "@/lib/settings";
 import { getT } from "@/lib/i18n/get-dictionary";
 import { SettingsForm } from "./settings-form";
@@ -8,7 +8,7 @@ import { SettingsForm } from "./settings-form";
 export default async function AdminPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (!isAdminEmail(user.email)) redirect("/rooms");
+  if (!isAdmin(user)) redirect("/rooms");
 
   const [settings, openingHours, { t }] = await Promise.all([getSettings(), getOpeningHours(), getT()]);
 
@@ -27,6 +27,17 @@ export default async function AdminPage() {
           className="mt-2 inline-block text-sm font-medium text-kth-blue hover:underline"
         >
           {t("admin.manageRooms")}
+        </Link>
+      </div>
+
+      <div className="mt-10 border-t border-gray-200 pt-6">
+        <h2 className="text-lg font-semibold text-gray-900">{t("admin.usersHeading")}</h2>
+        <p className="mt-1 text-sm text-gray-500">{t("admin.usersSubtitle")}</p>
+        <Link
+          href="/admin/users"
+          className="mt-2 inline-block text-sm font-medium text-kth-blue hover:underline"
+        >
+          {t("admin.manageUsers")}
         </Link>
       </div>
     </div>

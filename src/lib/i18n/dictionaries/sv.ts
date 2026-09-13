@@ -32,6 +32,8 @@ const sv: Dictionary = {
       passwordLabel: "Lösenord",
       submit: "Logga in",
       submitPending: "Loggar in…",
+      orDivider: "eller",
+      kthButton: "Logga in med KTH",
     },
     signup: {
       heading: "Skapa konto",
@@ -48,10 +50,14 @@ const sv: Dictionary = {
     errors: {
       nameRequired: "Ange ditt namn",
       invalidEmail: "Ange en giltig e-postadress",
+      emailDomainNotAllowed: "E-postadressen måste sluta på @kth.se",
       passwordTooShort: "Lösenordet måste vara minst 8 tecken",
       passwordRequired: "Ange lösenord",
       accountExists: "Det finns redan ett konto med den e-postadressen",
       wrongCredentials: "Fel e-post eller lösenord",
+      useKthLogin: "Det här kontot använder KTH-inloggning. Använd \"Logga in med KTH\" ovan.",
+      oidcState: "Inloggningen kunde inte verifieras. Försök igen.",
+      oidcFailed: "Inloggning med KTH misslyckades. Försök igen.",
     },
   },
   rooms: {
@@ -114,6 +120,7 @@ const sv: Dictionary = {
   },
   bookingActions: {
     loginRequiredBook: "Du måste vara inloggad för att boka",
+    loginToBookPrompt: "Logga in först för att kunna boka",
     loginRequiredEdit: "Du måste vara inloggad för att ändra en bokning",
     titleRequired: "Ange ett ärende för bokningen",
     roomGone: "Rummet finns inte längre",
@@ -178,6 +185,9 @@ const sv: Dictionary = {
     roomsHeading: "Rum",
     roomsSubtitle: "Lägg till eller ta bort grupprum.",
     manageRooms: "Hantera rum →",
+    usersHeading: "Konton",
+    usersSubtitle: "Se alla konton och ta bort de som inte längre ska ha tillgång.",
+    manageUsers: "Hantera konton →",
     errors: {
       stepPositive: "Bokningsintervallet måste vara ett positivt heltal",
       minPositive: "Minsta längd måste vara ett positivt heltal",
@@ -233,6 +243,18 @@ const sv: Dictionary = {
       created: "Rummet är tillagt!",
       updated: "Ändringarna är sparade!",
     },
+  },
+  adminUsers: {
+    backToSettings: "← Admininställningar",
+    heading: "Hantera konton",
+    subtitle: "Se alla konton och ta bort de som inte längre ska ha tillgång.",
+    adminBadge: "Admin",
+    youLabel: "(du)",
+    createdAt: "Skapat {date}",
+    deleteConfirm: "Säker? Tar bort kontot och alla dess bokningar.",
+    deleteYes: "Ja, ta bort",
+    deleting: "Tar bort…",
+    delete: "Ta bort",
   },
 };
 

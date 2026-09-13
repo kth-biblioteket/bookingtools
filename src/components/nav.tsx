@@ -1,9 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getCurrentUser, isAdminEmail } from "@/lib/auth";
-import { logout } from "@/app/(auth)/actions";
+import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { getT } from "@/lib/i18n/get-dictionary";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { LogoutButton } from "@/components/logout-button";
 import { MobileNav } from "@/components/mobile-nav";
 
 export async function Nav() {
@@ -21,21 +21,23 @@ export async function Nav() {
       <Link href="/bookings" className="text-kth-light-blue hover:text-white">
         {t("nav.myBookings")}
       </Link>
-      {isAdminEmail(user.email) && (
+      {isAdmin(user) && (
         <Link href="/admin" className="text-kth-light-blue hover:text-white">
           {t("nav.admin")}
         </Link>
       )}
       <span className="text-kth-sky">{user.name}</span>
       <LanguageSwitcher />
-      <form action={logout}>
-        <button type="submit" className="text-kth-light-blue hover:text-white">
-          {t("nav.logout")}
-        </button>
-      </form>
+      <LogoutButton />
     </>
   ) : (
     <>
+      <Link href="/rooms" className="text-kth-light-blue hover:text-white">
+        {t("nav.rooms")}
+      </Link>
+      <Link href="/schedule" className="text-kth-light-blue hover:text-white">
+        {t("nav.schedule")}
+      </Link>
       <Link href="/login" className="text-kth-light-blue hover:text-white">
         {t("nav.login")}
       </Link>

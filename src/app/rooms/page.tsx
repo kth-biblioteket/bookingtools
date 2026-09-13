@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth";
 import { getRoomsWithTodayStatus } from "@/lib/booking";
 import { AutoRefresh } from "@/components/auto-refresh";
 import { getT } from "@/lib/i18n/get-dictionary";
@@ -10,9 +8,6 @@ function formatTime(date: Date) {
 }
 
 export default async function RoomsPage() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-
   const roomsWithStatus = await getRoomsWithTodayStatus();
   const { t } = await getT();
 

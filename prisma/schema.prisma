@@ -15,7 +15,15 @@ model User {
   id           String        @id @default(cuid())
   email        String        @unique
   name         String
-  passwordHash String
+  // Nullable: accounts created via KTH login (OIDC) never set a password.
+  passwordHash String?
+  // Entra ID's `sub` claim — stable identifier for a returning KTH-OIDC user,
+  // independent of email (which is still the key used to link a KTH login to
+  // a pre-existing email+password account of the same person).
+  oidcSubject  String?       @unique
+  // Cached result of KTH admin-group membership (see OIDC_ADMIN_GROUP_ID),
+  // refreshed on every KTH login. Combined with ADMIN_EMAILS in isAdmin().
+  isGroupAdmin Boolean       @default(false)
   createdAt    DateTime      @default(now())
   bookings     Booking[]
   sessions     Session[]

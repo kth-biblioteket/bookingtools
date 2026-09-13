@@ -9,6 +9,13 @@ import { getT } from "@/lib/i18n/get-dictionary";
 
 export type ActionState = { error?: string } | undefined;
 
+/** Only redirect to a same-origin relative path — never an absolute/protocol-
+ * relative URL, which could otherwise be used for an open-redirect. */
+function safeReturnTo(value: FormDataEntryValue | null): string | null {
+  if (typeof value !== "string" || value === "") return null;
+  return /^\/(?!\/)/.test(value) ? value : null;
+}
+
 export async function signup(
   _prevState: ActionState,
   formData: FormData
@@ -17,7 +24,12 @@ export async function signup(
 
   const signupSchema = z.object({
     name: z.string().trim().min(1, t("auth.errors.nameRequired")).max(100),
-    email: z.string().trim().toLowerCase().email(t("auth.errors.invalidEmail")),
+    email: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .email(t("auth.errors.invalidEmail"))
+      .refine((email) => email.endsWith("@kth.se"), t("auth.errors.emailDomainNotAllowed")),
     password: z.string().min(8, t("auth.errors.passwordTooShort")),
   });
 
@@ -73,6 +85,9 @@ export async function login(
   if (!user) {
     return { error: t("auth.errors.wrongCredentials") };
   }
+  if (!user.passwordHash) {
+    return { error: t("auth.errors.useKthLogin") };
+  }
 
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) {
@@ -80,7 +95,7 @@ export async function login(
   }
 
   await createSession(user.id);
-  redirect("/rooms");
+  redirect(safeReturnTo(formData.get("returnTo")) ?? "/rooms");
 }
 
 export async function logout() {

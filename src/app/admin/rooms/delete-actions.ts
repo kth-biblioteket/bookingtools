@@ -1,14 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getCurrentUser, isAdminEmail } from "@/lib/auth";
+import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { notifyBookingsChanged } from "@/lib/booking-events";
 
 export async function deleteRoom(roomId: string): Promise<void> {
   const user = await getCurrentUser();
   if (!user) return;
-  if (!isAdminEmail(user.email)) return;
+  if (!isAdmin(user)) return;
 
   await db.room.delete({ where: { id: roomId } });
 

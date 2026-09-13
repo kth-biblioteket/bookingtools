@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { getCurrentUser, isAdminEmail } from "@/lib/auth";
+import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/get-dictionary";
 import { EditRoomForm } from "./edit-room-form";
@@ -12,7 +12,7 @@ export default async function EditRoomPage({
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (!isAdminEmail(user.email)) redirect("/rooms");
+  if (!isAdmin(user)) redirect("/rooms");
 
   const { id } = await params;
 

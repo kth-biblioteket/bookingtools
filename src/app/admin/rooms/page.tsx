@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getCurrentUser, isAdminEmail } from "@/lib/auth";
+import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/get-dictionary";
 import { NewRoomForm } from "./new-room-form";
@@ -10,7 +10,7 @@ import { deleteRoom } from "./delete-actions";
 export default async function AdminRoomsPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (!isAdminEmail(user.email)) redirect("/rooms");
+  if (!isAdmin(user)) redirect("/rooms");
 
   const rooms = await db.room.findMany({
     orderBy: { roomNumber: "asc" },

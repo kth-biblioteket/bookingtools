@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
-import { getCurrentUser, isAdminEmail } from "@/lib/auth";
+import { notFound } from "next/navigation";
+import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { getBookingsForRoomInRange, getRoom, todayStr } from "@/lib/booking";
 import { getActiveHoldsForRoomInRange } from "@/lib/booking-hold";
 import { getBookingSettings, getOpeningHours } from "@/lib/settings";
@@ -19,7 +19,6 @@ export default async function RoomPage({
   searchParams: Promise<{ date?: string }>;
 }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
 
   const { id } = await params;
   const { date: dateParam } = await searchParams;
@@ -111,8 +110,8 @@ export default async function RoomPage({
         holdsByDate={holdsByDate}
         hoursByDate={hoursByDate}
         settings={settings}
-        currentUserId={user.id}
-        isAdmin={isAdminEmail(user.email)}
+        currentUserId={user?.id ?? null}
+        isAdmin={user ? isAdmin(user) : false}
         dayStartHour={gridStartHour}
         dayEndHour={gridEndHour}
       />

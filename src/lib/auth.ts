@@ -57,3 +57,9 @@ export function isAdminEmail(email: string) {
     .filter(Boolean);
   return admins.includes(email.toLowerCase());
 }
+
+/** Admin if listed in ADMIN_EMAILS, or if their cached KTH-group membership
+ * (see OIDC_ADMIN_GROUP_ID, refreshed on every KTH login) says so. */
+export function isAdmin(user: { email: string; isGroupAdmin: boolean }) {
+  return isAdminEmail(user.email) || user.isGroupAdmin;
+}

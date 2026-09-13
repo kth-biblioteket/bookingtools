@@ -54,7 +54,8 @@ export function RoomWeekVertical<B extends TimelineBooking>({
   /** Each date's own opening hours — can be narrower than [dayStartHour, dayEndHour]
    * (the shared grid bounds) or fully closed. Defaults to the grid bounds, open, when omitted. */
   hoursByDate?: Record<string, OpeningHoursDay>;
-  currentUserId: string;
+  /** Null for an anonymous (logged-out) visitor. */
+  currentUserId: string | null;
   /** Admins see every booking's real title, not just its status. */
   isAdmin?: boolean;
   todayStr: string;

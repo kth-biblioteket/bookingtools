@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { getCurrentUser, isAdminEmail } from "@/lib/auth";
+import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { updateSettings as persistSettings, updateOpeningHours } from "@/lib/settings";
 import { notifyBookingsChanged } from "@/lib/booking-events";
 import { getT } from "@/lib/i18n/get-dictionary";
@@ -15,7 +15,7 @@ export async function updateSettings(
 ): Promise<SettingsState> {
   const { t } = await getT();
   const user = await getCurrentUser();
-  if (!user || !isAdminEmail(user.email)) {
+  if (!user || !isAdmin(user)) {
     return { error: t("common.noPermission") };
   }
 

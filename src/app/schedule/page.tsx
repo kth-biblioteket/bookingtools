@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { getCurrentUser, isAdminEmail } from "@/lib/auth";
+import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { getAllRoomsBookingsForDate, todayStr } from "@/lib/booking";
 import { getActiveHoldsForDate } from "@/lib/booking-hold";
 import { getBookingSettings, getScheduleLayout, getOpeningHoursForDate } from "@/lib/settings";
@@ -16,7 +15,6 @@ export default async function SchedulePage({
   searchParams: Promise<{ date?: string }>;
 }) {
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
 
   const { date: dateParam } = await searchParams;
   const date = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : todayStr();
@@ -63,8 +61,8 @@ export default async function SchedulePage({
           roomsWithBookings={roomsWithBookings}
           scheduleLayout={scheduleLayout}
           settings={settings}
-          currentUserId={user.id}
-          isAdmin={isAdminEmail(user.email)}
+          currentUserId={user?.id ?? null}
+          isAdmin={user ? isAdmin(user) : false}
           date={date}
           dayStartHour={openingHours.startHour}
           dayEndHour={openingHours.endHour}

@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import { RoomTimeline, type TimelineBooking } from "@/components/room-timeline";
 import { ScheduleVertical } from "@/components/schedule-vertical";
 import { UsersIcon, ScreenIcon } from "@/components/room-icons";
@@ -49,7 +50,8 @@ export function ScheduleBoard({
   roomsWithBookings: RoomsWithBookings;
   scheduleLayout: ScheduleLayout;
   settings: BookingSettings;
-  currentUserId: string;
+  /** Null for an anonymous (logged-out) visitor — browsing is public, booking isn't. */
+  currentUserId: string | null;
   /** Admins see every booking's real title, not just its status. */
   isAdmin: boolean;
   date: string;
@@ -58,6 +60,10 @@ export function ScheduleBoard({
   holds: ActiveHold[];
 }) {
   const { t } = useI18n();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const returnTo = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+  const [loginPromptOpen, setLoginPromptOpen] = useState(false);
   const [mode, setMode] = useState<ScheduleFormMode>("create");
   const [selectedRoomId, setSelectedRoomId] = useState<string | undefined>();
   const [editingBookingId, setEditingBookingId] = useState<string | undefined>();
@@ -85,6 +91,10 @@ export function ScheduleBoard({
   }
 
   function handleFreeClick(roomId: string, start: Date) {
+    if (!currentUserId) {
+      setLoginPromptOpen(true);
+      return;
+    }
     const startMinutes = start.getHours() * 60 + start.getMinutes();
     const alignedStart = Math.floor(startMinutes / settings.stepMinutes) * settings.stepMinutes;
     setMode("create");
@@ -261,6 +271,36 @@ export function ScheduleBoard({
       </div>
 
       <ScheduleLegend requirePreliminaryConfirmation={settings.requirePreliminaryConfirmation} />
+
+      {loginPromptOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setLoginPromptOpen(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="relative w-full max-w-sm rounded-lg bg-white p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setLoginPromptOpen(false)}
+              aria-label={t("roomDetail.close")}
+              className="absolute right-3 top-3 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            >
+              ✕
+            </button>
+            <p className="mb-4 text-sm text-gray-700">{t("bookingActions.loginToBookPrompt")}</p>
+            <Link
+              href={`/login?returnTo=${encodeURIComponent(returnTo)}`}
+              className="inline-block rounded-md bg-kth-blue px-4 py-2 text-sm font-medium text-white hover:bg-kth-navy"
+            >
+              {t("nav.login")}
+            </Link>
+          </div>
+        </div>
+      )}
 
       {selectedRoom && (
         <div

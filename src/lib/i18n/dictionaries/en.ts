@@ -32,6 +32,8 @@ const en: Dictionary = {
       passwordLabel: "Password",
       submit: "Log in",
       submitPending: "Logging in…",
+      orDivider: "or",
+      kthButton: "Log in with KTH",
     },
     signup: {
       heading: "Create account",
@@ -48,10 +50,14 @@ const en: Dictionary = {
     errors: {
       nameRequired: "Enter your name",
       invalidEmail: "Enter a valid email address",
+      emailDomainNotAllowed: "The email address must end with @kth.se",
       passwordTooShort: "Password must be at least 8 characters",
       passwordRequired: "Enter a password",
       accountExists: "An account with that email already exists",
       wrongCredentials: "Wrong email or password",
+      useKthLogin: "This account uses KTH login. Use the \"Log in with KTH\" button above.",
+      oidcState: "The login could not be verified. Please try again.",
+      oidcFailed: "KTH login failed. Please try again.",
     },
   },
   rooms: {
@@ -114,6 +120,7 @@ const en: Dictionary = {
   },
   bookingActions: {
     loginRequiredBook: "You must be logged in to book",
+    loginToBookPrompt: "Log in first to book",
     loginRequiredEdit: "You must be logged in to change a booking",
     titleRequired: "Enter a purpose for the booking",
     roomGone: "The room no longer exists",
@@ -178,6 +185,9 @@ const en: Dictionary = {
     roomsHeading: "Rooms",
     roomsSubtitle: "Add or remove group rooms.",
     manageRooms: "Manage rooms →",
+    usersHeading: "Accounts",
+    usersSubtitle: "See all accounts and remove ones that should no longer have access.",
+    manageUsers: "Manage accounts →",
     errors: {
       stepPositive: "The booking interval must be a positive integer",
       minPositive: "Minimum length must be a positive integer",
@@ -233,6 +243,18 @@ const en: Dictionary = {
       created: "The room has been added!",
       updated: "The changes have been saved!",
     },
+  },
+  adminUsers: {
+    backToSettings: "← Admin settings",
+    heading: "Manage accounts",
+    subtitle: "See all accounts and remove ones that should no longer have access.",
+    adminBadge: "Admin",
+    youLabel: "(you)",
+    createdAt: "Created {date}",
+    deleteConfirm: "Sure? This removes the account and all its bookings.",
+    deleteYes: "Yes, delete",
+    deleting: "Deleting…",
+    delete: "Delete",
   },
 };
 

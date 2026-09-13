@@ -35,6 +35,8 @@ export interface Dictionary {
       passwordLabel: string;
       submit: string;
       submitPending: string;
+      orDivider: string;
+      kthButton: string;
     };
     signup: {
       heading: string;
@@ -51,10 +53,14 @@ export interface Dictionary {
     errors: {
       nameRequired: string;
       invalidEmail: string;
+      emailDomainNotAllowed: string;
       passwordTooShort: string;
       passwordRequired: string;
       accountExists: string;
       wrongCredentials: string;
+      useKthLogin: string;
+      oidcState: string;
+      oidcFailed: string;
     };
   };
   rooms: {
@@ -117,6 +123,7 @@ export interface Dictionary {
   };
   bookingActions: {
     loginRequiredBook: string;
+    loginToBookPrompt: string;
     loginRequiredEdit: string;
     titleRequired: string;
     roomGone: string;
@@ -179,6 +186,9 @@ export interface Dictionary {
     roomsHeading: string;
     roomsSubtitle: string;
     manageRooms: string;
+    usersHeading: string;
+    usersSubtitle: string;
+    manageUsers: string;
     errors: {
       stepPositive: string;
       minPositive: string;
@@ -234,6 +244,18 @@ export interface Dictionary {
       created: string;
       updated: string;
     };
+  };
+  adminUsers: {
+    backToSettings: string;
+    heading: string;
+    subtitle: string;
+    adminBadge: string;
+    youLabel: string;
+    createdAt: string;
+    deleteConfirm: string;
+    deleteYes: string;
+    deleting: string;
+    delete: string;
   };
 }
 

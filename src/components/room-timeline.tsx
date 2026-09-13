@@ -41,7 +41,8 @@ export function RoomTimeline({
   bookings: TimelineBooking[];
   /** Other users' active holds on this room, already filtered to this room. */
   holds?: ActiveHold[];
-  currentUserId: string;
+  /** Null for an anonymous (logged-out) visitor. */
+  currentUserId: string | null;
   /** Admins see every booking's real title, not just its status. */
   isAdmin?: boolean;
   dateStr: string;
