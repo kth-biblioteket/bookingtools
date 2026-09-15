@@ -40,7 +40,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const { claims, accessToken } = await exchangeCodeForClaims(url, { state, nonce, codeVerifier });
+    const { claims, accessToken } = await exchangeCodeForClaims(url, origin, { state, nonce, codeVerifier });
 
     let user = await db.user.findUnique({ where: { oidcSubject: claims.sub } });
     if (!user) {

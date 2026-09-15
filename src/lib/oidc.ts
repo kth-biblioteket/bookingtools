@@ -73,10 +73,21 @@ export type KthClaims = { sub: string; email: string; name: string };
 
 export async function exchangeCodeForClaims(
   callbackUrl: URL,
+  origin: string,
   checks: { state: string; nonce: string; codeVerifier: string }
 ): Promise<{ claims: KthClaims; accessToken: string }> {
   const config = await getOidcConfig();
-  const tokens = await client.authorizationCodeGrant(config, callbackUrl, {
+
+  // authorizationCodeGrant() derives the redirect_uri it sends to the token
+  // endpoint from the URL it's given (minus the query string) — but the
+  // actual callback lands on /api/auth/kth/finish, not the fixed root URI
+  // (getRedirectUri()) that was registered and used for the authorization
+  // request. Swap in that same fixed URI here, keeping the real query
+  // string (code, state) so the response is still parsed correctly.
+  const grantUrl = new URL(getRedirectUri(origin));
+  grantUrl.search = callbackUrl.search;
+
+  const tokens = await client.authorizationCodeGrant(config, grantUrl, {
     pkceCodeVerifier: checks.codeVerifier,
     expectedState: checks.state,
     expectedNonce: checks.nonce,
