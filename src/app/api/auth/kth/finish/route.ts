@@ -63,7 +63,8 @@ export async function GET(request: Request) {
     return clearOidcCookies(
       NextResponse.redirect(new URL(withBasePath(returnTo ?? "/rooms"), origin))
     );
-  } catch {
+  } catch (error) {
+    console.error("KTH OIDC login failed:", error);
     return clearOidcCookies(
       NextResponse.redirect(new URL(withBasePath("/login?error=oidc_failed"), origin))
     );
