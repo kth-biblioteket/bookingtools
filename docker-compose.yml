@@ -1,18 +1,18 @@
 # Production deployment, matching the almatools example: images built and
 # pushed to ghcr.io by CI, run on the shared apps-net network behind
-# Traefik. Not used for local dev — see docker-compose-dev.yml for that
+# Traefik. Not used for local dev - see docker-compose-dev.yml for that
 # (builds from Dockerfile-dev, no Traefik, ports published directly).
 #
 # Deploy prerequisites on the server:
 #   - the external "apps-net" network already exists (docker network create apps-net)
-#   - a .env file next to this one (copy .env.example and fill it in) — Compose
+#   - a .env file next to this one (copy .env.example and fill it in) - Compose
 #     reads this automatically for the ${VAR} substitution below
 #   - a bookingtools.env file next to this one too (copy bookingtools.env.example
-#     and fill it in) — injected into the container itself, see env_file below
+#     and fill it in) - injected into the container itself, see env_file below
 #
 # First deploy / after pulling a new image:
 #   docker compose up -d
-# (prisma migrate deploy runs automatically on container start — see docker-entrypoint.sh)
+# (prisma migrate deploy runs automatically on container start - see docker-entrypoint.sh)
 
 services:
   bookingtools:
@@ -25,11 +25,11 @@ services:
     environment:
       TZ: ${TZ}
       # Composed from the exact same DB_* vars .env gives the db service
-      # below — not a separately hand-written value, so the password isn't
+      # below - not a separately hand-written value, so the password isn't
       # duplicated. "bookingtools-db" only resolves inside the Docker network.
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@bookingtools-db:5432/${DB_DATABASE}
       # Must match both the Traefik PathPrefix below AND the BASE_PATH the
-      # image was built with (see Dockerfile) — Next.js needs it at runtime
+      # image was built with (see Dockerfile) - Next.js needs it at runtime
       # too, not just at build time, to route requests correctly.
       BASE_PATH: ${PATHPREFIX}
     env_file:
@@ -46,7 +46,7 @@ services:
   bookingtools-db:
     container_name: bookingtools-db
     # Pinned to the exact same patch version as docker-compose-dev.yml's
-    # db service (local dev) — see the comment there.
+    # db service (local dev) - see the comment there.
     image: postgres:16.14-alpine
     restart: unless-stopped
     environment:
@@ -61,7 +61,7 @@ services:
 
 volumes:
   # Named explicitly (not left to Compose's default <project>_<name>
-  # prefixing) for the same reason the services above get container_name —
+  # prefixing) for the same reason the services above get container_name -
   # this server runs several apps side by side, and a predictable, fixed
   # name matters more than Compose's project-name inference.
   persistent-bookingtools-db:
