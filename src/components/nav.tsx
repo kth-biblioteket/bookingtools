@@ -5,6 +5,7 @@ import { getT } from "@/lib/i18n/get-dictionary";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LogoutButton } from "@/components/logout-button";
 import { MobileNav } from "@/components/mobile-nav";
+import { withBasePath } from "@/lib/base-path";
 
 export async function Nav() {
   const user = await getCurrentUser();
@@ -55,7 +56,14 @@ export async function Nav() {
     <header className="relative bg-kth-navy">
       <div className="mx-auto flex h-24 max-w-5xl items-center justify-between px-4">
         <Link href="/rooms" className="flex items-center gap-3 text-lg font-semibold text-white">
-          <Image src="/kth-logo-white.svg" alt="KTH" width={57} height={64} className="h-16 w-auto" priority />
+          <Image
+            src={withBasePath("/kth-logo-white.svg")}
+            alt="KTH"
+            width={57}
+            height={64}
+            className="h-16 w-auto"
+            priority
+          />
           {t("nav.brand")}
         </Link>
         {/* Single row of links — only enough horizontal room on wider screens. */}
