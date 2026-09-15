@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { buildAuthorizationRequest } from "@/lib/oidc";
+import { getExternalOrigin } from "@/lib/request-origin";
 
 const OIDC_COOKIE_MAX_AGE = 60 * 10; // 10 minutes — long enough for the round trip to Entra ID and back, short enough to limit replay.
 
@@ -23,7 +24,9 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const returnTo = safeReturnTo(url.searchParams.get("returnTo"));
 
-  const { authorizationUrl, state, nonce, codeVerifier } = await buildAuthorizationRequest(url.origin);
+  const { authorizationUrl, state, nonce, codeVerifier } = await buildAuthorizationRequest(
+    getExternalOrigin(request)
+  );
 
   const response = NextResponse.redirect(authorizationUrl);
   response.cookies.set("oidc_state", state, oidcCookieOptions());

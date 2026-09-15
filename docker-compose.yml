@@ -60,7 +60,12 @@ services:
       - "apps-net"
 
 volumes:
+  # Named explicitly (not left to Compose's default <project>_<name>
+  # prefixing) for the same reason the services above get container_name —
+  # this server runs several apps side by side, and a predictable, fixed
+  # name matters more than Compose's project-name inference.
   persistent-bookingtools-db:
+    name: persistent-bookingtools-db
 
 networks:
   apps-net:

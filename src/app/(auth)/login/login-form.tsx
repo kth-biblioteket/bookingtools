@@ -7,9 +7,11 @@ import { useI18n } from "@/components/i18n-provider";
 export function LoginForm({
   returnTo,
   oidcEnabled,
+  kthLoginHref,
 }: {
   returnTo?: string;
   oidcEnabled: boolean;
+  kthLoginHref: string;
 }) {
   const [state, formAction, pending] = useActionState(login, undefined);
   const { t } = useI18n();
@@ -62,7 +64,7 @@ export function LoginForm({
             <span className="h-px flex-1 bg-gray-200" />
           </div>
           <a
-            href={`/api/auth/kth/login?returnTo=${encodeURIComponent(returnTo ?? "")}`}
+            href={kthLoginHref}
             className="rounded-md border border-kth-blue px-4 py-2 text-center text-sm font-medium text-kth-blue hover:bg-kth-light-blue"
           >
             {t("auth.login.kthButton")}

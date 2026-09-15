@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { createSession } from "@/lib/auth";
 import { exchangeCodeForClaims, isAdminGroupConfigured, checkIsGroupAdmin } from "@/lib/oidc";
+import { withBasePath } from "@/lib/base-path";
+import { getExternalOrigin } from "@/lib/request-origin";
 
 /** Only a same-origin relative path is safe to redirect to. */
 function safeReturnTo(value: string | undefined): string | null {
@@ -17,6 +19,7 @@ function safeReturnTo(value: string | undefined): string | null {
  */
 export async function GET(request: Request) {
   const url = new URL(request.url);
+  const origin = getExternalOrigin(request);
   const cookieHeader = request.headers.get("cookie") ?? "";
   const cookies = Object.fromEntries(
     cookieHeader.split(";").map((c) => {
@@ -31,7 +34,9 @@ export async function GET(request: Request) {
   const returnTo = safeReturnTo(cookies.oidc_return_to);
 
   if (!state || !nonce || !codeVerifier) {
-    return clearOidcCookies(NextResponse.redirect(new URL("/login?error=oidc_state", url.origin)));
+    return clearOidcCookies(
+      NextResponse.redirect(new URL(withBasePath("/login?error=oidc_state"), origin))
+    );
   }
 
   try {
@@ -55,9 +60,13 @@ export async function GET(request: Request) {
     }
 
     await createSession(user.id);
-    return clearOidcCookies(NextResponse.redirect(new URL(returnTo ?? "/rooms", url.origin)));
+    return clearOidcCookies(
+      NextResponse.redirect(new URL(withBasePath(returnTo ?? "/rooms"), origin))
+    );
   } catch {
-    return clearOidcCookies(NextResponse.redirect(new URL("/login?error=oidc_failed", url.origin)));
+    return clearOidcCookies(
+      NextResponse.redirect(new URL(withBasePath("/login?error=oidc_failed"), origin))
+    );
   }
 }
 

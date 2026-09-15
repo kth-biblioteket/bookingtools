@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getT } from "@/lib/i18n/get-dictionary";
+import { withBasePath } from "@/lib/base-path";
 import { LoginForm } from "./login-form";
 
 export default async function LoginPage({
@@ -31,7 +32,11 @@ export default async function LoginPage({
       <h1 className="text-2xl font-semibold text-gray-900">{t("auth.login.heading")}</h1>
       <p className="mt-1 text-sm text-gray-500">{t("auth.login.subtitle")}</p>
       {oidcError && <p className="mt-4 text-sm text-red-600">{oidcError}</p>}
-      <LoginForm returnTo={returnTo} oidcEnabled={oidcEnabled} />
+      <LoginForm
+        returnTo={returnTo}
+        oidcEnabled={oidcEnabled}
+        kthLoginHref={withBasePath(`/api/auth/kth/login?returnTo=${encodeURIComponent(returnTo ?? "")}`)}
+      />
       <p className="mt-6 text-sm text-gray-500">
         {t("auth.login.noAccount")}{" "}
         <Link href="/signup" className="font-medium text-kth-blue hover:underline">
