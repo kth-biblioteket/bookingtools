@@ -15,10 +15,10 @@ export default async function LoginPage({
   if (user) redirect(returnTo && returnTo.startsWith("/") ? returnTo : "/rooms");
   const { t } = await getT();
 
-  // The reused Entra ID app registration this points at only works once
-  // deployed under its fixed redirect URI (see src/lib/oidc.ts) — hidden
-  // rather than shown-but-broken until OIDC_ISSUER/OIDC_CLIENT_ID are set.
-  const oidcEnabled = Boolean(process.env.OIDC_CLIENT_ID && process.env.OIDC_ISSUER);
+  // KTH login is handled entirely by the separate librarytools-auth service
+  // now (see the plan, Fas 1) — hidden rather than shown-but-broken until
+  // this app knows where to verify its identity tokens (src/proxy.ts).
+  const oidcEnabled = Boolean(process.env.KTH_AUTH_JWKS_URL);
 
   const oidcError =
     error === "oidc_state"
@@ -35,7 +35,13 @@ export default async function LoginPage({
       <LoginForm
         returnTo={returnTo}
         oidcEnabled={oidcEnabled}
-        kthLoginHref={withBasePath(`/api/auth/kth/login?returnTo=${encodeURIComponent(returnTo ?? "")}`)}
+        // librarytools-auth lives at a sibling path (/mrbs), not under this
+        // app's own basePath — but the returnTo it hands back to afterwards
+        // must be a full cross-app path, so that (unlike the href itself)
+        // does need withBasePath().
+        kthLoginHref={`/mrbs/login?returnTo=${encodeURIComponent(
+          withBasePath(returnTo && returnTo.startsWith("/") ? returnTo : "/rooms")
+        )}`}
       />
       <p className="mt-6 text-sm text-gray-500">
         {t("auth.login.noAccount")}{" "}

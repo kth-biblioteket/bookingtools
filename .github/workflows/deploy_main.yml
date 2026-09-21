@@ -43,7 +43,7 @@ jobs:
           # next.config.ts) — must match the Traefik PathPrefix this image
           # is deployed behind on apps.lib.kth.se.
           build-args: |
-            BASE_PATH=/mrbs
+            BASE_PATH=/bookingtools
 
   deploy:
     needs: build-and-push-image

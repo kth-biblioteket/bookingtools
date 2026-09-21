@@ -2,25 +2,35 @@ import "server-only";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 
-const SESSION_COOKIE = "session_id";
+export const SESSION_COOKIE = "session_id";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30 dagar
 
-export async function createSession(userId: string) {
-  const session = await db.session.create({
+/** Pure DB half of session creation — no cookie access, so it also works
+ * from src/proxy.ts (Proxy has its own NextRequest/NextResponse cookie API,
+ * not next/headers' cookies()). */
+export async function createSessionRecord(userId: string) {
+  return db.session.create({
     data: {
       userId,
       expiresAt: new Date(Date.now() + SESSION_TTL_MS),
     },
   });
+}
 
-  const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, session.id, {
+export function sessionCookieOptions(expiresAt: Date) {
+  return {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "lax" as const,
     path: "/",
-    expires: session.expiresAt,
-  });
+    expires: expiresAt,
+  };
+}
+
+export async function createSession(userId: string) {
+  const session = await createSessionRecord(userId);
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE, session.id, sessionCookieOptions(session.expiresAt));
 }
 
 export async function destroySession() {
