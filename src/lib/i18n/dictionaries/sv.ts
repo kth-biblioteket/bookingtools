@@ -12,6 +12,7 @@ const sv: Dictionary = {
     schedule: "Schema",
     myBookings: "Mina bokningar",
     admin: "Admin",
+    systemAdmin: "Hantera scheman",
     logout: "Logga ut",
     login: "Logga in",
     signup: "Skapa konto",

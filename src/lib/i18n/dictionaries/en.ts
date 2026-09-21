@@ -12,6 +12,7 @@ const en: Dictionary = {
     schedule: "Schedule",
     myBookings: "My bookings",
     admin: "Admin",
+    systemAdmin: "Manage schedules",
     logout: "Log out",
     login: "Log in",
     signup: "Create account",

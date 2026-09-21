@@ -1,17 +1,18 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
+import { getActiveSchedules } from "@/lib/schedules";
 import { getT } from "@/lib/i18n/get-dictionary";
 import { NavLinks } from "@/components/nav-links";
 import { MobileNav } from "@/components/mobile-nav";
 import { withBasePath } from "@/lib/base-path";
 
 export async function Nav() {
-  const user = await getCurrentUser();
+  const [user, schedules] = await Promise.all([getCurrentUser(), getActiveSchedules()]);
   const { t } = await getT();
   const admin = Boolean(user) && isAdmin(user!);
 
-  const links = <NavLinks user={user} isAdmin={admin} />;
+  const links = <NavLinks user={user} isAdmin={admin} schedules={schedules} />;
 
   return (
     <header className="relative bg-kth-navy">

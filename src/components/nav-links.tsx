@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { LogoutButton } from "@/components/logout-button";
 import { useI18n } from "@/components/i18n-provider";
@@ -20,12 +20,38 @@ function currentScheduleSlug(pathname: string): string {
   return firstSegment;
 }
 
+type ScheduleOption = { slug: string; name: string };
+
+/** Only rendered when there's more than one active schedule to choose
+ * between — otherwise it'd be a dropdown with a single, pointless option. */
+function ScheduleSwitcher({ schedules, currentSlug }: { schedules: ScheduleOption[]; currentSlug: string }) {
+  const router = useRouter();
+  if (schedules.length < 2) return null;
+
+  return (
+    <select
+      value={schedules.some((s) => s.slug === currentSlug) ? currentSlug : ""}
+      onChange={(e) => router.push(`/${e.target.value}/rooms`)}
+      className="rounded-md border border-kth-light-blue bg-kth-navy px-2 py-1 text-sm text-kth-light-blue"
+    >
+      {!schedules.some((s) => s.slug === currentSlug) && <option value="" disabled />}
+      {schedules.map((schedule) => (
+        <option key={schedule.slug} value={schedule.slug} className="text-black">
+          {schedule.name}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 export function NavLinks({
   user,
   isAdmin,
+  schedules,
 }: {
   user: { name: string } | null;
   isAdmin: boolean;
+  schedules: ScheduleOption[];
 }) {
   const pathname = usePathname();
   const { t } = useI18n();
@@ -34,6 +60,7 @@ export function NavLinks({
   if (!user) {
     return (
       <>
+        <ScheduleSwitcher schedules={schedules} currentSlug={slug} />
         <Link href={`/${slug}/rooms`} className="text-kth-light-blue hover:text-white">
           {t("nav.rooms")}
         </Link>
@@ -56,6 +83,7 @@ export function NavLinks({
 
   return (
     <>
+      <ScheduleSwitcher schedules={schedules} currentSlug={slug} />
       <Link href={`/${slug}/rooms`} className="text-kth-light-blue hover:text-white">
         {t("nav.rooms")}
       </Link>
@@ -66,9 +94,17 @@ export function NavLinks({
         {t("nav.myBookings")}
       </Link>
       {isAdmin && (
-        <Link href={`/${slug}/admin`} className="text-kth-light-blue hover:text-white">
-          {t("nav.admin")}
-        </Link>
+        <>
+          <Link href={`/${slug}/admin`} className="text-kth-light-blue hover:text-white">
+            {t("nav.admin")}
+          </Link>
+          {/* The home page's schedule picker (which links here too) is skipped
+           * whenever exactly one schedule is active, so this is the only
+           * reachable link to schedule management once that's the case. */}
+          <Link href="/system-admin" className="text-kth-light-blue hover:text-white">
+            {t("nav.systemAdmin")}
+          </Link>
+        </>
       )}
       <span className="text-kth-sky">{user.name}</span>
       <LanguageSwitcher />

@@ -15,6 +15,7 @@ export interface Dictionary {
     schedule: string;
     myBookings: string;
     admin: string;
+    systemAdmin: string;
     logout: string;
     login: string;
     signup: string;
