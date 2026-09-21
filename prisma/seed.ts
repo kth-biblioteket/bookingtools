@@ -28,15 +28,25 @@ const rooms = Array.from({ length: ROOM_COUNT }, (_, i) => {
 });
 
 async function main() {
+  // The one real schedule that existed before Fas 2's multi-schedule split
+  // — fixed id/slug to match the "grupprum" row the add_schedules migration
+  // backfills, so re-running the seed against an already-migrated database
+  // finds it instead of creating a duplicate.
+  const schedule = await db.schedule.upsert({
+    where: { slug: "grupprum" },
+    update: {},
+    create: { id: "grupprum", slug: "grupprum", name: "Grupprum" },
+  });
+
   // Replaces whatever example rooms existed before — this is seed/demo
   // data only, never real bookings (nothing here cascades onto real user
   // data since there are none to begin with in a freshly seeded database).
-  await db.room.deleteMany({});
+  await db.room.deleteMany({ where: { scheduleId: schedule.id } });
 
   for (const room of rooms) {
-    await db.room.create({ data: room });
+    await db.room.create({ data: { ...room, scheduleId: schedule.id } });
   }
-  console.log(`Seedade ${rooms.length} rum.`);
+  console.log(`Seedade ${rooms.length} rum under schemat "${schedule.slug}".`);
 }
 
 main()

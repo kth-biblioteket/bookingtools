@@ -12,6 +12,7 @@ import {
   BookingOverlapError,
 } from "@/lib/booking";
 import { getBookingSettings } from "@/lib/settings";
+import { getScheduleBySlug } from "@/lib/schedules";
 import { createOrRenewHold, releaseHold } from "@/lib/booking-hold";
 import { getT } from "@/lib/i18n/get-dictionary";
 
@@ -26,6 +27,7 @@ export async function createBooking(
   if (!user) return { error: t("bookingActions.loginRequiredBook") };
 
   const bookSchema = z.object({
+    scheduleSlug: z.string().min(1),
     roomId: z.string().min(1),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     startTime: z.string().regex(/^\d{2}:\d{2}$/),
@@ -34,6 +36,7 @@ export async function createBooking(
   });
 
   const parsed = bookSchema.safeParse({
+    scheduleSlug: formData.get("scheduleSlug"),
     roomId: formData.get("roomId"),
     date: formData.get("date"),
     startTime: formData.get("startTime"),
@@ -45,9 +48,12 @@ export async function createBooking(
     return { error: parsed.error.issues[0]?.message ?? t("common.invalidData") };
   }
 
-  const { roomId, date, startTime, endTime, title } = parsed.data;
+  const { scheduleSlug, roomId, date, startTime, endTime, title } = parsed.data;
 
-  const room = await db.room.findUnique({ where: { id: roomId } });
+  const schedule = await getScheduleBySlug(scheduleSlug);
+  if (!schedule || !schedule.isActive) return { error: t("common.invalidData") };
+
+  const room = await db.room.findFirst({ where: { id: roomId, scheduleId: schedule.id } });
   if (!room) return { error: t("bookingActions.roomGone") };
 
   const start = new Date(`${date}T${startTime}:00`);
@@ -61,7 +67,7 @@ export async function createBooking(
   }
 
   const { stepMinutes, minMinutes, maxMinutes, requirePreliminaryConfirmation } =
-    await getBookingSettings();
+    await getBookingSettings(schedule.id);
 
   const durationMinutes = (end.getTime() - start.getTime()) / 60000;
   if (
@@ -79,7 +85,7 @@ export async function createBooking(
     return { error: t("bookingActions.invalidStartTime") };
   }
 
-  await releaseExpiredPreliminaryBookings();
+  await releaseExpiredPreliminaryBookings(schedule.id);
 
   try {
     await withSerializableRetry(() =>
@@ -90,6 +96,7 @@ export async function createBooking(
           }
           await tx.booking.create({
             data: {
+              scheduleId: schedule.id,
               roomId,
               userId: user.id,
               title,
@@ -110,10 +117,10 @@ export async function createBooking(
   }
   await releaseHold(user.id);
 
-  revalidatePath(`/rooms/${roomId}`);
-  revalidatePath("/rooms");
-  revalidatePath("/bookings");
-  revalidatePath("/schedule");
+  revalidatePath(`/${scheduleSlug}/rooms/${roomId}`);
+  revalidatePath(`/${scheduleSlug}/rooms`);
+  revalidatePath(`/${scheduleSlug}/bookings`);
+  revalidatePath(`/${scheduleSlug}/schedule`);
   return { success: t("bookingActions.createSuccess") };
 }
 
@@ -126,6 +133,7 @@ export async function updateBooking(
   if (!user) return { error: t("bookingActions.loginRequiredEdit") };
 
   const updateBookSchema = z.object({
+    scheduleSlug: z.string().min(1),
     bookingId: z.string().min(1),
     date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     startTime: z.string().regex(/^\d{2}:\d{2}$/),
@@ -134,6 +142,7 @@ export async function updateBooking(
   });
 
   const parsed = updateBookSchema.safeParse({
+    scheduleSlug: formData.get("scheduleSlug"),
     bookingId: formData.get("bookingId"),
     date: formData.get("date"),
     startTime: formData.get("startTime"),
@@ -145,10 +154,13 @@ export async function updateBooking(
     return { error: parsed.error.issues[0]?.message ?? t("common.invalidData") };
   }
 
-  const { bookingId, date, startTime, endTime, title } = parsed.data;
+  const { scheduleSlug, bookingId, date, startTime, endTime, title } = parsed.data;
+
+  const schedule = await getScheduleBySlug(scheduleSlug);
+  if (!schedule || !schedule.isActive) return { error: t("common.invalidData") };
 
   const booking = await db.booking.findFirst({
-    where: { id: bookingId, userId: user.id },
+    where: { id: bookingId, userId: user.id, scheduleId: schedule.id },
   });
   if (!booking) return { error: t("bookingActions.bookingNotFoundOrNotYours") };
 
@@ -162,7 +174,7 @@ export async function updateBooking(
     return { error: t("bookingActions.pastStartEdit") };
   }
 
-  const { stepMinutes, minMinutes, maxMinutes } = await getBookingSettings();
+  const { stepMinutes, minMinutes, maxMinutes } = await getBookingSettings(schedule.id);
 
   const durationMinutes = (end.getTime() - start.getTime()) / 60000;
   if (
@@ -203,10 +215,10 @@ export async function updateBooking(
   }
   await releaseHold(user.id);
 
-  revalidatePath(`/rooms/${booking.roomId}`);
-  revalidatePath("/rooms");
-  revalidatePath("/bookings");
-  revalidatePath("/schedule");
+  revalidatePath(`/${scheduleSlug}/rooms/${booking.roomId}`);
+  revalidatePath(`/${scheduleSlug}/rooms`);
+  revalidatePath(`/${scheduleSlug}/bookings`);
+  revalidatePath(`/${scheduleSlug}/schedule`);
   return { success: t("bookingActions.updateSuccess") };
 }
 
@@ -227,6 +239,7 @@ export type HoldState = { error?: string } | undefined;
  * only thing preventing a double booking.
  */
 export async function requestHold(
+  scheduleSlug: string,
   roomId: string,
   date: string,
   startTime: string,
@@ -236,13 +249,16 @@ export async function requestHold(
   const user = await getCurrentUser();
   if (!user) return { error: t("bookingActions.holdLoginRequired") };
 
+  const schedule = await getScheduleBySlug(scheduleSlug);
+  if (!schedule || !schedule.isActive) return { error: t("common.invalidData") };
+
   const parsed = holdSchema.safeParse({ roomId, date, startTime, endTime });
   if (!parsed.success) return { error: t("common.invalidData") };
 
   const start = new Date(`${parsed.data.date}T${parsed.data.startTime}:00`);
   const end = new Date(`${parsed.data.date}T${parsed.data.endTime}:00`);
 
-  const result = await createOrRenewHold(user.id, roomId, start, end);
+  const result = await createOrRenewHold(schedule.id, user.id, roomId, start, end);
   if ("error" in result) {
     return {
       error: t(
@@ -260,7 +276,7 @@ export async function releaseMyHold(): Promise<void> {
   await releaseHold(user.id);
 }
 
-export async function confirmBooking(bookingId: string) {
+export async function confirmBooking(scheduleSlug: string, bookingId: string) {
   const user = await getCurrentUser();
   if (!user) return;
 
@@ -274,13 +290,13 @@ export async function confirmBooking(bookingId: string) {
     data: { confirmedAt: new Date() },
   });
 
-  revalidatePath(`/rooms/${booking.roomId}`);
-  revalidatePath("/rooms");
-  revalidatePath("/bookings");
-  revalidatePath("/schedule");
+  revalidatePath(`/${scheduleSlug}/rooms/${booking.roomId}`);
+  revalidatePath(`/${scheduleSlug}/rooms`);
+  revalidatePath(`/${scheduleSlug}/bookings`);
+  revalidatePath(`/${scheduleSlug}/schedule`);
 }
 
-export async function cancelBooking(bookingId: string) {
+export async function cancelBooking(scheduleSlug: string, bookingId: string) {
   const user = await getCurrentUser();
   if (!user) return;
 
@@ -291,8 +307,8 @@ export async function cancelBooking(bookingId: string) {
 
   await db.booking.delete({ where: { id: booking.id } });
 
-  revalidatePath(`/rooms/${booking.roomId}`);
-  revalidatePath("/rooms");
-  revalidatePath("/bookings");
-  revalidatePath("/schedule");
+  revalidatePath(`/${scheduleSlug}/rooms/${booking.roomId}`);
+  revalidatePath(`/${scheduleSlug}/rooms`);
+  revalidatePath(`/${scheduleSlug}/bookings`);
+  revalidatePath(`/${scheduleSlug}/schedule`);
 }

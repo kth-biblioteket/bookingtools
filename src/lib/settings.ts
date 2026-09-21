@@ -2,8 +2,6 @@ import "server-only";
 import { db } from "@/lib/db";
 import { isoWeekday } from "@/lib/date";
 
-const SETTINGS_ID = "singleton";
-
 export type ScheduleLayout = "horizontal" | "vertical";
 
 export type AppSettings = {
@@ -40,11 +38,15 @@ function toScheduleLayout(value: string): ScheduleLayout {
   return value === "vertical" ? "vertical" : "horizontal";
 }
 
-export async function getSettings(): Promise<AppSettings> {
+/** Every function here is scoped to one Schedule — a new Schedule gets
+ * working defaults purely by being read from for the first time, via the
+ * same self-seeding/upsert-on-read pattern this module always used for the
+ * (formerly singleton) Settings/OpeningHours rows. */
+export async function getSettings(scheduleId: string): Promise<AppSettings> {
   const settings = await db.settings.upsert({
-    where: { id: SETTINGS_ID },
+    where: { scheduleId },
     update: {},
-    create: { id: SETTINGS_ID },
+    create: { scheduleId },
   });
   return {
     stepMinutes: settings.stepMinutes,
@@ -57,16 +59,16 @@ export async function getSettings(): Promise<AppSettings> {
   };
 }
 
-export async function updateSettings(data: AppSettings) {
+export async function updateSettings(scheduleId: string, data: AppSettings) {
   await db.settings.upsert({
-    where: { id: SETTINGS_ID },
+    where: { scheduleId },
     update: data,
-    create: { id: SETTINGS_ID, ...data },
+    create: { scheduleId, ...data },
   });
 }
 
 /** Booking-rule-only subset, for callers that don't care about display settings. */
-export async function getBookingSettings(): Promise<BookingSettings> {
+export async function getBookingSettings(scheduleId: string): Promise<BookingSettings> {
   const {
     stepMinutes,
     minMinutes,
@@ -74,7 +76,7 @@ export async function getBookingSettings(): Promise<BookingSettings> {
     requirePreliminaryConfirmation,
     confirmMinutesBefore,
     confirmMinutesAfter,
-  } = await getSettings();
+  } = await getSettings(scheduleId);
   return {
     stepMinutes,
     minMinutes,
@@ -85,31 +87,35 @@ export async function getBookingSettings(): Promise<BookingSettings> {
   };
 }
 
-export async function updateBookingSettings(data: BookingSettings) {
-  const current = await getSettings();
-  await updateSettings({ ...current, ...data });
+export async function updateBookingSettings(scheduleId: string, data: BookingSettings) {
+  const current = await getSettings(scheduleId);
+  await updateSettings(scheduleId, { ...current, ...data });
 }
 
 /** Display-only subset, for callers that only need the schedule overview layout. */
-export async function getScheduleLayout(): Promise<ScheduleLayout> {
-  const { scheduleLayout } = await getSettings();
+export async function getScheduleLayout(scheduleId: string): Promise<ScheduleLayout> {
+  const { scheduleLayout } = await getSettings(scheduleId);
   return scheduleLayout;
 }
 
-/** All 7 weekdays' opening hours, ordered Monday (0) through Sunday (6). Rows
- * are seeded by a migration, but upsert any missing ones defensively so a
- * partially-seeded table can't break callers. */
-export async function getOpeningHours(): Promise<OpeningHoursDay[]> {
-  const existing = await db.openingHours.findMany({ orderBy: { weekday: "asc" } });
+/** All 7 weekdays' opening hours for one schedule, ordered Monday (0)
+ * through Sunday (6). Rows are seeded lazily here (rather than by a
+ * migration, now that there can be more than one schedule), but upsert any
+ * missing ones defensively so a partially-seeded table can't break callers. */
+export async function getOpeningHours(scheduleId: string): Promise<OpeningHoursDay[]> {
+  const existing = await db.openingHours.findMany({
+    where: { scheduleId },
+    orderBy: { weekday: "asc" },
+  });
   const byWeekday = new Map(existing.map((row) => [row.weekday, row]));
   const missing = WEEKDAYS.filter((weekday) => !byWeekday.has(weekday));
 
   if (missing.length > 0) {
     await db.openingHours.createMany({
-      data: missing.map((weekday) => ({ weekday })),
+      data: missing.map((weekday) => ({ scheduleId, weekday })),
       skipDuplicates: true,
     });
-    return getOpeningHours();
+    return getOpeningHours(scheduleId);
   }
 
   return WEEKDAYS.map((weekday) => {
@@ -118,19 +124,19 @@ export async function getOpeningHours(): Promise<OpeningHoursDay[]> {
   });
 }
 
-/** The opening hours that apply to a specific date's weekday. */
-export async function getOpeningHoursForDate(dateStr: string): Promise<OpeningHoursDay> {
-  const days = await getOpeningHours();
+/** The opening hours that apply to a specific date's weekday, for one schedule. */
+export async function getOpeningHoursForDate(scheduleId: string, dateStr: string): Promise<OpeningHoursDay> {
+  const days = await getOpeningHours(scheduleId);
   return days[isoWeekday(dateStr)];
 }
 
-export async function updateOpeningHours(days: OpeningHoursDay[]) {
+export async function updateOpeningHours(scheduleId: string, days: OpeningHoursDay[]) {
   await db.$transaction(
     days.map((day) =>
       db.openingHours.upsert({
-        where: { weekday: day.weekday },
+        where: { scheduleId_weekday: { scheduleId, weekday: day.weekday } },
         update: { startHour: day.startHour, endHour: day.endHour, closed: day.closed },
-        create: day,
+        create: { scheduleId, ...day },
       })
     )
   );

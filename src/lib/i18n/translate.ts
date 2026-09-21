@@ -257,6 +257,39 @@ export interface Dictionary {
     deleting: string;
     delete: string;
   };
+  home: {
+    heading: string;
+    subtitle: string;
+    none: string;
+    manageSchedules: string;
+  };
+  systemAdmin: {
+    heading: string;
+    subtitle: string;
+    addHeading: string;
+    existingHeading: string;
+    slug: string;
+    slugPlaceholder: string;
+    name: string;
+    descriptionOptional: string;
+    addSubmit: string;
+    addSubmitPending: string;
+    rename: string;
+    save: string;
+    savingPending: string;
+    activate: string;
+    deactivate: string;
+    inactive: string;
+    created: string;
+    saved: string;
+    errors: {
+      slugRequired: string;
+      slugTooLong: string;
+      slugInvalid: string;
+      slugTaken: string;
+      nameRequired: string;
+    };
+  };
 }
 
 /** Dot-separated paths into Dictionary that resolve to a string leaf, e.g. "nav.rooms". */

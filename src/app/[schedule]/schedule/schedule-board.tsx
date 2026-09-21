@@ -9,7 +9,7 @@ import { UsersIcon, ScreenIcon } from "@/components/room-icons";
 import { ScheduleCornerCell } from "@/components/schedule-corner-cell";
 import { ScheduleLegend } from "@/components/schedule-legend";
 import { ScheduleBookingPanel, type ScheduleFormMode } from "./schedule-booking-panel";
-import { requestHold, releaseMyHold } from "@/app/rooms/[id]/actions";
+import { requestHold, releaseMyHold } from "@/app/[schedule]/rooms/[id]/actions";
 import type { getAllRoomsBookingsForDate } from "@/lib/booking";
 import type { ActiveHold } from "@/lib/booking-hold";
 import type { BookingSettings, ScheduleLayout } from "@/lib/settings";
@@ -37,6 +37,7 @@ function timeLabelFromDate(d: Date) {
 }
 
 export function ScheduleBoard({
+  scheduleSlug,
   roomsWithBookings,
   scheduleLayout,
   settings,
@@ -47,6 +48,7 @@ export function ScheduleBoard({
   dayEndHour,
   holds,
 }: {
+  scheduleSlug: string;
   roomsWithBookings: RoomsWithBookings;
   scheduleLayout: ScheduleLayout;
   settings: BookingSettings;
@@ -127,7 +129,7 @@ export function ScheduleBoard({
     async function renew() {
       const { date: d, startTime: s, endTime: e } = holdParamsRef.current;
       if (!s || !e) return;
-      const result = await requestHold(roomId, d, s, e);
+      const result = await requestHold(scheduleSlug, roomId, d, s, e);
       setHoldError(result?.error);
     }
 
@@ -144,7 +146,7 @@ export function ScheduleBoard({
     if (mode !== "create" || !selectedRoomId || !startTime || !endTime) return;
     const roomId = selectedRoomId;
     const timeout = setTimeout(async () => {
-      const result = await requestHold(roomId, date, startTime, endTime);
+      const result = await requestHold(scheduleSlug, roomId, date, startTime, endTime);
       setHoldError(result?.error);
     }, HOLD_DEBOUNCE_MS);
     return () => clearTimeout(timeout);
@@ -230,7 +232,7 @@ export function ScheduleBoard({
               {roomsWithBookings.map(({ room, bookings }, rowIndex) => (
                 <Fragment key={room.id}>
                   <Link
-                    href={`/rooms/${room.id}?date=${date}`}
+                    href={`/${scheduleSlug}/rooms/${room.id}?date=${date}`}
                     style={{ gridRow: rowIndex + 2 }}
                     className="sticky left-0 z-10 flex items-center justify-start gap-1 border-t border-black/10 bg-kth-sky py-1 pl-3 pr-1 hover:bg-kth-blue"
                   >
@@ -322,6 +324,7 @@ export function ScheduleBoard({
               ✕
             </button>
             <ScheduleBookingPanel
+              scheduleSlug={scheduleSlug}
               date={date}
               settings={settings}
               dayStartHour={dayStartHour}

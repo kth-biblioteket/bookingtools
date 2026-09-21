@@ -36,8 +36,16 @@ const rooms = [
 ];
 
 async function main() {
+  // Same fixed "grupprum" schedule as prisma/seed.ts, so e2e specs written
+  // against pre-Fas-2 URLs (/rooms, /grupprum/rooms) keep working.
+  const schedule = await db.schedule.upsert({
+    where: { slug: "grupprum" },
+    update: {},
+    create: { id: "grupprum", slug: "grupprum", name: "Grupprum" },
+  });
+
   for (const room of rooms) {
-    await db.room.create({ data: room });
+    await db.room.create({ data: { ...room, scheduleId: schedule.id } });
   }
   console.log(`Seedade ${rooms.length} testrum i test-databasen.`);
 }

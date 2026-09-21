@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useMemo, useTransition } from "react";
-import { createBooking, updateBooking, cancelBooking, confirmBooking } from "@/app/rooms/[id]/actions";
+import { createBooking, updateBooking, cancelBooking, confirmBooking } from "@/app/[schedule]/rooms/[id]/actions";
 import { CancelButton } from "@/components/cancel-button";
 import type { BookingSettings } from "@/lib/settings";
 import { useI18n } from "@/components/i18n-provider";
@@ -20,6 +20,7 @@ function toTimeLabel(totalMinutes: number) {
 }
 
 export function ScheduleBookingPanel({
+  scheduleSlug,
   date,
   settings,
   dayStartHour,
@@ -39,6 +40,7 @@ export function ScheduleBookingPanel({
   onUpdateSuccess,
   onCreateSuccess,
 }: {
+  scheduleSlug: string;
   date: string;
   settings: BookingSettings;
   dayStartHour: number;
@@ -115,6 +117,7 @@ export function ScheduleBookingPanel({
         <span className="font-semibold text-gray-900">{selectedRoom.name}</span>
       </h2>
       <form action={formAction} className="flex flex-col gap-4">
+        <input type="hidden" name="scheduleSlug" value={scheduleSlug} />
         {mode === "edit" ? (
           <input type="hidden" name="bookingId" value={editingBookingId} />
         ) : (
@@ -220,7 +223,7 @@ export function ScheduleBookingPanel({
               disabled={confirmPending}
               onClick={() =>
                 startConfirmTransition(async () => {
-                  await confirmBooking(editingBookingId);
+                  await confirmBooking(scheduleSlug, editingBookingId);
                   onUpdateSuccess();
                 })
               }
@@ -233,7 +236,7 @@ export function ScheduleBookingPanel({
             <CancelButton
               bookingId={editingBookingId}
               action={async (id) => {
-                await cancelBooking(id);
+                await cancelBooking(scheduleSlug, id);
                 onUpdateSuccess();
               }}
             />

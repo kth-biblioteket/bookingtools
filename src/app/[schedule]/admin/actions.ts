@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { updateSettings as persistSettings, updateOpeningHours } from "@/lib/settings";
+import { getScheduleBySlug } from "@/lib/schedules";
 import { notifyBookingsChanged } from "@/lib/booking-events";
 import { getT } from "@/lib/i18n/get-dictionary";
 
@@ -17,6 +18,15 @@ export async function updateSettings(
   const user = await getCurrentUser();
   if (!user || !isAdmin(user)) {
     return { error: t("common.noPermission") };
+  }
+
+  const scheduleSlug = formData.get("scheduleSlug");
+  if (typeof scheduleSlug !== "string" || !scheduleSlug) {
+    return { error: t("common.invalidData") };
+  }
+  const schedule = await getScheduleBySlug(scheduleSlug);
+  if (!schedule || !schedule.isActive) {
+    return { error: t("common.invalidData") };
   }
 
   const settingsSchema = z
@@ -88,10 +98,10 @@ export async function updateSettings(
     return { error: openingHoursParsed.error.issues[0]?.message ?? t("common.invalidData") };
   }
 
-  await persistSettings(parsed.data);
-  await updateOpeningHours(openingHoursParsed.data);
+  await persistSettings(schedule.id, parsed.data);
+  await updateOpeningHours(schedule.id, openingHoursParsed.data);
 
-  revalidatePath("/admin");
+  revalidatePath(`/${scheduleSlug}/admin`);
   notifyBookingsChanged();
   return { success: t("admin.errors.saved") };
 }

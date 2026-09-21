@@ -19,6 +19,7 @@ function toTimeLabel(totalMinutes: number) {
 export type FormMode = "create" | "edit";
 
 export function BookingForm({
+  scheduleSlug,
   roomId,
   date,
   slots,
@@ -36,6 +37,7 @@ export function BookingForm({
   onCreateSuccess,
   holdError,
 }: {
+  scheduleSlug: string;
   roomId: string;
   date: string;
   slots: string[];
@@ -89,6 +91,7 @@ export function BookingForm({
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
+      <input type="hidden" name="scheduleSlug" value={scheduleSlug} />
       {mode === "edit" ? (
         <input type="hidden" name="bookingId" value={editingBookingId} />
       ) : (

@@ -36,13 +36,14 @@ export async function releaseExpiredHolds() {
  * the UI (translated) without a try/catch.
  */
 export async function createOrRenewHold(
+  scheduleId: string,
   userId: string,
   roomId: string,
   start: Date,
   end: Date
 ): Promise<{ error: "room_booked" | "slot_held" } | { hold: ActiveHold }> {
   await releaseExpiredHolds();
-  await releaseExpiredPreliminaryBookings();
+  await releaseExpiredPreliminaryBookings(scheduleId);
 
   if (await hasOverlap(db, roomId, start, end)) {
     return { error: "room_booked" };
@@ -62,8 +63,15 @@ export async function createOrRenewHold(
 
   const hold = await db.bookingHold.upsert({
     where: { userId },
-    create: { userId, roomId, startTime: start, endTime: end, expiresAt: new Date(Date.now() + HOLD_TTL_MS) },
-    update: { roomId, startTime: start, endTime: end, expiresAt: new Date(Date.now() + HOLD_TTL_MS) },
+    create: {
+      scheduleId,
+      userId,
+      roomId,
+      startTime: start,
+      endTime: end,
+      expiresAt: new Date(Date.now() + HOLD_TTL_MS),
+    },
+    update: { scheduleId, roomId, startTime: start, endTime: end, expiresAt: new Date(Date.now() + HOLD_TTL_MS) },
   });
 
   return { hold };
@@ -93,12 +101,12 @@ export async function getActiveHoldsForRoomInRange(roomId: string, startStr: str
   });
 }
 
-/** Active (non-expired) holds across all rooms on a given day. */
-export async function getActiveHoldsForDate(dateStr: string) {
+/** Active (non-expired) holds across all rooms of one schedule on a given day. */
+export async function getActiveHoldsForDate(scheduleId: string, dateStr: string) {
   await releaseExpiredHolds();
   const { start, end } = dayBoundsFor(dateStr);
   return db.bookingHold.findMany({
-    where: { startTime: { lte: end }, endTime: { gte: start } },
+    where: { scheduleId, startTime: { lte: end }, endTime: { gte: start } },
   });
 }
 

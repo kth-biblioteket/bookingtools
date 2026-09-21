@@ -1,17 +1,23 @@
 "use client";
 
-import { useActionState } from "react";
-import { updateRoom } from "../../actions";
-import type { Room } from "@/generated/prisma/client";
+import { useActionState, useEffect, useState } from "react";
+import { createRoom } from "./actions";
 import { useI18n } from "@/components/i18n-provider";
 
-export function EditRoomForm({ room }: { room: Room }) {
+export function NewRoomForm({ scheduleSlug }: { scheduleSlug: string }) {
   const { t } = useI18n();
-  const [state, formAction, pending] = useActionState(updateRoom, undefined);
+  const [state, formAction, pending] = useActionState(createRoom, undefined);
+  const [successCount, setSuccessCount] = useState(0);
+
+  useEffect(() => {
+    if (state?.success) {
+      setSuccessCount((count) => count + 1);
+    }
+  }, [state?.success]);
 
   return (
-    <form action={formAction} className="mt-6 flex flex-col gap-4">
-      <input type="hidden" name="roomId" value={room.id} />
+    <form key={successCount} action={formAction} className="mt-6 flex flex-col gap-4">
+      <input type="hidden" name="scheduleSlug" value={scheduleSlug} />
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700">
           {t("adminRooms.name")}
@@ -22,7 +28,6 @@ export function EditRoomForm({ room }: { room: Room }) {
           type="text"
           required
           maxLength={100}
-          defaultValue={room.name}
           className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
@@ -35,7 +40,6 @@ export function EditRoomForm({ room }: { room: Room }) {
           name="roomNumber"
           type="number"
           required
-          defaultValue={room.roomNumber}
           className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
@@ -49,7 +53,6 @@ export function EditRoomForm({ room }: { room: Room }) {
           type="text"
           required
           maxLength={100}
-          defaultValue={room.building}
           className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
@@ -63,7 +66,6 @@ export function EditRoomForm({ room }: { room: Room }) {
           type="text"
           required
           maxLength={100}
-          defaultValue={room.campus}
           className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
@@ -77,7 +79,6 @@ export function EditRoomForm({ room }: { room: Room }) {
           type="number"
           required
           min={1}
-          defaultValue={room.capacity}
           className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
@@ -90,7 +91,6 @@ export function EditRoomForm({ room }: { room: Room }) {
           name="floor"
           type="text"
           maxLength={100}
-          defaultValue={room.floor ?? ""}
           className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-kth-blue focus:outline-none focus:ring-1 focus:ring-kth-blue"
         />
       </div>
@@ -98,7 +98,6 @@ export function EditRoomForm({ room }: { room: Room }) {
         <input
           type="checkbox"
           name="hasScreen"
-          defaultChecked={room.hasScreen}
           className="h-4 w-4 rounded border-gray-300 text-kth-blue focus:ring-kth-blue"
         />
         {t("adminRooms.hasScreen")}
@@ -107,7 +106,6 @@ export function EditRoomForm({ room }: { room: Room }) {
         <input
           type="checkbox"
           name="hasWhiteboard"
-          defaultChecked={room.hasWhiteboard}
           className="h-4 w-4 rounded border-gray-300 text-kth-blue focus:ring-kth-blue"
         />
         {t("adminRooms.hasWhiteboard")}
@@ -119,7 +117,7 @@ export function EditRoomForm({ room }: { room: Room }) {
         disabled={pending}
         className="mt-2 w-fit rounded-md bg-kth-blue px-4 py-2 text-sm font-medium text-white hover:bg-kth-navy disabled:opacity-60"
       >
-        {pending ? t("adminRooms.editSubmitPending") : t("adminRooms.editSubmit")}
+        {pending ? t("adminRooms.addSubmitPending") : t("adminRooms.addSubmit")}
       </button>
     </form>
   );

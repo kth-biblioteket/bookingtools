@@ -40,8 +40,30 @@ model Session {
   @@index([userId])
 }
 
+/**
+ * An independent booking schedule (e.g. "grupprum", "resursrum",
+ * "talboksintroduktion") — each has its own rooms, opening hours, settings,
+ * and bookings, addressed at /bookingtools/[slug]/... . See the Fas 2
+ * section of the multi-schedule plan for the full design.
+ */
+model Schedule {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  rooms        Room[]
+  settings     Settings?
+  openingHours OpeningHours[]
+  bookings     Booking[]
+  bookingHolds BookingHold[]
+}
+
 model Room {
   id            String        @id @default(cuid())
+  scheduleId    String
   name          String
   // Numeric sort key, independent of `name` (which is display text and not
   // guaranteed to sort correctly as a string — "10" sorts before "2").
@@ -52,12 +74,16 @@ model Room {
   floor         String?
   hasScreen     Boolean       @default(false)
   hasWhiteboard Boolean       @default(false)
+  schedule      Schedule      @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
   bookings      Booking[]
   bookingHolds  BookingHold[]
+
+  @@index([scheduleId])
 }
 
 model Settings {
-  id                          String   @id @default("singleton")
+  id                          String   @id @default(cuid())
+  scheduleId                  String   @unique
   stepMinutes                 Int      @default(60)
   minMinutes                  Int      @default(60)
   maxMinutes                  Int      @default(120)
@@ -66,23 +92,29 @@ model Settings {
   confirmMinutesBefore        Int      @default(15)
   confirmMinutesAfter         Int      @default(15)
   updatedAt                   DateTime @updatedAt
+  schedule                    Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
 }
 
 /**
  * One row per weekday (0 = Monday ... 6 = Sunday, matching getWeekDates in
  * src/lib/date.ts) so opening hours can differ by day — e.g. shorter hours
- * on weekends, or closed entirely. Always exactly 7 rows, seeded by the
- * add_opening_hours_per_weekday migration.
+ * on weekends, or closed entirely. Always exactly 7 rows per schedule,
+ * seeded defensively by getOpeningHours() in src/lib/settings.ts.
  */
 model OpeningHours {
-  weekday   Int     @id
-  startHour Int     @default(8)
-  endHour   Int     @default(20)
-  closed    Boolean @default(false)
+  scheduleId String
+  weekday    Int
+  startHour  Int      @default(8)
+  endHour    Int      @default(20)
+  closed     Boolean  @default(false)
+  schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@id([scheduleId, weekday])
 }
 
 model Booking {
   id          String    @id @default(cuid())
+  scheduleId  String
   roomId      String
   userId      String
   title       String
@@ -90,10 +122,11 @@ model Booking {
   endTime     DateTime
   createdAt   DateTime  @default(now())
   confirmedAt DateTime?
+  schedule    Schedule  @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
   room        Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([roomId, startTime, endTime])
+  @@index([scheduleId, roomId, startTime, endTime])
   @@index([userId])
 }
 
@@ -108,14 +141,16 @@ model Booking {
 // prevention still happens via the startTime/endTime overlap check against
 // real Booking rows at creation time.
 model BookingHold {
-  id        String   @id @default(cuid())
-  roomId    String
-  userId    String   @unique
-  startTime DateTime
-  endTime   DateTime
-  expiresAt DateTime
-  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String   @id @default(cuid())
+  scheduleId String
+  roomId     String
+  userId     String   @unique
+  startTime  DateTime
+  endTime    DateTime
+  expiresAt  DateTime
+  schedule   Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  room       Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([roomId, startTime, endTime])
+  @@index([scheduleId, roomId, startTime, endTime])
 }

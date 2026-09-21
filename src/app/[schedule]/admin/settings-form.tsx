@@ -11,9 +11,11 @@ import { useI18n } from "@/components/i18n-provider";
 const REFERENCE_WEEK = getWeekDates(new Date().toISOString().slice(0, 10));
 
 export function SettingsForm({
+  scheduleSlug,
   settings,
   openingHours,
 }: {
+  scheduleSlug: string;
   settings: AppSettings;
   openingHours: OpeningHoursDay[];
 }) {
@@ -36,6 +38,7 @@ export function SettingsForm({
 
   return (
     <form key={settingsKey} action={formAction} className="mt-6 flex flex-col gap-4">
+      <input type="hidden" name="scheduleSlug" value={scheduleSlug} />
       <div>
         <label htmlFor="minMinutes" className="block text-sm font-medium text-gray-700">
           {t("admin.minMinutes")}

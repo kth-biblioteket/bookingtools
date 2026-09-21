@@ -15,6 +15,6 @@ export async function deleteUser(userId: string): Promise<void> {
 
   await db.user.delete({ where: { id: userId } });
 
-  revalidatePath("/admin/users");
+  revalidatePath("/system-admin/users");
   notifyBookingsChanged();
 }

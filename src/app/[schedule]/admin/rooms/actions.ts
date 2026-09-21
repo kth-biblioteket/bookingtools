@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getScheduleBySlug } from "@/lib/schedules";
 import { notifyBookingsChanged } from "@/lib/booking-events";
 import { getT } from "@/lib/i18n/get-dictionary";
 import type { T } from "@/lib/i18n/translate";
@@ -39,6 +40,15 @@ export async function createRoom(
     return { error: t("common.noPermission") };
   }
 
+  const scheduleSlug = formData.get("scheduleSlug");
+  if (typeof scheduleSlug !== "string" || !scheduleSlug) {
+    return { error: t("common.invalidData") };
+  }
+  const schedule = await getScheduleBySlug(scheduleSlug);
+  if (!schedule || !schedule.isActive) {
+    return { error: t("common.invalidData") };
+  }
+
   const parsed = roomSchema(t).safeParse({
     name: formData.get("name"),
     roomNumber: formData.get("roomNumber"),
@@ -59,6 +69,7 @@ export async function createRoom(
 
   await db.room.create({
     data: {
+      scheduleId: schedule.id,
       name,
       roomNumber,
       building,
@@ -70,7 +81,7 @@ export async function createRoom(
     },
   });
 
-  revalidatePath("/admin/rooms");
+  revalidatePath(`/${scheduleSlug}/admin/rooms`);
   notifyBookingsChanged();
   return { success: t("adminRooms.errors.created") };
 }
@@ -85,6 +96,15 @@ export async function updateRoom(
   const user = await getCurrentUser();
   if (!user || !isAdmin(user)) {
     return { error: t("common.noPermission") };
+  }
+
+  const scheduleSlug = formData.get("scheduleSlug");
+  if (typeof scheduleSlug !== "string" || !scheduleSlug) {
+    return { error: t("common.invalidData") };
+  }
+  const schedule = await getScheduleBySlug(scheduleSlug);
+  if (!schedule || !schedule.isActive) {
+    return { error: t("common.invalidData") };
   }
 
   const roomId = formData.get("roomId");
@@ -105,7 +125,7 @@ export async function updateRoom(
     return { error: parsed.error.issues[0]?.message ?? t("common.invalidData") };
   }
 
-  const existingRoom = await db.room.findUnique({ where: { id: roomId } });
+  const existingRoom = await db.room.findFirst({ where: { id: roomId, scheduleId: schedule.id } });
   if (!existingRoom) {
     return { error: t("adminRooms.errors.roomGone") };
   }
@@ -129,8 +149,8 @@ export async function updateRoom(
     },
   });
 
-  revalidatePath("/admin/rooms");
-  revalidatePath(`/admin/rooms/${roomId}/edit`);
+  revalidatePath(`/${scheduleSlug}/admin/rooms`);
+  revalidatePath(`/${scheduleSlug}/admin/rooms/${roomId}/edit`);
   notifyBookingsChanged();
   return { success: t("adminRooms.errors.updated") };
 }

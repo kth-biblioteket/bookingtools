@@ -18,13 +18,13 @@ export { SLOT_MINUTES, generateDaySlots } from "@/lib/slots";
  * this app, so this runs lazily whenever bookings are read or a new one is
  * about to be checked for overlap.
  */
-export async function releaseExpiredPreliminaryBookings() {
-  const { requirePreliminaryConfirmation, confirmMinutesAfter } = await getBookingSettings();
+export async function releaseExpiredPreliminaryBookings(scheduleId: string) {
+  const { requirePreliminaryConfirmation, confirmMinutesAfter } = await getBookingSettings(scheduleId);
   if (!requirePreliminaryConfirmation) return;
 
   const cutoff = new Date(Date.now() - confirmMinutesAfter * 60000);
   await db.booking.deleteMany({
-    where: { confirmedAt: null, startTime: { lt: cutoff } },
+    where: { scheduleId, confirmedAt: null, startTime: { lt: cutoff } },
   });
 }
 
@@ -42,14 +42,14 @@ export function todayStr() {
   return `${y}-${m}-${d}`;
 }
 
-export async function getRoomsWithTodayStatus() {
-  await releaseExpiredPreliminaryBookings();
-  const rooms = await db.room.findMany({ orderBy: { roomNumber: "asc" } });
+export async function getRoomsWithTodayStatus(scheduleId: string) {
+  await releaseExpiredPreliminaryBookings(scheduleId);
+  const rooms = await db.room.findMany({ where: { scheduleId }, orderBy: { roomNumber: "asc" } });
   const now = new Date();
   const { start, end } = dayBounds(todayStr());
 
   const bookingsToday = await db.booking.findMany({
-    where: { startTime: { lte: end }, endTime: { gte: start } },
+    where: { scheduleId, startTime: { lte: end }, endTime: { gte: start } },
     orderBy: { startTime: "asc" },
   });
 
@@ -66,15 +66,17 @@ export async function getRoomsWithTodayStatus() {
   });
 }
 
-export async function getRoom(roomId: string) {
-  return db.room.findUnique({ where: { id: roomId } });
+/** Scoped to `scheduleId` so a room id from a different schedule 404s
+ * instead of leaking across schedules. */
+export async function getRoom(scheduleId: string, roomId: string) {
+  return db.room.findFirst({ where: { id: roomId, scheduleId } });
 }
 
-export async function getBookingsForRoomOnDate(roomId: string, dateStr: string) {
-  await releaseExpiredPreliminaryBookings();
+export async function getBookingsForRoomOnDate(scheduleId: string, roomId: string, dateStr: string) {
+  await releaseExpiredPreliminaryBookings(scheduleId);
   const { start, end } = dayBounds(dateStr);
   return db.booking.findMany({
-    where: { roomId, startTime: { lte: end }, endTime: { gte: start } },
+    where: { scheduleId, roomId, startTime: { lte: end }, endTime: { gte: start } },
     include: { user: { select: { name: true } } },
     orderBy: { startTime: "asc" },
   });
@@ -139,21 +141,27 @@ export async function withSerializableRetry<T>(run: () => Promise<T>): Promise<T
 }
 
 /** All of a room's bookings overlapping the [startStr, endStr] range of days, inclusive. */
-export async function getBookingsForRoomInRange(roomId: string, startStr: string, endStr: string) {
-  await releaseExpiredPreliminaryBookings();
+export async function getBookingsForRoomInRange(
+  scheduleId: string,
+  roomId: string,
+  startStr: string,
+  endStr: string
+) {
+  await releaseExpiredPreliminaryBookings(scheduleId);
   const { start } = dayBounds(startStr);
   const { end } = dayBounds(endStr);
   return db.booking.findMany({
-    where: { roomId, startTime: { lte: end }, endTime: { gte: start } },
+    where: { scheduleId, roomId, startTime: { lte: end }, endTime: { gte: start } },
     include: { user: { select: { name: true } } },
     orderBy: { startTime: "asc" },
   });
 }
 
-export async function getAllRoomsBookingsForDate(dateStr: string) {
-  await releaseExpiredPreliminaryBookings();
+export async function getAllRoomsBookingsForDate(scheduleId: string, dateStr: string) {
+  await releaseExpiredPreliminaryBookings(scheduleId);
   const { start, end } = dayBounds(dateStr);
   const rooms = await db.room.findMany({
+    where: { scheduleId },
     orderBy: { roomNumber: "asc" },
     include: {
       bookings: {
@@ -167,10 +175,10 @@ export async function getAllRoomsBookingsForDate(dateStr: string) {
   return rooms.map(({ bookings, ...room }) => ({ room, bookings }));
 }
 
-export async function getUpcomingBookingsForUser(userId: string) {
-  await releaseExpiredPreliminaryBookings();
+export async function getUpcomingBookingsForUser(scheduleId: string, userId: string) {
+  await releaseExpiredPreliminaryBookings(scheduleId);
   return db.booking.findMany({
-    where: { userId, endTime: { gte: new Date() } },
+    where: { scheduleId, userId, endTime: { gte: new Date() } },
     include: { room: true },
     orderBy: { startTime: "asc" },
   });

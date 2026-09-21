@@ -41,6 +41,7 @@ function dateStrFromDate(d: Date) {
 }
 
 export function RoomPlanner({
+  scheduleSlug,
   roomId,
   weekDates,
   todayStr,
@@ -53,6 +54,7 @@ export function RoomPlanner({
   dayStartHour,
   dayEndHour,
 }: {
+  scheduleSlug: string;
   roomId: string;
   /** The current Mon–Sun week, as ISO date strings. */
   weekDates: string[];
@@ -111,7 +113,7 @@ export function RoomPlanner({
 
     const timeout = setTimeout(() => {
       startHoldTransition(async () => {
-        const result = await requestHold(roomId, formDate, startTime, endTime);
+        const result = await requestHold(scheduleSlug, roomId, formDate, startTime, endTime);
         setHoldError(result?.error);
       });
     }, HOLD_RENEW_DEBOUNCE_MS);
@@ -128,6 +130,7 @@ export function RoomPlanner({
       const current = latestHoldRequestRef.current;
       startHoldTransition(async () => {
         const result = await requestHold(
+          scheduleSlug,
           current.roomId,
           current.date,
           current.startTime,
@@ -280,8 +283,10 @@ export function RoomPlanner({
                     >
                       {t("roomDetail.editTime")}
                     </button>
-                    {needsConfirm && <ConfirmButton bookingId={b.id} action={confirmBooking} />}
-                    <CancelButton bookingId={b.id} action={cancelBooking} />
+                    {needsConfirm && (
+                      <ConfirmButton bookingId={b.id} action={(id) => confirmBooking(scheduleSlug, id)} />
+                    )}
+                    <CancelButton bookingId={b.id} action={(id) => cancelBooking(scheduleSlug, id)} />
                   </span>
                 )}
               </div>
@@ -340,6 +345,7 @@ export function RoomPlanner({
               {mode === "edit" ? t("roomDetail.editTitle") : t("roomDetail.bookTitle")}
             </h2>
             <BookingForm
+              scheduleSlug={scheduleSlug}
               roomId={roomId}
               date={formDate}
               slots={slots.map((s) => s.label)}
