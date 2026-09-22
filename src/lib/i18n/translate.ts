@@ -150,6 +150,8 @@ export interface Dictionary {
     cornerTime: string;
     cornerDay: string;
     closedToday: string;
+    showMap: string;
+    hideMap: string;
   };
   legend: {
     confirmedBooking: string;
@@ -190,6 +192,10 @@ export interface Dictionary {
     usersHeading: string;
     usersSubtitle: string;
     manageUsers: string;
+    mapHeading: string;
+    mapSubtitle: string;
+    mapSvgLabel: string;
+    mapSvgHint: string;
     errors: {
       stepPositive: string;
       minPositive: string;
@@ -201,6 +207,10 @@ export interface Dictionary {
       hourRange: string;
       openingHoursOrder: string;
       saved: string;
+      mapSaved: string;
+      mapRemoved: string;
+      mapTooLarge: string;
+      mapInvalid: string;
     };
   };
   adminRooms: {

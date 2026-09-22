@@ -4,7 +4,8 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { updateSettings as persistSettings, updateOpeningHours } from "@/lib/settings";
-import { getScheduleBySlug } from "@/lib/schedules";
+import { getScheduleBySlug, updateScheduleMap } from "@/lib/schedules";
+import { sanitizeSvg } from "@/lib/svg-sanitize";
 import { notifyBookingsChanged } from "@/lib/booking-events";
 import { getT } from "@/lib/i18n/get-dictionary";
 
@@ -104,4 +105,52 @@ export async function updateSettings(
   revalidatePath(`/${scheduleSlug}/admin`);
   notifyBookingsChanged();
   return { success: t("admin.errors.saved") };
+}
+
+const MAX_MAP_SVG_LENGTH = 500_000; // 500 KB of raw markup — generous for a floor plan, not for an image bomb.
+
+export type MapState = { error?: string; success?: string } | undefined;
+
+export async function updateMap(_prevState: MapState, formData: FormData): Promise<MapState> {
+  const { t } = await getT();
+  const user = await getCurrentUser();
+  if (!user || !isAdmin(user)) {
+    return { error: t("common.noPermission") };
+  }
+
+  const scheduleSlug = formData.get("scheduleSlug");
+  if (typeof scheduleSlug !== "string" || !scheduleSlug) {
+    return { error: t("common.invalidData") };
+  }
+  const schedule = await getScheduleBySlug(scheduleSlug);
+  if (!schedule || !schedule.isActive) {
+    return { error: t("common.invalidData") };
+  }
+
+  const raw = formData.get("mapSvg");
+  const trimmed = typeof raw === "string" ? raw.trim() : "";
+
+  if (!trimmed) {
+    await updateScheduleMap(schedule.id, null);
+    revalidatePath(`/${scheduleSlug}/admin`);
+    revalidatePath(`/${scheduleSlug}/schedule`);
+    return { success: t("admin.errors.mapRemoved") };
+  }
+
+  if (trimmed.length > MAX_MAP_SVG_LENGTH) {
+    return { error: t("admin.errors.mapTooLarge") };
+  }
+  if (!/^<svg[\s>]/i.test(trimmed)) {
+    return { error: t("admin.errors.mapInvalid") };
+  }
+
+  const sanitized = sanitizeSvg(trimmed);
+  if (!/^<svg[\s>]/i.test(sanitized)) {
+    return { error: t("admin.errors.mapInvalid") };
+  }
+
+  await updateScheduleMap(schedule.id, sanitized);
+  revalidatePath(`/${scheduleSlug}/admin`);
+  revalidatePath(`/${scheduleSlug}/schedule`);
+  return { success: t("admin.errors.mapSaved") };
 }

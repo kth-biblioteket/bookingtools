@@ -147,6 +147,8 @@ const en: Dictionary = {
     cornerTime: "Time",
     cornerDay: "Day",
     closedToday: "Closed this day.",
+    showMap: "Show map",
+    hideMap: "Hide map",
   },
   legend: {
     confirmedBooking: "Confirmed booking",
@@ -189,6 +191,12 @@ const en: Dictionary = {
     usersHeading: "Accounts",
     usersSubtitle: "See all accounts and remove ones that should no longer have access.",
     manageUsers: "Manage accounts →",
+    mapHeading: "Map",
+    mapSubtitle:
+      "A map of where this schedule's rooms are, e.g. a floor plan. Shown to visitors on the schedule page behind a \"Show map\" button.",
+    mapSvgLabel: "SVG markup",
+    mapSvgHint:
+      "Paste SVG markup. An element can carry a data-room=\"<room number>\" attribute so a future feature could link it to a specific room. Leave empty to remove the map.",
     errors: {
       stepPositive: "The booking interval must be a positive integer",
       minPositive: "Minimum length must be a positive integer",
@@ -200,6 +208,10 @@ const en: Dictionary = {
       hourRange: "Must be an hour between 0 and 24",
       openingHoursOrder: "Opening time must be earlier than closing time",
       saved: "Settings saved!",
+      mapSaved: "Map saved!",
+      mapRemoved: "Map removed.",
+      mapTooLarge: "The SVG markup is too large (max 500 KB).",
+      mapInvalid: "That doesn't look like valid SVG markup.",
     },
   },
   adminRooms: {

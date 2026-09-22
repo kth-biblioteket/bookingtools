@@ -53,3 +53,9 @@ export async function renameSchedule(
 export async function setScheduleActive(id: string, isActive: boolean) {
   return db.schedule.update({ where: { id }, data: { isActive } });
 }
+
+/** `mapSvg` must already be sanitized (see src/lib/svg-sanitize.ts) —
+ * this just persists whatever it's given. `null` clears the map. */
+export async function updateScheduleMap(id: string, mapSvg: string | null) {
+  return db.schedule.update({ where: { id }, data: { mapSvg } });
+}

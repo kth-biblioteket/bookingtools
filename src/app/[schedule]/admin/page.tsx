@@ -5,6 +5,7 @@ import { getSettings, getOpeningHours } from "@/lib/settings";
 import { getScheduleBySlug } from "@/lib/schedules";
 import { getT } from "@/lib/i18n/get-dictionary";
 import { SettingsForm } from "./settings-form";
+import { MapForm } from "./map-form";
 
 export default async function AdminPage({
   params,
@@ -33,6 +34,12 @@ export default async function AdminPage({
       <p className="mt-1 text-sm text-gray-500">{t("admin.subtitle")}</p>
 
       <SettingsForm scheduleSlug={slug} settings={settings} openingHours={openingHours} />
+
+      <div className="mt-10 border-t border-gray-200 pt-6">
+        <h2 className="text-lg font-semibold text-gray-900">{t("admin.mapHeading")}</h2>
+        <p className="mt-1 text-sm text-gray-500">{t("admin.mapSubtitle")}</p>
+        <MapForm scheduleSlug={slug} mapSvg={schedule.mapSvg} />
+      </div>
 
       <div className="mt-10 border-t border-gray-200 pt-6">
         <h2 className="text-lg font-semibold text-gray-900">{t("admin.roomsHeading")}</h2>

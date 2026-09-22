@@ -53,6 +53,13 @@ model Schedule {
   description String?
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
+  // Admin-supplied SVG markup showing where this schedule's rooms are
+  // located (e.g. a floor plan) — sanitized server-side before being stored
+  // (see src/lib/svg-sanitize.ts), rendered raw on the public schedule page
+  // behind a "show map" toggle. Elements can carry a `data-room="<roomNumber>"`
+  // attribute so a future feature could highlight a specific room; nothing
+  // reads that attribute yet.
+  mapSvg      String?
 
   rooms        Room[]
   settings     Settings?

@@ -10,6 +10,7 @@ import { DateNav } from "@/components/date-nav";
 import { addDays } from "@/lib/date";
 import { getT } from "@/lib/i18n/get-dictionary";
 import { ScheduleBoard } from "./schedule-board";
+import { ScheduleMap } from "./schedule-map";
 
 export default async function SchedulePage({
   params,
@@ -41,6 +42,7 @@ export default async function SchedulePage({
       <AutoRefresh />
       <h1 className="text-2xl font-semibold text-gray-900">{t("schedule.heading")}</h1>
       <p className="mt-1 text-sm text-gray-500">{t("schedule.subtitle")}</p>
+      {schedule.mapSvg && <ScheduleMap mapSvg={schedule.mapSvg} />}
 
       <div className="mt-6 flex items-center justify-between gap-2">
         <Link

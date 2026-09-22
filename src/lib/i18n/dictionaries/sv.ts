@@ -147,6 +147,8 @@ const sv: Dictionary = {
     cornerTime: "Tid",
     cornerDay: "Dag",
     closedToday: "Stängt den här dagen.",
+    showMap: "Visa karta",
+    hideMap: "Dölj karta",
   },
   legend: {
     confirmedBooking: "Bekräftad bokning",
@@ -189,6 +191,11 @@ const sv: Dictionary = {
     usersHeading: "Konton",
     usersSubtitle: "Se alla konton och ta bort de som inte längre ska ha tillgång.",
     manageUsers: "Hantera konton →",
+    mapHeading: "Karta",
+    mapSubtitle: "En karta över var schemats rum finns, t.ex. en planritning. Visas för besökare på schemasidan bakom en \"Visa karta\"-knapp.",
+    mapSvgLabel: "SVG-kod",
+    mapSvgHint:
+      "Klistra in SVG-markup. Ett element kan ha attributet data-room=\"<rumsnummer>\" för att i framtiden kunna kopplas till ett specifikt rum. Lämna tomt för att ta bort kartan.",
     errors: {
       stepPositive: "Bokningsintervallet måste vara ett positivt heltal",
       minPositive: "Minsta längd måste vara ett positivt heltal",
@@ -200,6 +207,10 @@ const sv: Dictionary = {
       hourRange: "Måste vara en timme mellan 0 och 24",
       openingHoursOrder: "Öppningstiden måste vara tidigare än stängningstiden",
       saved: "Inställningarna är sparade!",
+      mapSaved: "Kartan är sparad!",
+      mapRemoved: "Kartan är borttagen.",
+      mapTooLarge: "SVG-koden är för stor (max 500 KB).",
+      mapInvalid: "Det där ser inte ut som giltig SVG-kod.",
     },
   },
   adminRooms: {
