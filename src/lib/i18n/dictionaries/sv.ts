@@ -193,9 +193,10 @@ const sv: Dictionary = {
     manageUsers: "Hantera konton →",
     mapHeading: "Karta",
     mapSubtitle: "En karta över var schemats rum finns, t.ex. en planritning. Visas för besökare på schemasidan bakom en \"Visa karta\"-knapp.",
-    mapSvgLabel: "SVG-kod",
-    mapSvgHint:
-      "Klistra in SVG-markup. Ett element kan ha attributet data-room=\"<rumsnummer>\" för att i framtiden kunna kopplas till ett specifikt rum. Lämna tomt för att ta bort kartan.",
+    mapSvgLabel: "Kartbild (SVG-fil)",
+    mapSvgHint: "Välj en .svg-fil att ladda upp, eller klistra in koden direkt nedan.",
+    mapSvgPasteHint:
+      "Ett element kan ha attributet data-room=\"<rumsnummer>\" för att i framtiden kunna kopplas till ett specifikt rum. Lämna tomt för att ta bort kartan.",
     errors: {
       stepPositive: "Bokningsintervallet måste vara ett positivt heltal",
       minPositive: "Minsta längd måste vara ett positivt heltal",

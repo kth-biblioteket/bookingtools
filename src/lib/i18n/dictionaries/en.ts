@@ -194,9 +194,10 @@ const en: Dictionary = {
     mapHeading: "Map",
     mapSubtitle:
       "A map of where this schedule's rooms are, e.g. a floor plan. Shown to visitors on the schedule page behind a \"Show map\" button.",
-    mapSvgLabel: "SVG markup",
-    mapSvgHint:
-      "Paste SVG markup. An element can carry a data-room=\"<room number>\" attribute so a future feature could link it to a specific room. Leave empty to remove the map.",
+    mapSvgLabel: "Map image (SVG file)",
+    mapSvgHint: "Choose an .svg file to upload, or paste the markup directly below.",
+    mapSvgPasteHint:
+      "An element can carry a data-room=\"<room number>\" attribute so a future feature could link it to a specific room. Leave empty to remove the map.",
     errors: {
       stepPositive: "The booking interval must be a positive integer",
       minPositive: "Minimum length must be a positive integer",

@@ -196,6 +196,7 @@ export interface Dictionary {
     mapSubtitle: string;
     mapSvgLabel: string;
     mapSvgHint: string;
+    mapSvgPasteHint: string;
     errors: {
       stepPositive: string;
       minPositive: string;
