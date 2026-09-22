@@ -76,7 +76,7 @@ export default async function AdminRoomsPage({
                 >
                   {t("adminRooms.edit")}
                 </Link>
-                <DeleteRoomButton roomId={room.id} action={(id) => deleteRoom(slug, id)} />
+                <DeleteRoomButton roomId={room.id} action={deleteRoom.bind(null, slug)} />
               </div>
             </div>
           ))}

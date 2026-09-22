@@ -58,7 +58,7 @@ export default async function BookingsPage({
                   {formatDateTime(b.startTime)}–{b.endTime.toTimeString().slice(0, 5)}
                 </p>
               </div>
-              <CancelButton bookingId={b.id} action={(id) => cancelBooking(slug, id)} />
+              <CancelButton bookingId={b.id} action={cancelBooking.bind(null, slug)} />
             </div>
           ))}
         </div>
