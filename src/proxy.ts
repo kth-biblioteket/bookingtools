@@ -66,7 +66,13 @@ export async function proxy(request: NextRequest) {
   if (!token) return NextResponse.next();
 
   try {
-    const { payload } = await jwtVerify(token, getJwks());
+    // librarytools-auth sets `iss` to the public origin it was reached on —
+    // the same shared host as this app — not to KTH_AUTH_JWKS_URL's origin,
+    // which is the internal apps-net address (see bookingtools.env.example).
+    const { payload } = await jwtVerify(token, getJwks(), {
+      algorithms: ["EdDSA"],
+      issuer: publicUrl(request).origin,
+    });
     const claims = payload as unknown as IdentityClaims;
 
     let user = await db.user.findUnique({ where: { oidcSubject: claims.sub } });

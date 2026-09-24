@@ -6,7 +6,7 @@ import { SignupForm } from "./signup-form";
 
 export default async function SignupPage() {
   const user = await getCurrentUser();
-  if (user) redirect("/rooms");
+  if (user) redirect("/");
   const { t } = await getT();
 
   return (

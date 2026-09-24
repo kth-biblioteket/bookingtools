@@ -12,7 +12,9 @@ export default async function LoginPage({
 }) {
   const { returnTo, error } = await searchParams;
   const user = await getCurrentUser();
-  if (user) redirect(returnTo && returnTo.startsWith("/") ? returnTo : "/rooms");
+  // "/" is the schedule selector (or the only schedule's rooms page).
+  const target = returnTo && returnTo.startsWith("/") && !returnTo.startsWith("//") ? returnTo : "/";
+  if (user) redirect(target);
   const { t } = await getT();
 
   // KTH login is handled entirely by the separate librarytools-auth service
@@ -36,12 +38,14 @@ export default async function LoginPage({
         returnTo={returnTo}
         oidcEnabled={oidcEnabled}
         // librarytools-auth lives at a sibling path (/mrbs), not under this
-        // app's own basePath — but the returnTo it hands back to afterwards
-        // must be a full cross-app path, so that (unlike the href itself)
-        // does need withBasePath().
+        // app's own basePath — but the paths it hands back to afterwards
+        // (returnTo on success, errorTo on failure) must be full cross-app
+        // paths, so those (unlike the href itself) do need withBasePath().
+        // errorTo carries returnTo along so a retry after an error still
+        // lands where the user was headed; auth appends &error=<code>.
         kthLoginHref={`/mrbs/login?returnTo=${encodeURIComponent(
-          withBasePath(returnTo && returnTo.startsWith("/") ? returnTo : "/rooms")
-        )}`}
+          withBasePath(target)
+        )}&errorTo=${encodeURIComponent(withBasePath(`/login?returnTo=${encodeURIComponent(target)}`))}`}
       />
       <p className="mt-6 text-sm text-gray-500">
         {t("auth.login.noAccount")}{" "}

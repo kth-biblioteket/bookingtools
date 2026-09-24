@@ -56,7 +56,7 @@ export async function signup(
   });
 
   await createSession(user.id);
-  redirect("/rooms");
+  redirect("/");
 }
 
 export async function login(
@@ -95,7 +95,7 @@ export async function login(
   }
 
   await createSession(user.id);
-  redirect(safeReturnTo(formData.get("returnTo")) ?? "/rooms");
+  redirect(safeReturnTo(formData.get("returnTo")) ?? "/");
 }
 
 export async function logout() {
