@@ -28,6 +28,32 @@ function getJwks() {
   return jwks;
 }
 
+/** librarytools-auth sets the identity cookie with `Domain=<shared host>`,
+ * and a browser only drops a domain cookie when the deletion carries the
+ * same Domain — a bare delete would leave it alive for its full 60s, and
+ * every request in that window would mint another session. Traefik passes
+ * the public Host header through unchanged, and that host is exactly the
+ * cookie domain (apps.lib.kth.se / apps-ref.lib.kth.se). */
+function deleteIdentityCookie(request: NextRequest, response: NextResponse) {
+  const host = publicHost(request).split(":")[0];
+  response.cookies.set(IDENTITY_COOKIE, "", { path: "/", maxAge: 0, ...(host && { domain: host }) });
+}
+
+function publicHost(request: NextRequest) {
+  return request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? request.nextUrl.host;
+}
+
+/** The URL the browser actually asked for — behind Traefik, request.nextUrl
+ * can carry the container's own http origin instead of the public https one. */
+function publicUrl(request: NextRequest) {
+  const url = request.nextUrl.clone();
+  const [hostname, port = ""] = publicHost(request).split(":");
+  url.hostname = hostname;
+  url.port = port;
+  url.protocol = request.headers.get("x-forwarded-proto") ?? url.protocol;
+  return url;
+}
+
 type IdentityClaims = {
   sub: string;
   email: string;
@@ -63,14 +89,14 @@ export async function proxy(request: NextRequest) {
     // to the response, so the page about to render would still look logged
     // out. Redirecting to the same URL forces one more round trip that
     // actually carries session_id.
-    const response = NextResponse.redirect(request.nextUrl);
+    const response = NextResponse.redirect(publicUrl(request));
     response.cookies.set(SESSION_COOKIE, session.id, sessionCookieOptions(session.expiresAt));
-    response.cookies.delete(IDENTITY_COOKIE);
+    deleteIdentityCookie(request, response);
     return response;
   } catch (error) {
     console.error("KTH identity token verification failed:", error);
     const response = NextResponse.next();
-    response.cookies.delete(IDENTITY_COOKIE);
+    deleteIdentityCookie(request, response);
     return response;
   }
 }
