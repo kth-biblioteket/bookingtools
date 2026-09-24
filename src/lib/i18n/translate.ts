@@ -298,6 +298,7 @@ export interface Dictionary {
       slugRequired: string;
       slugTooLong: string;
       slugInvalid: string;
+      slugReserved: string;
       slugTaken: string;
       nameRequired: string;
     };

@@ -25,6 +25,28 @@ export async function getAllSchedules() {
   return db.schedule.findMany({ orderBy: { createdAt: "asc" } });
 }
 
+/**
+ * Slugs a schedule can't use because a static top-level route already owns
+ * that path segment — static routes win over `[schedule]/`, so a schedule
+ * with one of these slugs would be unreachable. Keep in sync with the
+ * folders directly under src/app/ (route groups like `(auth)` excluded,
+ * their children listed instead).
+ */
+const RESERVED_SCHEDULE_SLUGS = new Set([
+  "admin",
+  "api",
+  "bookings",
+  "login",
+  "rooms",
+  "schedule",
+  "signup",
+  "system-admin",
+]);
+
+export function isReservedScheduleSlug(slug: string) {
+  return RESERVED_SCHEDULE_SLUGS.has(slugify(slug));
+}
+
 function slugify(value: string) {
   return value
     .trim()

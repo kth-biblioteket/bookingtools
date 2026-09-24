@@ -299,6 +299,7 @@ const en: Dictionary = {
       slugRequired: "Short name is required",
       slugTooLong: "Short name can be at most 50 characters",
       slugInvalid: "Short name can only contain letters, numbers, and hyphens",
+      slugReserved: "That short name is reserved by the app, choose another",
       slugTaken: "A schedule with that short name already exists",
       nameRequired: "Name is required",
     },

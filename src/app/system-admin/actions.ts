@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
-import { createSchedule, renameSchedule, setScheduleActive } from "@/lib/schedules";
+import { createSchedule, isReservedScheduleSlug, renameSchedule, setScheduleActive } from "@/lib/schedules";
 import { getT } from "@/lib/i18n/get-dictionary";
 
 export type ScheduleActionState = { error?: string; success?: string } | undefined;
@@ -24,7 +24,8 @@ export async function createScheduleAction(
       .trim()
       .min(1, t("systemAdmin.errors.slugRequired"))
       .max(50, t("systemAdmin.errors.slugTooLong"))
-      .regex(/^[a-z0-9-]+$/i, t("systemAdmin.errors.slugInvalid")),
+      .regex(/^[a-z0-9-]+$/i, t("systemAdmin.errors.slugInvalid"))
+      .refine((slug) => !isReservedScheduleSlug(slug), t("systemAdmin.errors.slugReserved")),
     name: z.string().trim().min(1, t("systemAdmin.errors.nameRequired")).max(100),
     description: z.string().trim().max(300).optional(),
   });

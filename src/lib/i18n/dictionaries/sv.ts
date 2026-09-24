@@ -298,6 +298,7 @@ const sv: Dictionary = {
       slugRequired: "Kortnamn krävs",
       slugTooLong: "Kortnamn får vara högst 50 tecken",
       slugInvalid: "Kortnamn får bara innehålla bokstäver, siffror och bindestreck",
+      slugReserved: "Det kortnamnet är reserverat av appen, välj ett annat",
       slugTaken: "Det finns redan ett schema med det kortnamnet",
       nameRequired: "Namn krävs",
     },
