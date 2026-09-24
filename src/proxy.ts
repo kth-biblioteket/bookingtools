@@ -109,6 +109,12 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    // Under a basePath the app root itself (/bookingtools, no trailing
+    // slash) isn't matched by the catch-all below — and "/" is where
+    // librarytools-auth sends people back to by default. Without this the
+    // landing page renders logged out and the session only appears when a
+    // background <Link> prefetch happens to trip the proxy.
+    { source: "/", has: [{ type: "cookie", key: "kth_identity" }] },
     {
       source: "/((?!_next/static|_next/image|favicon.ico).*)",
       has: [{ type: "cookie", key: "kth_identity" }],
