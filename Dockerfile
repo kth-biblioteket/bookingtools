@@ -12,6 +12,14 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
+# ---- prod-deps: runtime dependencies only (no TypeScript/ESLint/Playwright/
+# Tailwind) for the runner stage. `prisma` itself is a regular dependency,
+# since `prisma migrate deploy` runs at container start. ----
+FROM node:22.23.2-alpine AS prod-deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
 # ---- builder: generate the Prisma client and build the Next.js app ----
 FROM node:22.23.2-alpine AS builder
 WORKDIR /app
@@ -35,21 +43,22 @@ WORKDIR /app
 ENV NODE_ENV=production
 RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/next.config.ts ./next.config.ts
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
+# --chown on every COPY, not a trailing `chown -R /app`: a separate RUN that
+# touches every file rewrites them all into a new layer, doubling the image.
+COPY --from=prod-deps --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/next.config.ts ./next.config.ts
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 # The Prisma schema/migrations (for `prisma migrate deploy` at startup) and
 # the generated client's native query-engine binary — the latter lives
 # outside node_modules because schema.prisma points its `generator client`
 # output at src/generated/prisma, not the default location.
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
-COPY --from=builder /app/src/generated ./src/generated
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder --chown=nextjs:nodejs /app/src/generated ./src/generated
 
-COPY docker-entrypoint.sh ./
-RUN chmod +x docker-entrypoint.sh && chown -R nextjs:nodejs /app
+COPY --chown=nextjs:nodejs --chmod=755 docker-entrypoint.sh ./
 
 USER nextjs
 EXPOSE 3000
